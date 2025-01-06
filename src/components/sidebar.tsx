@@ -12,6 +12,7 @@ export default function Sidebar() {
         <Link
           href="/employee-beranda"
           className="flex items-center px-4 py-2 mx-2 text-gray-700 rounded-lg hover:bg-gray-100"
+          draggable={false}
         >
           <Icon icon="lucide:home" className="w-5 h-5" />
           <span className="ml-3">Beranda</span>
@@ -19,6 +20,7 @@ export default function Sidebar() {
         <Link
           href="/employee-riwayat-dokumen"
           className="flex items-center px-4 py-2 mx-2 text-gray-700 rounded-lg hover:bg-gray-100"
+          draggable={false}
         >
           <Icon icon="mdi:archive-time-outline" className="w-5 h-5" />
           <span className="ml-3">Riwayat Dokumen</span>
@@ -26,6 +28,7 @@ export default function Sidebar() {
         <Link
           href="/employee-pembuatan-dokumen"
           className="flex items-center px-4 py-2 mx-2 text-gray-700 rounded-lg hover:bg-gray-100"
+          draggable={false}
         >
           <Icon icon="mdi:file-document-plus-outline" className="w-5 h-5" />
           <span className="ml-3">Pembuatan Dokumen</span>
