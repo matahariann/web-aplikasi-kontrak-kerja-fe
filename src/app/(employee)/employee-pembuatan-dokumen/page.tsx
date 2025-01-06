@@ -694,14 +694,22 @@ export default function BuatDokumen() {
           </div>
         ))}
         <div className="flex justify-between mt-6">
-          <Button onClick={handleGenerateDoc}>
-            <Printer className="w-4 h-4 mr-2" />
-            Cetak
-          </Button>
-          <Button onClick={() => setCurrentStep(3)}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Sebelumnya
-          </Button>
+          <div className="flex space-x-4">
+            <Button onClick={handleOfficialsSubmit}>
+              <Save className="w-4 h-4 mr-2" />
+              Simpan
+            </Button>
+            <Button onClick={handleGenerateDoc}>
+              <Printer className="w-4 h-4 mr-2" />
+              Cetak
+            </Button>
+          </div>
+          <div>
+            <Button onClick={() => setCurrentStep(3)}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Sebelumnya
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
