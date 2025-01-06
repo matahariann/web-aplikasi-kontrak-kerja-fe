@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import useScroll from "@/hooks/use-scroll";
+import { Employee, getEmployee } from "@/services/employee";
 import { useSelectedLayoutSegment, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import {
@@ -17,10 +18,30 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const Header = () => {
+  const router = useRouter();
+  const [employee, setEmployee] = useState<Employee | null>(null);
   const scrolled = useScroll(5);
   const selectedLayout = useSelectedLayoutSegment();
-  const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const getData = async (token: string) => {
+    try {
+      const res = await getEmployee(token);
+      setEmployee(res);
+    } catch (error) {
+      console.error("Error getting employee data:", error);
+      // Optional: Handle error UI state
+      router.push("/"); // Redirect ke login jika terjadi error
+    }
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/");
+    } else {
+      getData(token);
+    }
+  }, [router]);
 
   const handleLogout = async () => {
     try {
@@ -75,7 +96,7 @@ const Header = () => {
               className="h-8 w-8 rounded-full"
               style={{ userSelect: 'none' }}
             />
-            <span className="font-medium" style={{ userSelect: 'none' }}>DZU SUNAN MUHAMMAD</span>
+            <span className="font-medium" style={{ userSelect: 'none' }}>{employee?.nama}</span>
             <Icon icon="lucide:chevron-down" className="w-4 h-4" />
           </div>
 
