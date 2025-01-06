@@ -10,20 +10,18 @@ type Props = {
 
 export default function LayoutProtected({ children }: Props) {
   return (
-    <html lang="en">
-      <Sidebar />
-      <body className="bg-gray-100">
-        <div className="flex">
-          <main className="flex-1">
-            <Header />
-            <MarginWidthWrapper>
-              <div className="bg-white ml-6 mt-8 mb-4 p-4 rounded-sm shadow-sm">
+    <div className="min-h-screen">
+      <div className="flex">
+        <Sidebar />
+        <main className="flex-1 bg-gray-100">
+          <Header />
+          <MarginWidthWrapper>
+            <div className="bg-white mx-6 mt-8 mb-4 p-4 rounded-sm shadow-sm">
               <PageWrapper>{children}</PageWrapper>
-              </div>
-            </MarginWidthWrapper>
-          </main>
-        </div>
-      </body>
-    </html>
+            </div>
+          </MarginWidthWrapper>
+        </main>
+      </div>
+    </div>
   );
 }

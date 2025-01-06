@@ -78,9 +78,19 @@ const Header = () => {
         </div>
 
         {/* Center - Title */}
-        <div className="flex items-center absolute left-1/2 transform -translate-x-1/2">
-          <img src="/logo_kominfo.png" alt="Logo Kominfo" className="h-10 w-10" />
-          <span className="ml-2 text-xl font-semibold">Dokumen Kontrak Kerja Apps</span>
+        <div
+          className="flex items-center absolute left-1/2 transform -translate-x-1/2"
+          style={{ userSelect: "none" }}
+        >
+          <img
+            src="/logo_kominfo.png"
+            alt="Logo Kominfo"
+            className="h-10 w-10"
+            draggable={false}
+          />
+          <span className="ml-2 text-xl font-semibold">
+            Dokumen Kontrak Kerja Apps
+          </span>
         </div>
 
         {/* Right side - User Profile with Dropdown */}
@@ -88,21 +98,23 @@ const Header = () => {
           <div
             className="flex items-center space-x-2 px-3 py-2 rounded-full hover:bg-gray-100 cursor-pointer"
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            style={{ userSelect: 'none' }}
+            style={{ userSelect: "none" }}
           >
             <img
               src="/profile-photo.png"
               alt="Profile"
               className="h-8 w-8 rounded-full"
-              style={{ userSelect: 'none' }}
+              draggable={false}
             />
-            <span className="font-medium" style={{ userSelect: 'none' }}>{employee?.nama}</span>
+            <span className="font-medium">
+              {employee?.nama}
+            </span>
             <Icon icon="lucide:chevron-down" className="w-4 h-4" />
           </div>
 
           {/* Profile Dropdown */}
           {isProfileOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200">
+            <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <button className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 rounded-lg flex items-center space-x-2">

@@ -17,7 +17,7 @@ export default function Login() {
       if (res) {
         console.log("ini berhasil login");
         localStorage.setItem("token", res.token);
-        router.push("/user-home");
+        router.push("/employee-beranda");
         console.log(res);
       }
     } catch (error: any) {
