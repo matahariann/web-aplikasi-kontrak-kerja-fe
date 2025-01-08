@@ -19,6 +19,13 @@ export interface VendorData {
   nama_rek_vendor: string;
 }
 
+export interface OfficialData {
+  nip: string;
+  nama: string;
+  jabatan: string;
+  periode_jabatan: string;
+}
+
 export const getEmployee = async (token: string): Promise<Employee> => {
     try {
       const response = await axios.get(
@@ -78,6 +85,46 @@ export const getEmployee = async (token: string): Promise<Employee> => {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || "Gagal menghapus data vendor");
+      }
+      throw error;
+    }
+  };
+
+  export const addOfficial = async (token: string, officialData: OfficialData) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:8000/api/addOfficial`,
+        officialData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || "Data pejabat sudah ada dalam database");
+      }
+      throw error;
+    }
+  };
+
+  export const deleteOfficial = async (token: string, officialId: number) => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:8000/api/deleteOfficial/${officialId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || "Gagal menghapus data pejabat");
       }
       throw error;
     }
