@@ -2,11 +2,22 @@ import axios from "axios";
 
 export type Employee = {
   nip: string;
-  nama: string;
+  nama_vendor: string;
   email: string;
   noTelp: string;
   alamat: string;
 };
+
+export interface VendorData {
+  nama_vendor: string;
+  alamat_vendor: string;
+  nama_pj: string;
+  jabatan_pj: string;
+  npwp: string;
+  bank_vendor: string;
+  norek_vendor: string;
+  nama_rek_vendor: string;
+}
 
 export const getEmployee = async (token: string): Promise<Employee> => {
     try {
@@ -29,5 +40,26 @@ export const getEmployee = async (token: string): Promise<Employee> => {
     } catch (error) {
       console.error("Error fetching employee:", error);
       throw new Error("Terjadi kesalahan dalam mendapatkan data operator");
+    }
+  };
+
+  export const addVendor = async (token: string, vendorData: VendorData) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:8000/api/addVendor`,
+        vendorData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || "Data vendor sudah ada dalam database");
+      }
+      throw error;
     }
   };

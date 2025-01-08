@@ -13,7 +13,7 @@ export default function LayoutProtected({ children }: Props) {
     <div className="min-h-screen">
       <div className="flex">
         <Sidebar />
-        <main className="flex-1 bg-gray-100">
+        <main className="flex-1 bg-gray-100 min-h-screen">
           <Header />
           <MarginWidthWrapper>
             <div className="bg-white mx-6 mt-8 mb-4 p-4 rounded-sm shadow-sm">

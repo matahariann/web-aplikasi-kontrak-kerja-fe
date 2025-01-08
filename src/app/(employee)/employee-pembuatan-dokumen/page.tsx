@@ -7,10 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PlusCircle, Save, Printer, ArrowRight, ArrowLeft } from "lucide-react";
 import axios from "axios";
+import { addVendor, VendorData } from "@/services/employee";
 
 export default function BuatDokumen() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [vendorData, setVendorData] = useState({
+  const [error, setError] = useState<string | null>(null);
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [vendorData, setVendorData] = useState<VendorData>({
     nama_vendor: "",
     alamat_vendor: "",
     nama_pj: "",
@@ -20,6 +24,14 @@ export default function BuatDokumen() {
     norek_vendor: "",
     nama_rek_vendor: "",
   });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setVendorData((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
+  };
 
   const [officialsData, setOfficialsData] = useState([
     {
@@ -82,20 +94,47 @@ export default function BuatDokumen() {
     },
   ]);
 
-  const handleVendorSubmit = async () => {
+  const handleVendorSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setError(null);
+    setIsSubmitted(true);
+
+    const requiredFields: (keyof VendorData)[] = [
+      "nama_vendor",
+      "alamat_vendor",
+      "nama_pj",
+      "jabatan_pj",
+      "npwp",
+      "bank_vendor",
+      "norek_vendor",
+      "nama_rek_vendor",
+    ];
+
+    const emptyFields = requiredFields.filter((field) => !vendorData[field]);
+
+    if (emptyFields.length > 0) {
+      setError(`Mohon lengkapi semua input`);
+      return;
+    }
+
     try {
-      const response = await axios.post("/api/vendors", vendorData);
-      if (response.status === 201) {
-        // Update form with vendor ID for documents
-        setDocuments((docs) =>
-          docs.map((doc) => ({
-            ...doc,
-            id_vendor: response.data.data.id,
-          }))
-        );
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Anda belum login. Silakan login terlebih dahulu.");
+      }
+
+      const response = await addVendor(token, vendorData);
+
+      if (response) {
+        setShowSuccessAlert(true);
+        setIsSubmitted(false);
+        setTimeout(() => {
+          setShowSuccessAlert(false);
+        }, 3000);
       }
     } catch (error) {
-      console.error("Error saving vendor:", error);
+      setShowSuccessAlert(false); 
+      setError(error instanceof Error ? error.message : "Terjadi kesalahan");
     }
   };
 
@@ -151,108 +190,203 @@ export default function BuatDokumen() {
   };
 
   const renderVendorForm = () => (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Data Vendor</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="nama_vendor">Nama Vendor</Label>
-            <Input
-              id="nama_vendor"
-              value={vendorData.nama_vendor}
-              onChange={(e) =>
-                setVendorData({ ...vendorData, nama_vendor: e.target.value })
-              }
-            />
-          </div>
-          <div>
-            <Label htmlFor="alamat_vendor">Alamat Vendor</Label>
-            <Input
-              id="alamat_vendor"
-              value={vendorData.alamat_vendor}
-              onChange={(e) =>
-                setVendorData({ ...vendorData, alamat_vendor: e.target.value })
-              }
-            />
-          </div>
-          <div>
-            <Label htmlFor="nama_pj">Nama Penanggung Jawab</Label>
-            <Input
-              id="nama_pj"
-              value={vendorData.nama_pj}
-              onChange={(e) =>
-                setVendorData({ ...vendorData, nama_pj: e.target.value })
-              }
-            />
-          </div>
-          <div>
-            <Label htmlFor="jabtan_pj">Jabatan Penanggung Jawab</Label>
-            <Input
-              id="jabatan_pj"
-              value={vendorData.jabatan_pj}
-              onChange={(e) =>
-                setVendorData({ ...vendorData, jabatan_pj: e.target.value })
-              }
-            />
-          </div>
-          <div>
-            <Label htmlFor="npwp">NPWP</Label>
-            <Input
-              id="npwp"
-              value={vendorData.npwp}
-              onChange={(e) =>
-                setVendorData({ ...vendorData, npwp: e.target.value })
-              }
-            />
-          </div>
-          <div>
-            <Label htmlFor="bank_vendor">Nama Bank Vendor</Label>
-            <Input
-              id="bank_vendor"
-              value={vendorData.bank_vendor}
-              onChange={(e) =>
-                setVendorData({ ...vendorData, bank_vendor: e.target.value })
-              }
-            />
-          </div>
-          <div>
-            <Label htmlFor="norek_vendor">Nomor Rekening Vendor</Label>
-            <Input
-              id="norek_vendor"
-              value={vendorData.norek_vendor}
-              onChange={(e) =>
-                setVendorData({ ...vendorData, norek_vendor: e.target.value })
-              }
-            />
-          </div>
-          <div>
-            <Label htmlFor="nama_rek_vendor">Nama Rekening Vendor</Label>
-            <Input
-              id="nama_rek_vendor"
-              value={vendorData.nama_rek_vendor}
-              onChange={(e) =>
-                setVendorData({
-                  ...vendorData,
-                  nama_rek_vendor: e.target.value,
-                })
-              }
-            />
-          </div>
+    <>
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
         </div>
-        <div className="flex justify-between mt-6">
-          <Button onClick={handleVendorSubmit}>
-            <Save className="w-4 h-4 mr-2" />
-            Simpan
-          </Button>
-          <Button onClick={() => setCurrentStep(2)}>
-            Berikutnya
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
+      )}
+
+      {showSuccessAlert && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+          Data vendor berhasil disimpan!
         </div>
-      </CardContent>
-    </Card>
+      )}
+
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Data Vendor</CardTitle>
+          <p className="text-sm text-red-500">*Wajib diisi</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="nama_vendor">
+                Nama Vendor <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="nama_vendor"
+                value={vendorData.nama_vendor}
+                onChange={handleInputChange}
+                className={
+                  isSubmitted && !vendorData.nama_vendor ? "border-red-300" : ""
+                }
+              />
+              {isSubmitted && !vendorData.nama_vendor && (
+                <p className="text-red-500 text-sm mt-1">
+                  Nama Vendor tidak boleh kosong
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="alamat_vendor">
+                Alamat Vendor <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="alamat_vendor"
+                value={vendorData.alamat_vendor}
+                onChange={handleInputChange}
+                className={
+                  isSubmitted && !vendorData.alamat_vendor
+                    ? "border-red-300"
+                    : ""
+                }
+              />
+              {isSubmitted && !vendorData.alamat_vendor && (
+                <p className="text-red-500 text-sm mt-1">
+                  Alamat vendor tidak boleh kosong
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="nama_pj">
+                Nama Penanggung Jawab <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="nama_pj"
+                value={vendorData.nama_pj}
+                onChange={handleInputChange}
+                className={
+                  isSubmitted && !vendorData.nama_pj ? "border-red-300" : ""
+                }
+              />
+              {isSubmitted && !vendorData.nama_pj && (
+                <p className="text-red-500 text-sm mt-1">
+                  Nama penanggung jawab tidak boleh kosong
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="jabatan_pj">
+                Jabatan Penanggung Jawab <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="jabatan_pj"
+                value={vendorData.jabatan_pj}
+                onChange={handleInputChange}
+                className={
+                  isSubmitted && !vendorData.jabatan_pj ? "border-red-300" : ""
+                }
+              />
+              {isSubmitted && !vendorData.jabatan_pj && (
+                <p className="text-red-500 text-sm mt-1">
+                  Jabatan penanggung jawab tidak boleh kosong
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="npwp">
+                NPWP <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="npwp"
+                value={vendorData.npwp}
+                onChange={handleInputChange}
+                className={
+                  isSubmitted && !vendorData.npwp ? "border-red-300" : ""
+                }
+              />
+              {isSubmitted && !vendorData.npwp && (
+                <p className="text-red-500 text-sm mt-1">
+                  NPWP tidak boleh kosong
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="bank_vendor">
+                Nama Bank Vendor <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="bank_vendor"
+                value={vendorData.bank_vendor}
+                onChange={handleInputChange}
+                className={
+                  isSubmitted && !vendorData.bank_vendor ? "border-red-300" : ""
+                }
+              />
+              {isSubmitted && !vendorData.bank_vendor && (
+                <p className="text-red-500 text-sm mt-1">
+                  Nama bank vendor tidak boleh kosong
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="norek_vendor">
+                Nomor Rekening Vendor <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="norek_vendor"
+                value={vendorData.norek_vendor}
+                onChange={handleInputChange}
+                className={
+                  isSubmitted && !vendorData.norek_vendor
+                    ? "border-red-300"
+                    : ""
+                }
+              />
+              {isSubmitted && !vendorData.norek_vendor && (
+                <p className="text-red-500 text-sm mt-1">
+                  Nomor rekening vendor tidak boleh kosong
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="nama_rek_vendor">
+                Nama Rekening Vendor <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="nama_rek_vendor"
+                value={vendorData.nama_rek_vendor}
+                onChange={handleInputChange}
+                className={
+                  isSubmitted && !vendorData.nama_rek_vendor
+                    ? "border-red-300"
+                    : ""
+                }
+              />
+              {isSubmitted && !vendorData.nama_rek_vendor && (
+                <p className="text-red-500 text-sm mt-1">
+                  Nama rekening vendor tidak boleh kosong
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-between mt-6">
+            <Button onClick={handleVendorSubmit}>
+              <Save className="w-4 h-4 mr-2" />
+              Simpan
+            </Button>
+            <Button
+              onClick={() => setCurrentStep(2)}
+              disabled={
+                !vendorData.nama_vendor ||
+                !vendorData.alamat_vendor ||
+                !vendorData.nama_pj ||
+                !vendorData.jabatan_pj ||
+                !vendorData.npwp ||
+                !vendorData.bank_vendor ||
+                !vendorData.norek_vendor ||
+                !vendorData.nama_rek_vendor
+              }
+            >
+              Berikutnya
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </>
   );
 
   const renderOfficialsForm = () => (
@@ -685,11 +819,106 @@ export default function BuatDokumen() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {contracts.map((doc, index) => (
+        {contracts.map((contract, index) => (
           <div key={index} className="border p-4 rounded-lg">
-            <h3 className="font-medium mb-4">Kontrak {index + 1}</h3>
+            <h3 className="font-medium mb-4">Deskripsi Kontrak {index + 1}</h3>
             <div className="grid grid-cols-2 gap-4">
-              {/* Add document fields */}
+              <div>
+                <Label htmlFor={`jenis_kontrak_${index}`}>Jenis Kontrak</Label>
+                <Input
+                  id={`jenis_kontrak_${index}`}
+                  value={contract.jenis_kontrak}
+                  onChange={(e) => {
+                    const updatedContracts = [...contracts];
+                    updatedContracts[index] = {
+                      ...contract,
+                      jenis_kontrak: e.target.value,
+                    };
+                    setContracts(updatedContracts);
+                  }}
+                />
+              </div>
+              <div>
+                <Label htmlFor={`Deskripsi_${index}`}>Deskripsi</Label>
+                <Input
+                  id={`deskripsi_${index}`}
+                  value={contract.deskripsi}
+                  onChange={(e) => {
+                    const updatedContracts = [...contracts];
+                    updatedContracts[index] = {
+                      ...contract,
+                      deskripsi: e.target.value,
+                    };
+                    setContracts(updatedContracts);
+                  }}
+                />
+              </div>
+              <div>
+                <Label htmlFor={`jumlah_orang_${index}`}>Jumlah Orang</Label>
+                <Input
+                  id={`jumlah_orang_${index}`}
+                  value={contract.jumlah_orang}
+                  onChange={(e) => {
+                    const updatedContracts = [...contracts];
+                    updatedContracts[index] = {
+                      ...contract,
+                      jumlah_orang: e.target.value,
+                    };
+                    setContracts(updatedContracts);
+                  }}
+                />
+              </div>
+              <div>
+                <Label htmlFor={`durasi_kontrak_${index}`}>
+                  Durasi Kontrak
+                </Label>
+                <Input
+                  id={`durasi_kontrak_${index}`}
+                  value={contract.durasi_kontrak}
+                  onChange={(e) => {
+                    const updatedContracts = [...contracts];
+                    updatedContracts[index] = {
+                      ...contract,
+                      durasi_kontrak: e.target.value,
+                    };
+                    setContracts(updatedContracts);
+                  }}
+                />
+              </div>
+              <div>
+                <Label htmlFor={`nilai_kontrak_awal_${index}`}>
+                  Harga Sebelum Negosiasi
+                </Label>
+                <Input
+                  id={`nilai_kontrak_awal_${index}`}
+                  value={contract.nilai_kontrak_awal}
+                  onChange={(e) => {
+                    const updatedContracts = [...contracts];
+                    updatedContracts[index] = {
+                      ...contract,
+                      nilai_kontrak_awal: e.target.value,
+                    };
+                    setContracts(updatedContracts);
+                  }}
+                />
+              </div>
+              <div>
+                <Label htmlFor={`nilai_kontrak_akhir_${index}`}>
+                  Harga Setelah Negosiasi
+                </Label>
+                <Input
+                  id={`nilai_kontrak_akhir_${index}`}
+                  value={contract.nilai_kontrak_akhir}
+                  onChange={(e) => {
+                    const updatedContracts = [...contracts];
+                    updatedContracts[index] = {
+                      ...contract,
+                      nilai_kontrak_akhir: e.target.value,
+                    };
+                    setContracts(updatedContracts);
+                  }}
+                />
+              </div>
             </div>
           </div>
         ))}
