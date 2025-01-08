@@ -1,28 +1,59 @@
 "use client";
 // import DocumentForm from '@/components/DocumentForm';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PlusCircle, Save, Printer, ArrowRight, ArrowLeft } from "lucide-react";
+import {
+  PlusCircle,
+  Save,
+  Printer,
+  ArrowRight,
+  ArrowLeft,
+  Trash,
+} from "lucide-react";
 import axios from "axios";
-import { addVendor, VendorData } from "@/services/employee";
+import { addVendor, deleteVendor, VendorData } from "@/services/employee";
+
+const STORAGE_KEYS = {
+  VENDOR_DATA: "vendorData",
+  IS_SAVED: "isSaved",
+  SAVED_VENDOR_ID: "savedVendorId",
+  CURRENT_STEP: "currentStep",
+};
 
 export default function BuatDokumen() {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.CURRENT_STEP);
+    return saved ? parseInt(saved) : 1;
+  });
   const [error, setError] = useState<string | null>(null);
+  const [alertType, setAlertType] = useState<"save" | "delete" | null>(null);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [vendorData, setVendorData] = useState<VendorData>({
-    nama_vendor: "",
-    alamat_vendor: "",
-    nama_pj: "",
-    jabatan_pj: "",
-    npwp: "",
-    bank_vendor: "",
-    norek_vendor: "",
-    nama_rek_vendor: "",
+  const [isSaved, setIsSaved] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.IS_SAVED);
+    return saved ? JSON.parse(saved) : false;
+  });
+  const [savedVendorId, setSavedVendorId] = useState<number | null>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.SAVED_VENDOR_ID);
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [vendorData, setVendorData] = useState<VendorData>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.VENDOR_DATA);
+    return saved
+      ? JSON.parse(saved)
+      : {
+          nama_vendor: "",
+          alamat_vendor: "",
+          nama_pj: "",
+          jabatan_pj: "",
+          npwp: "",
+          bank_vendor: "",
+          norek_vendor: "",
+          nama_rek_vendor: "",
+        };
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,14 +158,42 @@ export default function BuatDokumen() {
 
       if (response) {
         setShowSuccessAlert(true);
+        setAlertType('save');
         setIsSubmitted(false);
+        setIsSaved(true);
+        setSavedVendorId(response.data.id);
         setTimeout(() => {
           setShowSuccessAlert(false);
+          setAlertType(null);
         }, 3000);
       }
     } catch (error) {
-      setShowSuccessAlert(false); 
+      setShowSuccessAlert(false);
       setError(error instanceof Error ? error.message : "Terjadi kesalahan");
+    }
+  };
+
+  const handleVendorDelete = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token || !savedVendorId) {
+        throw new Error("Terjadi kesalahan");
+      }
+
+      await deleteVendor(token, savedVendorId);
+      
+      setIsSaved(false);
+      setSavedVendorId(null);
+      // Don't clear vendorData to keep form values
+      
+      setShowSuccessAlert(true);
+      setAlertType('delete');
+      setTimeout(() => {
+        setShowSuccessAlert(false);
+        setAlertType(null);
+      }, 3000);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Terjadi kesalahan saat menghapus data");
     }
   };
 
@@ -189,6 +248,23 @@ export default function BuatDokumen() {
     ]);
   };
 
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.VENDOR_DATA, JSON.stringify(vendorData));
+  }, [vendorData]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.IS_SAVED, JSON.stringify(isSaved));
+  }, [isSaved]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.SAVED_VENDOR_ID, JSON.stringify(savedVendorId));
+  }, [savedVendorId]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.CURRENT_STEP, currentStep.toString());
+  }, [currentStep]);
+
   const renderVendorForm = () => (
     <>
       {error && (
@@ -199,7 +275,9 @@ export default function BuatDokumen() {
 
       {showSuccessAlert && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-          Data vendor berhasil disimpan!
+          {alertType === "save"
+            ? "Data vendor berhasil disimpan!"
+            : "Pembatalan data vendor berhasil!"}
         </div>
       )}
 
@@ -363,23 +441,23 @@ export default function BuatDokumen() {
           </div>
 
           <div className="flex justify-between mt-6">
-            <Button onClick={handleVendorSubmit}>
-              <Save className="w-4 h-4 mr-2" />
-              Simpan
-            </Button>
             <Button
-              onClick={() => setCurrentStep(2)}
-              disabled={
-                !vendorData.nama_vendor ||
-                !vendorData.alamat_vendor ||
-                !vendorData.nama_pj ||
-                !vendorData.jabatan_pj ||
-                !vendorData.npwp ||
-                !vendorData.bank_vendor ||
-                !vendorData.norek_vendor ||
-                !vendorData.nama_rek_vendor
-              }
+              onClick={isSaved ? handleVendorDelete : handleVendorSubmit}
+              variant={isSaved ? "destructive" : "default"}
             >
+              {isSaved ? (
+                <>
+                  <Trash className="w-4 h-4 mr-2" />
+                  Batalkan
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Simpan
+                </>
+              )}
+            </Button>
+            <Button onClick={() => setCurrentStep(2)} disabled={!isSaved}>
               Berikutnya
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>

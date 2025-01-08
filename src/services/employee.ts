@@ -63,3 +63,22 @@ export const getEmployee = async (token: string): Promise<Employee> => {
       throw error;
     }
   };
+
+  export const deleteVendor = async (token: string, vendorId: number) => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:8000/api/deleteVendor/${vendorId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || "Gagal menghapus data vendor");
+      }
+      throw error;
+    }
+  };
