@@ -5,24 +5,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Save,
-  ArrowRight,
-  Trash,
-} from "lucide-react";
-import { addVendor, deleteVendor, VendorData } from "@/services/employee";
+import { Save, ArrowRight, Pencil } from "lucide-react";
+import { addVendor, updateVendor, VendorData } from "@/services/employee";
 
 const STORAGE_KEYS = {
   VENDOR_DATA: "vendorData",
   IS_VENDOR_SAVED: "isVendorSaved",
   SAVED_VENDOR_ID: "savedVendorId",
-  CURRENT_STEP: "currentStep",
+  IS_EDIT_MODE: "isEditMode",
 };
 
 const VendorForm = ({ currentStep, setCurrentStep }) => {
   const [vendorError, setVendorError] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.IS_EDIT_MODE);
+    return saved ? JSON.parse(saved) : false;
+  });
   const [vendorAlertType, setVendorAlertType] = useState<
-    "save" | "delete" | null
+    "save" | "delete" | "edit" | null
   >(null);
   const [vendorShowSuccessAlert, setVendorShowSuccessAlert] = useState(false);
   const [isVendorSubmitted, setIsVendorSubmitted] = useState(false);
@@ -87,14 +87,22 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
         throw new Error("Anda belum login. Silakan login terlebih dahulu.");
       }
 
-      const response = await addVendor(token, vendorData);
+      let response;
+      if (isEditMode && savedVendorId) {
+        response = await updateVendor(token, savedVendorId, vendorData);
+      } else {
+        response = await addVendor(token, vendorData);
+      }
 
       if (response) {
         setVendorShowSuccessAlert(true);
-        setVendorAlertType('save');
+        setVendorAlertType(isEditMode ? "edit" : "save");
         setIsVendorSubmitted(false);
         setIsVendorSaved(true);
-        setSavedVendorId(response.data.id);
+        setIsEditMode(false); // Reset edit mode setelah berhasil submit
+        if (!isEditMode) {
+          setSavedVendorId(response.data.id);
+        }
         setTimeout(() => {
           setVendorShowSuccessAlert(false);
           setVendorAlertType(null);
@@ -102,32 +110,15 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
       }
     } catch (vendorError) {
       setVendorShowSuccessAlert(false);
-      setVendorError(vendorError instanceof Error ? vendorError.message : "Terjadi kesalahan");
+      setVendorError(
+        vendorError instanceof Error ? vendorError.message : "Terjadi kesalahan"
+      );
     }
   };
 
-  const handleVendorDelete = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token || !savedVendorId) {
-        throw new Error("Terjadi kesalahan");
-      }
-
-      await deleteVendor(token, savedVendorId);
-      
-      setIsVendorSaved(false);
-      setSavedVendorId(null);
-      // Don't clear vendorData to keep form values
-      
-      setVendorShowSuccessAlert(true);
-      setVendorAlertType('delete');
-      setTimeout(() => {
-        setVendorShowSuccessAlert(false);
-        setVendorAlertType(null);
-      }, 3000);
-    } catch (vendorError) {
-      setVendorError(vendorError instanceof Error ? vendorError.message : "Terjadi kesalahan saat menghapus data");
-    }
+  const handleEditMode = () => {
+    setIsEditMode(true);
+    setIsVendorSaved(false);
   };
 
   useEffect(() => {
@@ -135,15 +126,25 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
   }, [vendorData]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.IS_VENDOR_SAVED, JSON.stringify(isVendorSaved));
+    localStorage.setItem(
+      STORAGE_KEYS.IS_VENDOR_SAVED,
+      JSON.stringify(isVendorSaved)
+    );
   }, [isVendorSaved]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SAVED_VENDOR_ID, JSON.stringify(savedVendorId));
+    localStorage.setItem(STORAGE_KEYS.IS_EDIT_MODE, JSON.stringify(isEditMode));
+  }, [isEditMode]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      STORAGE_KEYS.SAVED_VENDOR_ID,
+      JSON.stringify(savedVendorId)
+    );
   }, [savedVendorId]);
 
-  return(
-<>
+  return (
+    <>
       {vendorError && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-4 text-sm">
           {vendorError}
@@ -154,7 +155,9 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
         <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4 text-sm">
           {vendorAlertType === "save"
             ? "Data vendor berhasil disimpan!"
-            : "Pembatalan data vendor berhasil!"}
+            : vendorAlertType === "edit"
+            ? "Data vendor berhasil diperbarui!"
+            : ""}
         </div>
       )}
 
@@ -174,9 +177,11 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
                 value={vendorData.nama_vendor}
                 onChange={handleVendorInputChange}
                 className={
-                  isVendorSubmitted && !vendorData.nama_vendor ? "border-red-300" : ""
+                  isVendorSubmitted && !vendorData.nama_vendor
+                    ? "border-red-300"
+                    : ""
                 }
-                disabled={isVendorSaved}
+                disabled={isVendorSaved && !isEditMode}
               />
               {isVendorSubmitted && !vendorData.nama_vendor && (
                 <p className="text-red-500 text-sm mt-1">
@@ -197,7 +202,7 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
                     ? "border-red-300"
                     : ""
                 }
-                disabled={isVendorSaved}
+                disabled={isVendorSaved && !isEditMode}
               />
               {isVendorSubmitted && !vendorData.alamat_vendor && (
                 <p className="text-red-500 text-sm mt-1">
@@ -214,9 +219,11 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
                 value={vendorData.nama_pj}
                 onChange={handleVendorInputChange}
                 className={
-                  isVendorSubmitted && !vendorData.nama_pj ? "border-red-300" : ""
+                  isVendorSubmitted && !vendorData.nama_pj
+                    ? "border-red-300"
+                    : ""
                 }
-                disabled={isVendorSaved}
+                disabled={isVendorSaved && !isEditMode}
               />
               {isVendorSubmitted && !vendorData.nama_pj && (
                 <p className="text-red-500 text-sm mt-1">
@@ -233,9 +240,11 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
                 value={vendorData.jabatan_pj}
                 onChange={handleVendorInputChange}
                 className={
-                  isVendorSubmitted && !vendorData.jabatan_pj ? "border-red-300" : ""
+                  isVendorSubmitted && !vendorData.jabatan_pj
+                    ? "border-red-300"
+                    : ""
                 }
-                disabled={isVendorSaved}
+                disabled={isVendorSaved && !isEditMode}
               />
               {isVendorSubmitted && !vendorData.jabatan_pj && (
                 <p className="text-red-500 text-sm mt-1">
@@ -254,7 +263,7 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
                 className={
                   isVendorSubmitted && !vendorData.npwp ? "border-red-300" : ""
                 }
-                disabled={isVendorSaved}
+                disabled={isVendorSaved && !isEditMode}
               />
               {isVendorSubmitted && !vendorData.npwp && (
                 <p className="text-red-500 text-sm mt-1">
@@ -271,9 +280,11 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
                 value={vendorData.bank_vendor}
                 onChange={handleVendorInputChange}
                 className={
-                  isVendorSubmitted && !vendorData.bank_vendor ? "border-red-300" : ""
+                  isVendorSubmitted && !vendorData.bank_vendor
+                    ? "border-red-300"
+                    : ""
                 }
-                disabled={isVendorSaved}
+                disabled={isVendorSaved && !isEditMode}
               />
               {isVendorSubmitted && !vendorData.bank_vendor && (
                 <p className="text-red-500 text-sm mt-1">
@@ -294,7 +305,7 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
                     ? "border-red-300"
                     : ""
                 }
-                disabled={isVendorSaved}
+                disabled={isVendorSaved && !isEditMode}
               />
               {isVendorSubmitted && !vendorData.norek_vendor && (
                 <p className="text-red-500 text-sm mt-1">
@@ -315,7 +326,7 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
                     ? "border-red-300"
                     : ""
                 }
-                disabled={isVendorSaved}
+                disabled={isVendorSaved && !isEditMode}
               />
               {isVendorSubmitted && !vendorData.nama_rek_vendor && (
                 <p className="text-red-500 text-sm mt-1">
@@ -327,22 +338,30 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
 
           <div className="flex justify-between mt-6">
             <Button
-              onClick={isVendorSaved ? handleVendorDelete : handleVendorSubmit}
-              variant={isVendorSaved ? "destructive" : "default"}
+              onClick={
+                isVendorSaved && !isEditMode
+                  ? handleEditMode
+                  : handleVendorSubmit
+              }
+              variant={isEditMode ? "secondary" : "default"}
             >
-              {isVendorSaved ? (
+              {isVendorSaved && !isEditMode ? (
                 <>
-                  <Trash className="w-4 h-4 mr-2"/>
-                  Batalkan
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Edit
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-2" />
-                  Simpan
+                  {isEditMode ? "Simpan Perubahan" : "Simpan"}
                 </>
               )}
             </Button>
-            <Button onClick={() => setCurrentStep(2)} disabled={!isVendorSaved} style={{ userSelect: "none" }}>
+            <Button
+              onClick={() => setCurrentStep(2)}
+              disabled={!isVendorSaved || isEditMode}
+              style={{ userSelect: "none" }}
+            >
               Berikutnya
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>

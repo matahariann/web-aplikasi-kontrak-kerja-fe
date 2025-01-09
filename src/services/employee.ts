@@ -72,10 +72,11 @@ export const getEmployee = async (token: string): Promise<Employee> => {
     }
   };
 
-  export const deleteVendor = async (token: string, vendorId: number) => {
+  export const updateVendor = async (token: string, vendorId: number, vendorData: VendorData) => {
     try {
-      const response = await axios.delete(
-        `http://localhost:8000/api/deleteVendor/${vendorId}`,
+      const response = await axios.put(
+        `http://localhost:8000/api/updateVendor/${vendorId}`,
+        vendorData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -85,7 +86,7 @@ export const getEmployee = async (token: string): Promise<Employee> => {
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || "Gagal menghapus data vendor");
+        throw new Error(error.response?.data?.message || "Gagal memperbarui data vendor");
       }
       throw error;
     }
