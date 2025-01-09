@@ -13,7 +13,9 @@ import {
   ArrowLeft,
   Trash,
 } from "lucide-react";
-import { addVendor, deleteVendor, VendorData } from "@/services/employee";
+// import { addVendor, deleteVendor, VendorData } from "@/services/employee";
+import OfficialsForm from "./officialForm";
+import VendorForm from "./vendorForm";
 
 const STORAGE_KEYS = {
   VENDOR_DATA: "vendorData",
@@ -27,50 +29,50 @@ export default function BuatDokumen() {
     const saved = localStorage.getItem(STORAGE_KEYS.CURRENT_STEP);
     return saved ? parseInt(saved) : 1;
   });
-  const [vendorError, setVendorError] = useState<string | null>(null);
-  const [vendorAlertType, setVendorAlertType] = useState<"save" | "delete" | null>(null);
-  const [vendorShowSuccessAlert, setVendorShowSuccessAlert] = useState(false);
-  const [isVendorSubmitted, setIsVendorSubmitted] = useState(false);
-  const [isVendorSaved, setIsVendorSaved] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.IS_VENDOR_SAVED);
-    return saved ? JSON.parse(saved) : false;
-  });
-  const [savedVendorId, setSavedVendorId] = useState<number | null>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.SAVED_VENDOR_ID);
-    return saved ? JSON.parse(saved) : null;
-  });
-  const [vendorData, setVendorData] = useState<VendorData>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.VENDOR_DATA);
-    return saved
-      ? JSON.parse(saved)
-      : {
-          nama_vendor: "",
-          alamat_vendor: "",
-          nama_pj: "",
-          jabatan_pj: "",
-          npwp: "",
-          bank_vendor: "",
-          norek_vendor: "",
-          nama_rek_vendor: "",
-        };
-  });
+  // const [vendorError, setVendorError] = useState<string | null>(null);
+  // const [vendorAlertType, setVendorAlertType] = useState<"save" | "delete" | null>(null);
+  // const [vendorShowSuccessAlert, setVendorShowSuccessAlert] = useState(false);
+  // const [isVendorSubmitted, setIsVendorSubmitted] = useState(false);
+  // const [isVendorSaved, setIsVendorSaved] = useState(() => {
+  //   const saved = localStorage.getItem(STORAGE_KEYS.IS_VENDOR_SAVED);
+  //   return saved ? JSON.parse(saved) : false;
+  // });
+  // const [savedVendorId, setSavedVendorId] = useState<number | null>(() => {
+  //   const saved = localStorage.getItem(STORAGE_KEYS.SAVED_VENDOR_ID);
+  //   return saved ? JSON.parse(saved) : null;
+  // });
+  // const [vendorData, setVendorData] = useState<VendorData>(() => {
+  //   const saved = localStorage.getItem(STORAGE_KEYS.VENDOR_DATA);
+  //   return saved
+  //     ? JSON.parse(saved)
+  //     : {
+  //         nama_vendor: "",
+  //         alamat_vendor: "",
+  //         nama_pj: "",
+  //         jabatan_pj: "",
+  //         npwp: "",
+  //         bank_vendor: "",
+  //         norek_vendor: "",
+  //         nama_rek_vendor: "",
+  //       };
+  // });
 
-  const [officialsData, setOfficialsData] = useState([
-    {
-      nip: "",
-      nama: "",
-      jabatan:
-        "Pejabat Pembuat Komitmen Sekretariat Ditjen Aplikasi Informatika",
-      periode_jabatan: "",
-    },
-    {
-      nip: "",
-      nama: "",
-      jabatan:
-        "Pejabat Pengadaan Barang/Jasa Sekretariat Ditjen Aplikasi Informatika",
-      periode_jabatan: "",
-    },
-  ]);
+  // const [officialsData, setOfficialsData] = useState([
+  //   {
+  //     nip: "",
+  //     nama: "",
+  //     jabatan:
+  //       "Pejabat Pembuat Komitmen Sekretariat Ditjen Aplikasi Informatika",
+  //     periode_jabatan: "",
+  //   },
+  //   {
+  //     nip: "",
+  //     nama: "",
+  //     jabatan:
+  //       "Pejabat Pengadaan Barang/Jasa Sekretariat Ditjen Aplikasi Informatika",
+  //     periode_jabatan: "",
+  //   },
+  // ]);
 
   const [documents, setDocuments] = useState({
     nomor_kontrak: "",
@@ -116,95 +118,95 @@ export default function BuatDokumen() {
     },
   ]);
 
-  const handleVendorInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setVendorData((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
-  };
+  // const handleVendorInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const { id, value } = e.target;
+  //   setVendorData((prev) => ({
+  //     ...prev,
+  //     [id]: value,
+  //   }));
+  // };
 
-  const handleVendorSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    setVendorError(null);
-    setIsVendorSubmitted(true);
+  // const handleVendorSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  //   e.preventDefault();
+  //   setVendorError(null);
+  //   setIsVendorSubmitted(true);
 
-    const requiredFields: (keyof VendorData)[] = [
-      "nama_vendor",
-      "alamat_vendor",
-      "nama_pj",
-      "jabatan_pj",
-      "npwp",
-      "bank_vendor",
-      "norek_vendor",
-      "nama_rek_vendor",
-    ];
+  //   const requiredFields: (keyof VendorData)[] = [
+  //     "nama_vendor",
+  //     "alamat_vendor",
+  //     "nama_pj",
+  //     "jabatan_pj",
+  //     "npwp",
+  //     "bank_vendor",
+  //     "norek_vendor",
+  //     "nama_rek_vendor",
+  //   ];
 
-    const emptyFields = requiredFields.filter((field) => !vendorData[field]);
+  //   const emptyFields = requiredFields.filter((field) => !vendorData[field]);
 
-    if (emptyFields.length > 0) {
-      setVendorError(`Mohon lengkapi semua input`);
-      return;
-    }
+  //   if (emptyFields.length > 0) {
+  //     setVendorError(`Mohon lengkapi semua input`);
+  //     return;
+  //   }
 
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Anda belum login. Silakan login terlebih dahulu.");
-      }
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     if (!token) {
+  //       throw new Error("Anda belum login. Silakan login terlebih dahulu.");
+  //     }
 
-      const response = await addVendor(token, vendorData);
+  //     const response = await addVendor(token, vendorData);
 
-      if (response) {
-        setVendorShowSuccessAlert(true);
-        setVendorAlertType('save');
-        setIsVendorSubmitted(false);
-        setIsVendorSaved(true);
-        setSavedVendorId(response.data.id);
-        setTimeout(() => {
-          setVendorShowSuccessAlert(false);
-          setVendorAlertType(null);
-        }, 3000);
-      }
-    } catch (vendorError) {
-      setVendorShowSuccessAlert(false);
-      setVendorError(vendorError instanceof Error ? vendorError.message : "Terjadi kesalahan");
-    }
-  };
+  //     if (response) {
+  //       setVendorShowSuccessAlert(true);
+  //       setVendorAlertType('save');
+  //       setIsVendorSubmitted(false);
+  //       setIsVendorSaved(true);
+  //       setSavedVendorId(response.data.id);
+  //       setTimeout(() => {
+  //         setVendorShowSuccessAlert(false);
+  //         setVendorAlertType(null);
+  //       }, 3000);
+  //     }
+  //   } catch (vendorError) {
+  //     setVendorShowSuccessAlert(false);
+  //     setVendorError(vendorError instanceof Error ? vendorError.message : "Terjadi kesalahan");
+  //   }
+  // };
 
-  const handleVendorDelete = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token || !savedVendorId) {
-        throw new Error("Terjadi kesalahan");
-      }
+  // const handleVendorDelete = async () => {
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     if (!token || !savedVendorId) {
+  //       throw new Error("Terjadi kesalahan");
+  //     }
 
-      await deleteVendor(token, savedVendorId);
+  //     await deleteVendor(token, savedVendorId);
       
-      setIsVendorSaved(false);
-      setSavedVendorId(null);
-      // Don't clear vendorData to keep form values
+  //     setIsVendorSaved(false);
+  //     setSavedVendorId(null);
+  //     // Don't clear vendorData to keep form values
       
-      setVendorShowSuccessAlert(true);
-      setVendorAlertType('delete');
-      setTimeout(() => {
-        setVendorShowSuccessAlert(false);
-        setVendorAlertType(null);
-      }, 3000);
-    } catch (vendorError) {
-      setVendorError(vendorError instanceof Error ? vendorError.message : "Terjadi kesalahan saat menghapus data");
-    }
-  };
+  //     setVendorShowSuccessAlert(true);
+  //     setVendorAlertType('delete');
+  //     setTimeout(() => {
+  //       setVendorShowSuccessAlert(false);
+  //       setVendorAlertType(null);
+  //     }, 3000);
+  //   } catch (vendorError) {
+  //     setVendorError(vendorError instanceof Error ? vendorError.message : "Terjadi kesalahan saat menghapus data");
+  //   }
+  // };
 
-  const handleOfficialsSubmit = async () => {
-    try {
-      for (const official of officialsData) {
-        await axios.post("/api/officials", official);
-      }
-    } catch (vendorError) {
-      console.vendorError("Error saving officials:", vendorError);
-    }
-  };
+  // const handleOfficialsSubmit = async () => {
+  //   try {
+  //     for (const official of officialsData) {
+  //       await axios.post("/api/officials", official);
+  //     }
+  //   } catch (vendorError) {
+  //     console.vendorError("Error saving officials:", vendorError);
+  //   }
+  // };
 
   // const handleDocumentsSubmit = async () => {
   //   try {
@@ -226,334 +228,334 @@ export default function BuatDokumen() {
   //   }
   // };
 
-  const handleGenerateDoc = () => {
-    // Add logic to generate and download Word document
-    console.log("Generating DOC file...");
-  };
+  // const handleGenerateDoc = () => {
+  //   // Add logic to generate and download Word document
+  //   console.log("Generating DOC file...");
+  // };
 
-  const addContract = () => {
-    setContracts([
-      ...contracts,
-      {
-        nomor_kontrak: "",
-        jenis_kontrak: "",
-        deskripsi: "",
-        jumlah_orang: "",
-        durasi_kontrak: "",
-        nilai_kontrak_awal: "",
-        nilai_kontrak_akhir: "",
-        id_vendor: contracts[0].id_vendor,
-      },
-    ]);
-  };
+  // const addContract = () => {
+  //   setContracts([
+  //     ...contracts,
+  //     {
+  //       nomor_kontrak: "",
+  //       jenis_kontrak: "",
+  //       deskripsi: "",
+  //       jumlah_orang: "",
+  //       durasi_kontrak: "",
+  //       nilai_kontrak_awal: "",
+  //       nilai_kontrak_akhir: "",
+  //       id_vendor: contracts[0].id_vendor,
+  //     },
+  //   ]);
+  // };
 
   // Save state to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.VENDOR_DATA, JSON.stringify(vendorData));
-  }, [vendorData]);
+  // useEffect(() => {
+  //   localStorage.setItem(STORAGE_KEYS.VENDOR_DATA, JSON.stringify(vendorData));
+  // }, [vendorData]);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.IS_VENDOR_SAVED, JSON.stringify(isVendorSaved));
-  }, [isVendorSaved]);
+  // useEffect(() => {
+  //   localStorage.setItem(STORAGE_KEYS.IS_VENDOR_SAVED, JSON.stringify(isVendorSaved));
+  // }, [isVendorSaved]);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SAVED_VENDOR_ID, JSON.stringify(savedVendorId));
-  }, [savedVendorId]);
+  // useEffect(() => {
+  //   localStorage.setItem(STORAGE_KEYS.SAVED_VENDOR_ID, JSON.stringify(savedVendorId));
+  // }, [savedVendorId]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.CURRENT_STEP, currentStep.toString());
   }, [currentStep]);
 
-  const renderVendorForm = () => (
-    <>
-      {vendorError && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-4 text-sm">
-          {vendorError}
-        </div>
-      )}
+  // const renderVendorForm = () => (
+  //   <>
+  //     {vendorError && (
+  //       <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-4 text-sm">
+  //         {vendorError}
+  //       </div>
+  //     )}
 
-      {vendorShowSuccessAlert && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4 text-sm">
-          {vendorAlertType === "save"
-            ? "Data vendor berhasil disimpan!"
-            : "Pembatalan data vendor berhasil!"}
-        </div>
-      )}
+  //     {vendorShowSuccessAlert && (
+  //       <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4 text-sm">
+  //         {vendorAlertType === "save"
+  //           ? "Data vendor berhasil disimpan!"
+  //           : "Pembatalan data vendor berhasil!"}
+  //       </div>
+  //     )}
 
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Data Vendor</CardTitle>
-          <p className="text-sm text-red-500">*Wajib diisi</p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="nama_vendor">
-                Nama Vendor <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="nama_vendor"
-                value={vendorData.nama_vendor}
-                onChange={handleVendorInputChange}
-                className={
-                  isVendorSubmitted && !vendorData.nama_vendor ? "border-red-300" : ""
-                }
-                disabled={isVendorSaved}
-              />
-              {isVendorSubmitted && !vendorData.nama_vendor && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nama Vendor tidak boleh kosong
-                </p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="alamat_vendor">
-                Alamat Vendor <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="alamat_vendor"
-                value={vendorData.alamat_vendor}
-                onChange={handleVendorInputChange}
-                className={
-                  isVendorSubmitted && !vendorData.alamat_vendor
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isVendorSaved}
-              />
-              {isVendorSubmitted && !vendorData.alamat_vendor && (
-                <p className="text-red-500 text-sm mt-1">
-                  Alamat vendor tidak boleh kosong
-                </p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="nama_pj">
-                Nama Penanggung Jawab <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="nama_pj"
-                value={vendorData.nama_pj}
-                onChange={handleVendorInputChange}
-                className={
-                  isVendorSubmitted && !vendorData.nama_pj ? "border-red-300" : ""
-                }
-                disabled={isVendorSaved}
-              />
-              {isVendorSubmitted && !vendorData.nama_pj && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nama penanggung jawab tidak boleh kosong
-                </p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="jabatan_pj">
-                Jabatan Penanggung Jawab <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="jabatan_pj"
-                value={vendorData.jabatan_pj}
-                onChange={handleVendorInputChange}
-                className={
-                  isVendorSubmitted && !vendorData.jabatan_pj ? "border-red-300" : ""
-                }
-                disabled={isVendorSaved}
-              />
-              {isVendorSubmitted && !vendorData.jabatan_pj && (
-                <p className="text-red-500 text-sm mt-1">
-                  Jabatan penanggung jawab tidak boleh kosong
-                </p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="npwp">
-                NPWP <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="npwp"
-                value={vendorData.npwp}
-                onChange={handleVendorInputChange}
-                className={
-                  isVendorSubmitted && !vendorData.npwp ? "border-red-300" : ""
-                }
-                disabled={isVendorSaved}
-              />
-              {isVendorSubmitted && !vendorData.npwp && (
-                <p className="text-red-500 text-sm mt-1">
-                  NPWP tidak boleh kosong
-                </p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="bank_vendor">
-                Nama Bank Vendor <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="bank_vendor"
-                value={vendorData.bank_vendor}
-                onChange={handleVendorInputChange}
-                className={
-                  isVendorSubmitted && !vendorData.bank_vendor ? "border-red-300" : ""
-                }
-                disabled={isVendorSaved}
-              />
-              {isVendorSubmitted && !vendorData.bank_vendor && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nama bank vendor tidak boleh kosong
-                </p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="norek_vendor">
-                Nomor Rekening Vendor <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="norek_vendor"
-                value={vendorData.norek_vendor}
-                onChange={handleVendorInputChange}
-                className={
-                  isVendorSubmitted && !vendorData.norek_vendor
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isVendorSaved}
-              />
-              {isVendorSubmitted && !vendorData.norek_vendor && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nomor rekening vendor tidak boleh kosong
-                </p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="nama_rek_vendor">
-                Nama Rekening Vendor <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="nama_rek_vendor"
-                value={vendorData.nama_rek_vendor}
-                onChange={handleVendorInputChange}
-                className={
-                  isVendorSubmitted && !vendorData.nama_rek_vendor
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isVendorSaved}
-              />
-              {isVendorSubmitted && !vendorData.nama_rek_vendor && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nama rekening vendor tidak boleh kosong
-                </p>
-              )}
-            </div>
-          </div>
+  //     <Card className="w-full">
+  //       <CardHeader>
+  //         <CardTitle>Data Vendor</CardTitle>
+  //         <p className="text-sm text-red-500">*Wajib diisi</p>
+  //       </CardHeader>
+  //       <CardContent className="space-y-4">
+  //         <div className="grid grid-cols-2 gap-4">
+  //           <div>
+  //             <Label htmlFor="nama_vendor">
+  //               Nama Vendor <span className="text-red-500">*</span>
+  //             </Label>
+  //             <Input
+  //               id="nama_vendor"
+  //               value={vendorData.nama_vendor}
+  //               onChange={handleVendorInputChange}
+  //               className={
+  //                 isVendorSubmitted && !vendorData.nama_vendor ? "border-red-300" : ""
+  //               }
+  //               disabled={isVendorSaved}
+  //             />
+  //             {isVendorSubmitted && !vendorData.nama_vendor && (
+  //               <p className="text-red-500 text-sm mt-1">
+  //                 Nama Vendor tidak boleh kosong
+  //               </p>
+  //             )}
+  //           </div>
+  //           <div>
+  //             <Label htmlFor="alamat_vendor">
+  //               Alamat Vendor <span className="text-red-500">*</span>
+  //             </Label>
+  //             <Input
+  //               id="alamat_vendor"
+  //               value={vendorData.alamat_vendor}
+  //               onChange={handleVendorInputChange}
+  //               className={
+  //                 isVendorSubmitted && !vendorData.alamat_vendor
+  //                   ? "border-red-300"
+  //                   : ""
+  //               }
+  //               disabled={isVendorSaved}
+  //             />
+  //             {isVendorSubmitted && !vendorData.alamat_vendor && (
+  //               <p className="text-red-500 text-sm mt-1">
+  //                 Alamat vendor tidak boleh kosong
+  //               </p>
+  //             )}
+  //           </div>
+  //           <div>
+  //             <Label htmlFor="nama_pj">
+  //               Nama Penanggung Jawab <span className="text-red-500">*</span>
+  //             </Label>
+  //             <Input
+  //               id="nama_pj"
+  //               value={vendorData.nama_pj}
+  //               onChange={handleVendorInputChange}
+  //               className={
+  //                 isVendorSubmitted && !vendorData.nama_pj ? "border-red-300" : ""
+  //               }
+  //               disabled={isVendorSaved}
+  //             />
+  //             {isVendorSubmitted && !vendorData.nama_pj && (
+  //               <p className="text-red-500 text-sm mt-1">
+  //                 Nama penanggung jawab tidak boleh kosong
+  //               </p>
+  //             )}
+  //           </div>
+  //           <div>
+  //             <Label htmlFor="jabatan_pj">
+  //               Jabatan Penanggung Jawab <span className="text-red-500">*</span>
+  //             </Label>
+  //             <Input
+  //               id="jabatan_pj"
+  //               value={vendorData.jabatan_pj}
+  //               onChange={handleVendorInputChange}
+  //               className={
+  //                 isVendorSubmitted && !vendorData.jabatan_pj ? "border-red-300" : ""
+  //               }
+  //               disabled={isVendorSaved}
+  //             />
+  //             {isVendorSubmitted && !vendorData.jabatan_pj && (
+  //               <p className="text-red-500 text-sm mt-1">
+  //                 Jabatan penanggung jawab tidak boleh kosong
+  //               </p>
+  //             )}
+  //           </div>
+  //           <div>
+  //             <Label htmlFor="npwp">
+  //               NPWP <span className="text-red-500">*</span>
+  //             </Label>
+  //             <Input
+  //               id="npwp"
+  //               value={vendorData.npwp}
+  //               onChange={handleVendorInputChange}
+  //               className={
+  //                 isVendorSubmitted && !vendorData.npwp ? "border-red-300" : ""
+  //               }
+  //               disabled={isVendorSaved}
+  //             />
+  //             {isVendorSubmitted && !vendorData.npwp && (
+  //               <p className="text-red-500 text-sm mt-1">
+  //                 NPWP tidak boleh kosong
+  //               </p>
+  //             )}
+  //           </div>
+  //           <div>
+  //             <Label htmlFor="bank_vendor">
+  //               Nama Bank Vendor <span className="text-red-500">*</span>
+  //             </Label>
+  //             <Input
+  //               id="bank_vendor"
+  //               value={vendorData.bank_vendor}
+  //               onChange={handleVendorInputChange}
+  //               className={
+  //                 isVendorSubmitted && !vendorData.bank_vendor ? "border-red-300" : ""
+  //               }
+  //               disabled={isVendorSaved}
+  //             />
+  //             {isVendorSubmitted && !vendorData.bank_vendor && (
+  //               <p className="text-red-500 text-sm mt-1">
+  //                 Nama bank vendor tidak boleh kosong
+  //               </p>
+  //             )}
+  //           </div>
+  //           <div>
+  //             <Label htmlFor="norek_vendor">
+  //               Nomor Rekening Vendor <span className="text-red-500">*</span>
+  //             </Label>
+  //             <Input
+  //               id="norek_vendor"
+  //               value={vendorData.norek_vendor}
+  //               onChange={handleVendorInputChange}
+  //               className={
+  //                 isVendorSubmitted && !vendorData.norek_vendor
+  //                   ? "border-red-300"
+  //                   : ""
+  //               }
+  //               disabled={isVendorSaved}
+  //             />
+  //             {isVendorSubmitted && !vendorData.norek_vendor && (
+  //               <p className="text-red-500 text-sm mt-1">
+  //                 Nomor rekening vendor tidak boleh kosong
+  //               </p>
+  //             )}
+  //           </div>
+  //           <div>
+  //             <Label htmlFor="nama_rek_vendor">
+  //               Nama Rekening Vendor <span className="text-red-500">*</span>
+  //             </Label>
+  //             <Input
+  //               id="nama_rek_vendor"
+  //               value={vendorData.nama_rek_vendor}
+  //               onChange={handleVendorInputChange}
+  //               className={
+  //                 isVendorSubmitted && !vendorData.nama_rek_vendor
+  //                   ? "border-red-300"
+  //                   : ""
+  //               }
+  //               disabled={isVendorSaved}
+  //             />
+  //             {isVendorSubmitted && !vendorData.nama_rek_vendor && (
+  //               <p className="text-red-500 text-sm mt-1">
+  //                 Nama rekening vendor tidak boleh kosong
+  //               </p>
+  //             )}
+  //           </div>
+  //         </div>
 
-          <div className="flex justify-between mt-6">
-            <Button
-              onClick={isVendorSaved ? handleVendorDelete : handleVendorSubmit}
-              variant={isVendorSaved ? "destructive" : "default"}
-            >
-              {isVendorSaved ? (
-                <>
-                  <Trash className="w-4 h-4 mr-2"/>
-                  Batalkan
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Simpan
-                </>
-              )}
-            </Button>
-            <Button onClick={() => setCurrentStep(2)} disabled={!isVendorSaved} style={{ userSelect: "none" }}>
-              Berikutnya
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </>
-  );
+  //         <div className="flex justify-between mt-6">
+  //           <Button
+  //             onClick={isVendorSaved ? handleVendorDelete : handleVendorSubmit}
+  //             variant={isVendorSaved ? "destructive" : "default"}
+  //           >
+  //             {isVendorSaved ? (
+  //               <>
+  //                 <Trash className="w-4 h-4 mr-2"/>
+  //                 Batalkan
+  //               </>
+  //             ) : (
+  //               <>
+  //                 <Save className="w-4 h-4 mr-2" />
+  //                 Simpan
+  //               </>
+  //             )}
+  //           </Button>
+  //           <Button onClick={() => setCurrentStep(2)} disabled={!isVendorSaved} style={{ userSelect: "none" }}>
+  //             Berikutnya
+  //             <ArrowRight className="w-4 h-4 ml-2" />
+  //           </Button>
+  //         </div>
+  //       </CardContent>
+  //     </Card>
+  //   </>
+  // );
 
-  const renderOfficialsForm = () => (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Data Pejabat</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {officialsData.map((official, index) => (
-          <div key={index} className="border p-4 rounded-lg">
-            <h3 className="font-medium mb-4">{official.jabatan}</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor={`nip_${index}`}>NIP</Label>
-                <Input
-                  id={`nip_${index}`}
-                  value={official.nip}
-                  onChange={(e) => {
-                    const newOfficialsData = [...officialsData];
-                    newOfficialsData[index].nip = e.target.value;
-                    setOfficialsData(newOfficialsData);
-                  }}
-                />
-              </div>
-              <div>
-                <Label htmlFor={`nama_${index}`}>Nama</Label>
-                <Input
-                  id={`nama_${index}`}
-                  value={official.nama}
-                  onChange={(e) => {
-                    const newOfficialsData = [...officialsData];
-                    newOfficialsData[index].nama = e.target.value;
-                    setOfficialsData(newOfficialsData);
-                  }}
-                />
-              </div>
-              <div>
-                <Label htmlFor={`jabatan_${index}`}>Jabatan</Label>
-                <Input
-                  id={`jabatan_${index}`}
-                  value={official.jabatan}
-                  disabled
-                />
-              </div>
-              <div>
-                <Label htmlFor={`periode_jabatan_${index}`}>
-                  Periode Jabatan
-                </Label>
-                <Input
-                  id={`periode_jabatan_${index}`}
-                  value={official.periode_jabatan}
-                  onChange={(e) => {
-                    const newOfficialsData = [...officialsData];
-                    newOfficialsData[index].periode_jabatan = e.target.value;
-                    setOfficialsData(newOfficialsData);
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        ))}
-        <div className="flex justify-between mt-6">
-          <div>
-            <Button onClick={handleOfficialsSubmit}>
-              <Save className="w-4 h-4 mr-2" />
-              Simpan
-            </Button>
-          </div>
-          <div className="flex space-x-4">
-            <Button onClick={() => setCurrentStep(1)}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Sebelumnya
-            </Button>
-            <Button onClick={() => setCurrentStep(3)}>
-              Berikutnya
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  // const renderOfficialsForm = () => (
+  //   <Card className="w-full">
+  //     <CardHeader>
+  //       <CardTitle>Data Pejabat</CardTitle>
+  //     </CardHeader>
+  //     <CardContent className="space-y-4">
+  //       {officialsData.map((official, index) => (
+  //         <div key={index} className="border p-4 rounded-lg">
+  //           <h3 className="font-medium mb-4">{official.jabatan}</h3>
+  //           <div className="grid grid-cols-2 gap-4">
+  //             <div>
+  //               <Label htmlFor={`nip_${index}`}>NIP</Label>
+  //               <Input
+  //                 id={`nip_${index}`}
+  //                 value={official.nip}
+  //                 onChange={(e) => {
+  //                   const newOfficialsData = [...officialsData];
+  //                   newOfficialsData[index].nip = e.target.value;
+  //                   setOfficialsData(newOfficialsData);
+  //                 }}
+  //               />
+  //             </div>
+  //             <div>
+  //               <Label htmlFor={`nama_${index}`}>Nama</Label>
+  //               <Input
+  //                 id={`nama_${index}`}
+  //                 value={official.nama}
+  //                 onChange={(e) => {
+  //                   const newOfficialsData = [...officialsData];
+  //                   newOfficialsData[index].nama = e.target.value;
+  //                   setOfficialsData(newOfficialsData);
+  //                 }}
+  //               />
+  //             </div>
+  //             <div>
+  //               <Label htmlFor={`jabatan_${index}`}>Jabatan</Label>
+  //               <Input
+  //                 id={`jabatan_${index}`}
+  //                 value={official.jabatan}
+  //                 disabled
+  //               />
+  //             </div>
+  //             <div>
+  //               <Label htmlFor={`periode_jabatan_${index}`}>
+  //                 Periode Jabatan
+  //               </Label>
+  //               <Input
+  //                 id={`periode_jabatan_${index}`}
+  //                 value={official.periode_jabatan}
+  //                 onChange={(e) => {
+  //                   const newOfficialsData = [...officialsData];
+  //                   newOfficialsData[index].periode_jabatan = e.target.value;
+  //                   setOfficialsData(newOfficialsData);
+  //                 }}
+  //               />
+  //             </div>
+  //           </div>
+  //         </div>
+  //       ))}
+  //       <div className="flex justify-between mt-6">
+  //         <div>
+  //           <Button onClick={handleOfficialsSubmit}>
+  //             <Save className="w-4 h-4 mr-2" />
+  //             Simpan
+  //           </Button>
+  //         </div>
+  //         <div className="flex space-x-4">
+  //           <Button onClick={() => setCurrentStep(1)}>
+  //             <ArrowLeft className="w-4 h-4 mr-2" />
+  //             Sebelumnya
+  //           </Button>
+  //           <Button onClick={() => setCurrentStep(3)}>
+  //             Berikutnya
+  //             <ArrowRight className="w-4 h-4 ml-2" />
+  //           </Button>
+  //         </div>
+  //       </div>
+  //     </CardContent>
+  //   </Card>
+  // );
 
   const renderDocumentsForm = () => (
     <Card className="w-full">
@@ -872,7 +874,7 @@ export default function BuatDokumen() {
         </div>
         <div className="flex justify-between mt-6">
           <div>
-            <Button onClick={handleOfficialsSubmit}>
+            <Button >
               <Save className="w-4 h-4 mr-2" />
               Simpan
             </Button>
@@ -1032,8 +1034,10 @@ export default function BuatDokumen() {
   return (
     <div className="p-2">
       <h1 className="text-2xl font-bold mb-6">Buat Dokumen</h1>
-      {currentStep === 1 && renderVendorForm()}
-      {currentStep === 2 && renderOfficialsForm()}
+      {/* {currentStep === 1 && renderVendorForm()} */}
+      {/* {currentStep === 2 && renderOfficialsForm()} */}
+      {currentStep === 1 && <VendorForm currentStep={currentStep} setCurrentStep={setCurrentStep} />}
+      {currentStep === 2 && <OfficialsForm currentStep={currentStep} setCurrentStep={setCurrentStep} />}
       {currentStep === 3 && renderDocumentsForm()}
       {currentStep === 4 && renderContractForm()}
     </div>

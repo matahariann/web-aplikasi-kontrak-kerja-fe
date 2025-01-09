@@ -112,10 +112,10 @@ export const getEmployee = async (token: string): Promise<Employee> => {
     }
   };
 
-  export const deleteOfficial = async (token: string, officialId: number) => {
+  export const deleteOfficial = async (token: string, nip: string) => {
     try {
       const response = await axios.delete(
-        `http://localhost:8000/api/deleteOfficial/${officialId}`,
+        `http://localhost:8000/api/deleteOfficial/${nip}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
