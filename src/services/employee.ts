@@ -113,10 +113,11 @@ export const getEmployee = async (token: string): Promise<Employee> => {
     }
   };
 
-  export const deleteOfficial = async (token: string, nip: string) => {
+  export const updateOfficial = async (token: string, nip: string, officialData: OfficialData) => {
     try {
-      const response = await axios.delete(
-        `http://localhost:8000/api/deleteOfficial/${nip}`,
+      const response = await axios.put(
+        `http://localhost:8000/api/updateOfficial/${nip}`,
+        officialData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -126,7 +127,7 @@ export const getEmployee = async (token: string): Promise<Employee> => {
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || "Gagal menghapus data pejabat");
+        throw new Error(error.response?.data?.message || "Gagal memperbarui data pejabat");
       }
       throw error;
     }

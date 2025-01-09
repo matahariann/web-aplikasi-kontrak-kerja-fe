@@ -3,13 +3,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Save, ArrowRight, ArrowLeft, Trash } from "lucide-react";
-import { addOfficial, deleteOfficial, OfficialData } from "@/services/employee";
+import { Save, ArrowRight, ArrowLeft, Pencil } from "lucide-react";
+import {
+  addOfficial,
+  updateOfficial,
+  OfficialData,
+} from "@/services/employee";
 
 const STORAGE_KEYS = {
   OFFICIALS_DATA: "officialsData",
   IS_OFFICIALS_SAVED: "isOfficialsSaved",
   SAVED_OFFICIALS_IDS: "savedOfficialsIds",
+  IS_OFFICIALS_EDIT_MODE: "isOfficialsEditMode",
 };
 
 const INITIAL_OFFICIALS = [
@@ -22,15 +27,23 @@ const INITIAL_OFFICIALS = [
   {
     nip: "",
     nama: "",
-    jabatan: "Pejabat Pengadaan Barang/Jasa Sekretariat Ditjen Aplikasi Informatika",
+    jabatan:
+      "Pejabat Pengadaan Barang/Jasa Sekretariat Ditjen Aplikasi Informatika",
     periode_jabatan: "",
   },
 ];
 
 const OfficialsForm = ({ currentStep, setCurrentStep }) => {
+  const [isOfficialsEditMode, setIsOfficialsEditMode] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.IS_OFFICIALS_EDIT_MODE);
+    return saved ? JSON.parse(saved) : false;
+  });
   const [officialsError, setOfficialsError] = useState<string | null>(null);
-  const [officialsAlertType, setOfficialsAlertType] = useState<"save" | "delete" | null>(null);
-  const [officialsShowSuccessAlert, setOfficialsShowSuccessAlert] = useState(false);
+  const [officialsAlertType, setOfficialsAlertType] = useState<
+    "save" | "delete" | "edit" | null
+  >(null);
+  const [officialsShowSuccessAlert, setOfficialsShowSuccessAlert] =
+    useState(false);
   const [isOfficialsSubmitted, setIsOfficialsSubmitted] = useState(false);
   const [isOfficialsSaved, setIsOfficialsSaved] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.IS_OFFICIALS_SAVED);
@@ -46,18 +59,38 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
   });
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.OFFICIALS_DATA, JSON.stringify(officialsData));
+    localStorage.setItem(
+      STORAGE_KEYS.OFFICIALS_DATA,
+      JSON.stringify(officialsData)
+    );
   }, [officialsData]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.IS_OFFICIALS_SAVED, JSON.stringify(isOfficialsSaved));
+    localStorage.setItem(
+      STORAGE_KEYS.IS_OFFICIALS_SAVED,
+      JSON.stringify(isOfficialsSaved)
+    );
   }, [isOfficialsSaved]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SAVED_OFFICIALS_IDS, JSON.stringify(savedOfficialsIds));
+    localStorage.setItem(
+      STORAGE_KEYS.SAVED_OFFICIALS_IDS,
+      JSON.stringify(savedOfficialsIds)
+    );
   }, [savedOfficialsIds]);
 
-  const handleOfficialsInputChange = (index: number, field: keyof OfficialData, value: string) => {
+  useEffect(() => {
+    localStorage.setItem(
+      STORAGE_KEYS.IS_OFFICIALS_EDIT_MODE,
+      JSON.stringify(isOfficialsEditMode)
+    );
+  }, [isOfficialsEditMode]);
+
+  const handleOfficialsInputChange = (
+    index: number,
+    field: keyof OfficialData,
+    value: string
+  ) => {
     const newOfficialsData = [...officialsData];
     newOfficialsData[index] = {
       ...newOfficialsData[index],
@@ -66,13 +99,15 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
     setOfficialsData(newOfficialsData);
   };
 
-  const handleOfficialsSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleOfficialsSubmit = async (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
     e.preventDefault();
     setOfficialsError(null);
     setIsOfficialsSubmitted(true);
 
     const hasEmptyFields = officialsData.some(
-      official => !official.nip || !official.nama || !official.periode_jabatan
+      (official) => !official.nip || !official.nama || !official.periode_jabatan
     );
 
     if (hasEmptyFields) {
@@ -86,16 +121,25 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
         throw new Error("Anda belum login. Silakan login terlebih dahulu.");
       }
 
-      const savedIds = [];
-      for (const official of officialsData) {
-        const response = await addOfficial(token, official);
-        savedIds.push(response.data.nip);
+      if (isOfficialsEditMode) {
+        // Update existing officials
+        for (const official of officialsData) {
+          await updateOfficial(token, official.nip, official);
+        }
+        setIsOfficialsEditMode(false);
+      } else {
+        // Add new officials
+        const savedIds = [];
+        for (const official of officialsData) {
+          const response = await addOfficial(token, official);
+          savedIds.push(response.data.nip);
+        }
+        setSavedOfficialsIds(savedIds);
       }
 
-      setSavedOfficialsIds(savedIds);
       setIsOfficialsSaved(true);
       setOfficialsShowSuccessAlert(true);
-      setOfficialsAlertType('save');
+      setOfficialsAlertType(isOfficialsEditMode ? "edit" : "save");
       setIsOfficialsSubmitted(false);
 
       setTimeout(() => {
@@ -104,34 +148,16 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
       }, 3000);
     } catch (error) {
       setOfficialsShowSuccessAlert(false);
-      setOfficialsError(error instanceof Error ? error.message : "Terjadi kesalahan");
+      setOfficialsError(
+        error instanceof Error ? error.message : "Terjadi kesalahan"
+      );
     }
   };
 
-  const handleOfficialsDelete = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Terjadi kesalahan");
-      }
-  
-      // Delete both officials
-      for (const official of officialsData) {
-        await deleteOfficial(token, official.nip);
-      }
-      
-      setIsOfficialsSaved(false);
-      setSavedOfficialsIds([]);
-      setOfficialsShowSuccessAlert(true);
-      setOfficialsAlertType('delete');
-      
-      setTimeout(() => {
-        setOfficialsShowSuccessAlert(false);
-        setOfficialsAlertType(null);
-      }, 3000);
-    } catch (error) {
-      setOfficialsError(error instanceof Error ? error.message : "Terjadi kesalahan saat menghapus data");
-    }
+
+  const handleEditMode = () => {
+    setIsOfficialsEditMode(true);
+    setIsOfficialsSaved(false);
   };
 
   return (
@@ -146,7 +172,9 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
         <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4 text-sm">
           {officialsAlertType === "save"
             ? "Data pejabat berhasil disimpan!"
-            : "Pembatalan data pejabat berhasil!"}
+            : officialsAlertType === "edit"
+            ? "Data pejabat berhasil diperbarui!"
+            : ""}
         </div>
       )}
 
@@ -167,12 +195,20 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
                   <Input
                     id={`nip_${index}`}
                     value={official.nip}
-                    onChange={(e) => handleOfficialsInputChange(index, 'nip', e.target.value)}
-                    className={isOfficialsSubmitted && !official.nip ? "border-red-300" : ""}
-                    disabled={isOfficialsSaved}
+                    onChange={(e) =>
+                      handleOfficialsInputChange(index, "nip", e.target.value)
+                    }
+                    className={
+                      isOfficialsSubmitted && !official.nip
+                        ? "border-red-300"
+                        : ""
+                    }
+                    disabled={isOfficialsSaved && !isOfficialsEditMode || isOfficialsEditMode}
                   />
                   {isOfficialsSubmitted && !official.nip && (
-                    <p className="text-red-500 text-sm mt-1">NIP tidak boleh kosong</p>
+                    <p className="text-red-500 text-sm mt-1">
+                      NIP tidak boleh kosong
+                    </p>
                   )}
                 </div>
                 <div>
@@ -182,12 +218,20 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
                   <Input
                     id={`nama_${index}`}
                     value={official.nama}
-                    onChange={(e) => handleOfficialsInputChange(index, 'nama', e.target.value)}
-                    className={isOfficialsSubmitted && !official.nama ? "border-red-300" : ""}
-                    disabled={isOfficialsSaved}
+                    onChange={(e) =>
+                      handleOfficialsInputChange(index, "nama", e.target.value)
+                    }
+                    className={
+                      isOfficialsSubmitted && !official.nama
+                        ? "border-red-300"
+                        : ""
+                    }
+                    disabled={isOfficialsSaved && !isOfficialsEditMode}
                   />
                   {isOfficialsSubmitted && !official.nama && (
-                    <p className="text-red-500 text-sm mt-1">Nama tidak boleh kosong</p>
+                    <p className="text-red-500 text-sm mt-1">
+                      Nama tidak boleh kosong
+                    </p>
                   )}
                 </div>
                 <div>
@@ -205,12 +249,24 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
                   <Input
                     id={`periode_jabatan_${index}`}
                     value={official.periode_jabatan}
-                    onChange={(e) => handleOfficialsInputChange(index, 'periode_jabatan', e.target.value)}
-                    className={isOfficialsSubmitted && !official.periode_jabatan ? "border-red-300" : ""}
-                    disabled={isOfficialsSaved}
+                    onChange={(e) =>
+                      handleOfficialsInputChange(
+                        index,
+                        "periode_jabatan",
+                        e.target.value
+                      )
+                    }
+                    className={
+                      isOfficialsSubmitted && !official.periode_jabatan
+                        ? "border-red-300"
+                        : ""
+                    }
+                    disabled={isOfficialsSaved && !isOfficialsEditMode}
                   />
                   {isOfficialsSubmitted && !official.periode_jabatan && (
-                    <p className="text-red-500 text-sm mt-1">Periode jabatan tidak boleh kosong</p>
+                    <p className="text-red-500 text-sm mt-1">
+                      Periode jabatan tidak boleh kosong
+                    </p>
                   )}
                 </div>
               </div>
@@ -219,18 +275,22 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
 
           <div className="flex justify-between mt-6">
             <Button
-              onClick={isOfficialsSaved ? handleOfficialsDelete : handleOfficialsSubmit}
-              variant={isOfficialsSaved ? "destructive" : "default"}
+              onClick={
+                isOfficialsSaved && !isOfficialsEditMode
+                  ? handleEditMode
+                  : handleOfficialsSubmit
+              }
+              variant={isOfficialsEditMode ? "secondary" : "default"}
             >
-              {isOfficialsSaved ? (
+              {isOfficialsSaved && !isOfficialsEditMode ? (
                 <>
-                  <Trash className="w-4 h-4 mr-2" />
-                  Batalkan
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Edit
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-2" />
-                  Simpan
+                  {isOfficialsEditMode ? "Simpan Perubahan" : "Simpan"}
                 </>
               )}
             </Button>
@@ -239,9 +299,9 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Sebelumnya
               </Button>
-              <Button 
-                onClick={() => setCurrentStep(3)} 
-                disabled={!isOfficialsSaved}
+              <Button
+                onClick={() => setCurrentStep(3)}
+                disabled={!isOfficialsSaved || isOfficialsEditMode}
                 style={{ userSelect: "none" }}
               >
                 Berikutnya
