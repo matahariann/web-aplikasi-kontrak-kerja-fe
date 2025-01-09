@@ -26,6 +26,7 @@ export interface OfficialData {
   periode_jabatan: string;
 }
 
+
 export const getEmployee = async (token: string): Promise<Employee> => {
     try {
       const response = await axios.get(

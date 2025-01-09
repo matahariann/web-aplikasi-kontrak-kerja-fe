@@ -18,7 +18,7 @@ import { addVendor, deleteVendor, VendorData } from "@/services/employee";
 
 const STORAGE_KEYS = {
   VENDOR_DATA: "vendorData",
-  IS_SAVED: "isSaved",
+  IS_VENDOR_SAVED: "isVendorSaved",
   SAVED_VENDOR_ID: "savedVendorId",
   CURRENT_STEP: "currentStep",
 };
@@ -31,9 +31,9 @@ export default function BuatDokumen() {
   const [error, setError] = useState<string | null>(null);
   const [alertType, setAlertType] = useState<"save" | "delete" | null>(null);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isSaved, setIsSaved] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.IS_SAVED);
+  const [isVendorSubmitted, setIsVendorSubmitted] = useState(false);
+  const [isVendorSaved, setIsVendorSaved] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.IS_VENDOR_SAVED);
     return saved ? JSON.parse(saved) : false;
   });
   const [savedVendorId, setSavedVendorId] = useState<number | null>(() => {
@@ -55,14 +55,6 @@ export default function BuatDokumen() {
           nama_rek_vendor: "",
         };
   });
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setVendorData((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
-  };
 
   const [officialsData, setOfficialsData] = useState([
     {
@@ -125,10 +117,18 @@ export default function BuatDokumen() {
     },
   ]);
 
+  const handleVendorInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setVendorData((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
+  };
+
   const handleVendorSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setError(null);
-    setIsSubmitted(true);
+    setIsVendorSubmitted(true);
 
     const requiredFields: (keyof VendorData)[] = [
       "nama_vendor",
@@ -159,8 +159,8 @@ export default function BuatDokumen() {
       if (response) {
         setShowSuccessAlert(true);
         setAlertType('save');
-        setIsSubmitted(false);
-        setIsSaved(true);
+        setIsVendorSubmitted(false);
+        setIsVendorSaved(true);
         setSavedVendorId(response.data.id);
         setTimeout(() => {
           setShowSuccessAlert(false);
@@ -182,7 +182,7 @@ export default function BuatDokumen() {
 
       await deleteVendor(token, savedVendorId);
       
-      setIsSaved(false);
+      setIsVendorSaved(false);
       setSavedVendorId(null);
       // Don't clear vendorData to keep form values
       
@@ -254,8 +254,8 @@ export default function BuatDokumen() {
   }, [vendorData]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.IS_SAVED, JSON.stringify(isSaved));
-  }, [isSaved]);
+    localStorage.setItem(STORAGE_KEYS.IS_VENDOR_SAVED, JSON.stringify(isVendorSaved));
+  }, [isVendorSaved]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.SAVED_VENDOR_ID, JSON.stringify(savedVendorId));
@@ -274,7 +274,7 @@ export default function BuatDokumen() {
       )}
 
       {showSuccessAlert && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+        <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4 text-sm">
           {alertType === "save"
             ? "Data vendor berhasil disimpan!"
             : "Pembatalan data vendor berhasil!"}
@@ -295,12 +295,13 @@ export default function BuatDokumen() {
               <Input
                 id="nama_vendor"
                 value={vendorData.nama_vendor}
-                onChange={handleInputChange}
+                onChange={handleVendorInputChange}
                 className={
-                  isSubmitted && !vendorData.nama_vendor ? "border-red-300" : ""
+                  isVendorSubmitted && !vendorData.nama_vendor ? "border-red-300" : ""
                 }
+                disabled={isVendorSaved}
               />
-              {isSubmitted && !vendorData.nama_vendor && (
+              {isVendorSubmitted && !vendorData.nama_vendor && (
                 <p className="text-red-500 text-sm mt-1">
                   Nama Vendor tidak boleh kosong
                 </p>
@@ -313,14 +314,15 @@ export default function BuatDokumen() {
               <Input
                 id="alamat_vendor"
                 value={vendorData.alamat_vendor}
-                onChange={handleInputChange}
+                onChange={handleVendorInputChange}
                 className={
-                  isSubmitted && !vendorData.alamat_vendor
+                  isVendorSubmitted && !vendorData.alamat_vendor
                     ? "border-red-300"
                     : ""
                 }
+                disabled={isVendorSaved}
               />
-              {isSubmitted && !vendorData.alamat_vendor && (
+              {isVendorSubmitted && !vendorData.alamat_vendor && (
                 <p className="text-red-500 text-sm mt-1">
                   Alamat vendor tidak boleh kosong
                 </p>
@@ -333,12 +335,13 @@ export default function BuatDokumen() {
               <Input
                 id="nama_pj"
                 value={vendorData.nama_pj}
-                onChange={handleInputChange}
+                onChange={handleVendorInputChange}
                 className={
-                  isSubmitted && !vendorData.nama_pj ? "border-red-300" : ""
+                  isVendorSubmitted && !vendorData.nama_pj ? "border-red-300" : ""
                 }
+                disabled={isVendorSaved}
               />
-              {isSubmitted && !vendorData.nama_pj && (
+              {isVendorSubmitted && !vendorData.nama_pj && (
                 <p className="text-red-500 text-sm mt-1">
                   Nama penanggung jawab tidak boleh kosong
                 </p>
@@ -351,12 +354,13 @@ export default function BuatDokumen() {
               <Input
                 id="jabatan_pj"
                 value={vendorData.jabatan_pj}
-                onChange={handleInputChange}
+                onChange={handleVendorInputChange}
                 className={
-                  isSubmitted && !vendorData.jabatan_pj ? "border-red-300" : ""
+                  isVendorSubmitted && !vendorData.jabatan_pj ? "border-red-300" : ""
                 }
+                disabled={isVendorSaved}
               />
-              {isSubmitted && !vendorData.jabatan_pj && (
+              {isVendorSubmitted && !vendorData.jabatan_pj && (
                 <p className="text-red-500 text-sm mt-1">
                   Jabatan penanggung jawab tidak boleh kosong
                 </p>
@@ -369,12 +373,13 @@ export default function BuatDokumen() {
               <Input
                 id="npwp"
                 value={vendorData.npwp}
-                onChange={handleInputChange}
+                onChange={handleVendorInputChange}
                 className={
-                  isSubmitted && !vendorData.npwp ? "border-red-300" : ""
+                  isVendorSubmitted && !vendorData.npwp ? "border-red-300" : ""
                 }
+                disabled={isVendorSaved}
               />
-              {isSubmitted && !vendorData.npwp && (
+              {isVendorSubmitted && !vendorData.npwp && (
                 <p className="text-red-500 text-sm mt-1">
                   NPWP tidak boleh kosong
                 </p>
@@ -387,12 +392,13 @@ export default function BuatDokumen() {
               <Input
                 id="bank_vendor"
                 value={vendorData.bank_vendor}
-                onChange={handleInputChange}
+                onChange={handleVendorInputChange}
                 className={
-                  isSubmitted && !vendorData.bank_vendor ? "border-red-300" : ""
+                  isVendorSubmitted && !vendorData.bank_vendor ? "border-red-300" : ""
                 }
+                disabled={isVendorSaved}
               />
-              {isSubmitted && !vendorData.bank_vendor && (
+              {isVendorSubmitted && !vendorData.bank_vendor && (
                 <p className="text-red-500 text-sm mt-1">
                   Nama bank vendor tidak boleh kosong
                 </p>
@@ -405,14 +411,15 @@ export default function BuatDokumen() {
               <Input
                 id="norek_vendor"
                 value={vendorData.norek_vendor}
-                onChange={handleInputChange}
+                onChange={handleVendorInputChange}
                 className={
-                  isSubmitted && !vendorData.norek_vendor
+                  isVendorSubmitted && !vendorData.norek_vendor
                     ? "border-red-300"
                     : ""
                 }
+                disabled={isVendorSaved}
               />
-              {isSubmitted && !vendorData.norek_vendor && (
+              {isVendorSubmitted && !vendorData.norek_vendor && (
                 <p className="text-red-500 text-sm mt-1">
                   Nomor rekening vendor tidak boleh kosong
                 </p>
@@ -425,14 +432,15 @@ export default function BuatDokumen() {
               <Input
                 id="nama_rek_vendor"
                 value={vendorData.nama_rek_vendor}
-                onChange={handleInputChange}
+                onChange={handleVendorInputChange}
                 className={
-                  isSubmitted && !vendorData.nama_rek_vendor
+                  isVendorSubmitted && !vendorData.nama_rek_vendor
                     ? "border-red-300"
                     : ""
                 }
+                disabled={isVendorSaved}
               />
-              {isSubmitted && !vendorData.nama_rek_vendor && (
+              {isVendorSubmitted && !vendorData.nama_rek_vendor && (
                 <p className="text-red-500 text-sm mt-1">
                   Nama rekening vendor tidak boleh kosong
                 </p>
@@ -442,12 +450,12 @@ export default function BuatDokumen() {
 
           <div className="flex justify-between mt-6">
             <Button
-              onClick={isSaved ? handleVendorDelete : handleVendorSubmit}
-              variant={isSaved ? "destructive" : "default"}
+              onClick={isVendorSaved ? handleVendorDelete : handleVendorSubmit}
+              variant={isVendorSaved ? "destructive" : "default"}
             >
-              {isSaved ? (
+              {isVendorSaved ? (
                 <>
-                  <Trash className="w-4 h-4 mr-2" />
+                  <Trash className="w-4 h-4 mr-2"/>
                   Batalkan
                 </>
               ) : (
@@ -457,7 +465,7 @@ export default function BuatDokumen() {
                 </>
               )}
             </Button>
-            <Button onClick={() => setCurrentStep(2)} disabled={!isSaved}>
+            <Button onClick={() => setCurrentStep(2)} disabled={!isVendorSaved} style={{ userSelect: "none" }}>
               Berikutnya
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
