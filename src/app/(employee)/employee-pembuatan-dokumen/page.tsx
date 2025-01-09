@@ -13,7 +13,6 @@ import {
   ArrowLeft,
   Trash,
 } from "lucide-react";
-import axios from "axios";
 import { addVendor, deleteVendor, VendorData } from "@/services/employee";
 
 const STORAGE_KEYS = {
@@ -28,9 +27,9 @@ export default function BuatDokumen() {
     const saved = localStorage.getItem(STORAGE_KEYS.CURRENT_STEP);
     return saved ? parseInt(saved) : 1;
   });
-  const [error, setError] = useState<string | null>(null);
-  const [alertType, setAlertType] = useState<"save" | "delete" | null>(null);
-  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [vendorError, setVendorError] = useState<string | null>(null);
+  const [vendorAlertType, setVendorAlertType] = useState<"save" | "delete" | null>(null);
+  const [vendorShowSuccessAlert, setVendorShowSuccessAlert] = useState(false);
   const [isVendorSubmitted, setIsVendorSubmitted] = useState(false);
   const [isVendorSaved, setIsVendorSaved] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.IS_VENDOR_SAVED);
@@ -127,7 +126,7 @@ export default function BuatDokumen() {
 
   const handleVendorSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    setError(null);
+    setVendorError(null);
     setIsVendorSubmitted(true);
 
     const requiredFields: (keyof VendorData)[] = [
@@ -144,7 +143,7 @@ export default function BuatDokumen() {
     const emptyFields = requiredFields.filter((field) => !vendorData[field]);
 
     if (emptyFields.length > 0) {
-      setError(`Mohon lengkapi semua input`);
+      setVendorError(`Mohon lengkapi semua input`);
       return;
     }
 
@@ -157,19 +156,19 @@ export default function BuatDokumen() {
       const response = await addVendor(token, vendorData);
 
       if (response) {
-        setShowSuccessAlert(true);
-        setAlertType('save');
+        setVendorShowSuccessAlert(true);
+        setVendorAlertType('save');
         setIsVendorSubmitted(false);
         setIsVendorSaved(true);
         setSavedVendorId(response.data.id);
         setTimeout(() => {
-          setShowSuccessAlert(false);
-          setAlertType(null);
+          setVendorShowSuccessAlert(false);
+          setVendorAlertType(null);
         }, 3000);
       }
-    } catch (error) {
-      setShowSuccessAlert(false);
-      setError(error instanceof Error ? error.message : "Terjadi kesalahan");
+    } catch (vendorError) {
+      setVendorShowSuccessAlert(false);
+      setVendorError(vendorError instanceof Error ? vendorError.message : "Terjadi kesalahan");
     }
   };
 
@@ -186,14 +185,14 @@ export default function BuatDokumen() {
       setSavedVendorId(null);
       // Don't clear vendorData to keep form values
       
-      setShowSuccessAlert(true);
-      setAlertType('delete');
+      setVendorShowSuccessAlert(true);
+      setVendorAlertType('delete');
       setTimeout(() => {
-        setShowSuccessAlert(false);
-        setAlertType(null);
+        setVendorShowSuccessAlert(false);
+        setVendorAlertType(null);
       }, 3000);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Terjadi kesalahan saat menghapus data");
+    } catch (vendorError) {
+      setVendorError(vendorError instanceof Error ? vendorError.message : "Terjadi kesalahan saat menghapus data");
     }
   };
 
@@ -202,30 +201,30 @@ export default function BuatDokumen() {
       for (const official of officialsData) {
         await axios.post("/api/officials", official);
       }
-    } catch (error) {
-      console.error("Error saving officials:", error);
+    } catch (vendorError) {
+      console.vendorError("Error saving officials:", vendorError);
     }
   };
 
-  const handleDocumentsSubmit = async () => {
-    try {
-      for (const doc of documents) {
-        await axios.post("/api/documents", doc);
-      }
-    } catch (error) {
-      console.error("Error saving documents:", error);
-    }
-  };
+  // const handleDocumentsSubmit = async () => {
+  //   try {
+  //     for (const doc of documents) {
+  //       await axios.post("/api/documents", doc);
+  //     }
+  //   } catch (vendorError) {
+  //     console.vendorError("Error saving documents:", vendorError);
+  //   }
+  // };
 
-  const handleContractsSubmit = async () => {
-    try {
-      for (const contract of contracts) {
-        await axios.post("/api/contracts", contract);
-      }
-    } catch (error) {
-      console.error("Error saving contracts:", error);
-    }
-  };
+  // const handleContractsSubmit = async () => {
+  //   try {
+  //     for (const contract of contracts) {
+  //       await axios.post("/api/contracts", contract);
+  //     }
+  //   } catch (vendorError) {
+  //     console.vendorError("Error saving contracts:", vendorError);
+  //   }
+  // };
 
   const handleGenerateDoc = () => {
     // Add logic to generate and download Word document
@@ -267,15 +266,15 @@ export default function BuatDokumen() {
 
   const renderVendorForm = () => (
     <>
-      {error && (
+      {vendorError && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-4 text-sm">
-          {error}
+          {vendorError}
         </div>
       )}
 
-      {showSuccessAlert && (
+      {vendorShowSuccessAlert && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4 text-sm">
-          {alertType === "save"
+          {vendorAlertType === "save"
             ? "Data vendor berhasil disimpan!"
             : "Pembatalan data vendor berhasil!"}
         </div>
