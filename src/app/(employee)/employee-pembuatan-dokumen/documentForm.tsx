@@ -79,9 +79,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
     }));
   };
 
-  const handleDocumentSubmit = async (
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
+  const handleDocumentSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setDocumentError(null);
     setIsDocumentSubmitted(true);
@@ -100,27 +98,39 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
         throw new Error("Anda belum login. Silakan login terlebih dahulu.");
       }
 
-      let response;
       if (isDocumentEditMode && savedDocumentId) {
-        response = await updateDocument(token, savedDocumentId, documentData);
+        // Update using the old document ID (saved in savedDocumentId)
+        const response = await updateDocument(token, savedDocumentId, documentData);
+        if (response) {
+          // Update the savedDocumentId with the new nomor_kontrak
+          setSavedDocumentId(documentData.nomor_kontrak);
+          // Save the new ID to localStorage
+          localStorage.setItem(
+            STORAGE_KEYS.SAVED_DOCUMENT_ID,
+            JSON.stringify(documentData.nomor_kontrak)
+          );
+        }
       } else {
-        response = await addDocument(token, documentData);
+        const response = await addDocument(token, documentData);
+        if (response) {
+          setSavedDocumentId(response.data.nomor_kontrak);
+          localStorage.setItem(
+            STORAGE_KEYS.SAVED_DOCUMENT_ID,
+            JSON.stringify(response.data.nomor_kontrak)
+          );
+        }
       }
 
-      if (response) {
-        setDocumentShowSuccessAlert(true);
-        setDocumentAlertType(isDocumentEditMode ? "edit" : "save");
-        setIsDocumentSubmitted(false);
-        setIsDocumentSaved(true);
-        setIsEditMode(false);
-        if (!isDocumentEditMode) {
-          setSavedDocumentId(response.data.nomor_kontrak);
-        }
-        setTimeout(() => {
-          setDocumentShowSuccessAlert(false);
-          setDocumentAlertType(null);
-        }, 3000);
-      }
+      setDocumentShowSuccessAlert(true);
+      setDocumentAlertType(isDocumentEditMode ? "edit" : "save");
+      setIsDocumentSubmitted(false);
+      setIsDocumentSaved(true);
+      setIsEditMode(false);
+      
+      setTimeout(() => {
+        setDocumentShowSuccessAlert(false);
+        setDocumentAlertType(null);
+      }, 3000);
     } catch (error) {
       setDocumentShowSuccessAlert(false);
       setDocumentError(

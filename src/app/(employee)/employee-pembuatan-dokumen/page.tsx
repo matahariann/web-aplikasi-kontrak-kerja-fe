@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PlusCircle, Save, Printer, ArrowRight, ArrowLeft } from "lucide-react";
+import { PlusCircle, Save, Printer, ArrowLeft } from "lucide-react";
 import OfficialsForm from "./officialForm";
 import VendorForm from "./vendorForm";
 import DocumentForm from "./documentForm";
