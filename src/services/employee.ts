@@ -56,6 +56,11 @@ export interface DocumentData {
   kode_kegiatan: string;
 }
 
+export interface DocumentWithOfficialsData {
+  officials: Array<{ nip: string }>;
+  document: DocumentData;
+}
+
 export const getEmployee = async (token: string): Promise<Employee> => {
     try {
       const response = await axios.get(
@@ -202,6 +207,54 @@ export const getEmployee = async (token: string): Promise<Employee> => {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || "Gagal memperbarui data dokumen");
+      }
+      throw error;
+    }
+  };
+
+  export const saveDocumentWithOfficials = async (
+    token: string, 
+    data: DocumentWithOfficialsData
+  ) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:8000/api/saveDocumentWithOfficials`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || "Gagal menyimpan data dokumen dan pejabat");
+      }
+      throw error;
+    }
+  };
+  
+  export const updateDocumentWithOfficials = async (
+    token: string,
+    nomor_kontrak: string,
+    data: DocumentWithOfficialsData
+  ) => {
+    try {
+      const response = await axios.put(
+        `http://localhost:8000/api/updateDocumentWithOfficials/${nomor_kontrak}`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || "Gagal memperbarui data dokumen dan pejabat");
       }
       throw error;
     }

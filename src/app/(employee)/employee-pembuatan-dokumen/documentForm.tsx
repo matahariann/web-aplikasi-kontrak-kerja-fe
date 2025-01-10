@@ -5,13 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Save, ArrowRight, Pencil, ArrowLeft } from "lucide-react";
-import { addDocument, updateDocument, DocumentData } from "@/services/employee";
+import { addDocument, updateDocument, DocumentData, updateDocumentWithOfficials, saveDocumentWithOfficials, DocumentWithOfficialsData } from "@/services/employee";
 
 const STORAGE_KEYS = {
   DOCUMENT_DATA: "documentData",
   IS_DOCUMENT_SAVED: "isDocumentSaved",
   SAVED_DOCUMENT_ID: "savedDocumentId",
   IS_DOCUMENT_EDIT_MODE: "isDocumentEditMode",
+  OFFICIALS_DATA: "officialsData",
+  SAVED_OFFICIALS_IDS: "savedOfficialsIds",
 };
 
 const DocumentForm = ({ currentStep, setCurrentStep }) => {
@@ -33,6 +35,10 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
   const [savedDocumentId, setSavedDocumentId] = useState<string | null>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.SAVED_DOCUMENT_ID);
     return saved ? JSON.parse(saved) : null;
+  });
+  const [savedOfficialsIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.SAVED_OFFICIALS_IDS);
+    return saved ? JSON.parse(saved) : [];
   });
   const [documentData, setDocumentData] = useState<DocumentData>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.DOCUMENT_DATA);
@@ -98,25 +104,37 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
         throw new Error("Anda belum login. Silakan login terlebih dahulu.");
       }
 
+      // Get officials data from localStorage
+      const savedOfficialsData = localStorage.getItem(STORAGE_KEYS.OFFICIALS_DATA);
+      const officialsData = savedOfficialsData ? JSON.parse(savedOfficialsData) : [];
+
+      // Prepare combined data
+      const combinedData: DocumentWithOfficialsData = {
+        officials: officialsData.map((official: OfficialData) => ({
+          nip: official.nip
+        })),
+        document: documentData
+      };
+
+      let response;
       if (isDocumentEditMode && savedDocumentId) {
-        // Update using the old document ID (saved in savedDocumentId)
-        const response = await updateDocument(token, savedDocumentId, documentData);
-        if (response) {
-          // Update the savedDocumentId with the new nomor_kontrak
-          setSavedDocumentId(documentData.nomor_kontrak);
-          // Save the new ID to localStorage
+        response = await updateDocumentWithOfficials(token, savedDocumentId, combinedData);
+        
+        // Update savedDocumentId with new nomor_kontrak if it changed
+        if (response && response.data.document.nomor_kontrak !== savedDocumentId) {
+          setSavedDocumentId(response.data.document.nomor_kontrak);
           localStorage.setItem(
             STORAGE_KEYS.SAVED_DOCUMENT_ID,
-            JSON.stringify(documentData.nomor_kontrak)
+            JSON.stringify(response.data.document.nomor_kontrak)
           );
         }
       } else {
-        const response = await addDocument(token, documentData);
+        response = await saveDocumentWithOfficials(token, combinedData);
         if (response) {
-          setSavedDocumentId(response.data.nomor_kontrak);
+          setSavedDocumentId(response.data.document.nomor_kontrak);
           localStorage.setItem(
             STORAGE_KEYS.SAVED_DOCUMENT_ID,
-            JSON.stringify(response.data.nomor_kontrak)
+            JSON.stringify(response.data.document.nomor_kontrak)
           );
         }
       }
