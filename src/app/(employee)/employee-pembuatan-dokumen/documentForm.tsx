@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Save, ArrowRight, Pencil, ArrowLeft } from "lucide-react";
-import { addDocument, updateDocument, DocumentData, updateDocumentWithOfficials, saveDocumentWithOfficials, DocumentWithOfficialsData } from "@/services/employee";
+import { DocumentData, updateDocumentWithOfficials, saveDocumentWithOfficials, DocumentWithOfficialsData, OfficialData } from "@/services/employee";
 
 const STORAGE_KEYS = {
   DOCUMENT_DATA: "documentData",
@@ -35,10 +35,6 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
   const [savedDocumentId, setSavedDocumentId] = useState<string | null>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.SAVED_DOCUMENT_ID);
     return saved ? JSON.parse(saved) : null;
-  });
-  const [savedOfficialsIds] = useState<string[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.SAVED_OFFICIALS_IDS);
-    return saved ? JSON.parse(saved) : [];
   });
   const [documentData, setDocumentData] = useState<DocumentData>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.DOCUMENT_DATA);
