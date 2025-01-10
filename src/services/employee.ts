@@ -26,6 +26,35 @@ export interface OfficialData {
   periode_jabatan: string;
 }
 
+export interface DocumentData {
+  nomor_kontrak: string;
+  tanggal_kontrak: string;
+  paket_pekerjaan: string;
+  tahun_anggaran: string;
+  nomor_pp: string;
+  tanggal_pp: string;
+  nomor_hps: string;
+  tanggal_hps: string;
+  tanggal_mulai: string;
+  tanggal_selesai: string;
+  nomor_pph1: string;
+  tanggal_pph1: string;
+  nomor_pph2: string;
+  tanggal_pph2: string;
+  nomor_ukn: string;
+  tanggal_ukn: string;
+  tanggal_undangan_ukn: string;
+  nomor_ba_ekn: string;
+  nomor_pppb: string;
+  tanggal_pppb: string;
+  nomor_lppb: string;
+  tanggal_lppb: string;
+  nomor_ba_stp: string;
+  nomor_ba_pem: string;
+  nomor_dipa: string;
+  tanggal_dipa: string;
+  kode_kegiatan: string;
+}
 
 export const getEmployee = async (token: string): Promise<Employee> => {
     try {
@@ -113,10 +142,10 @@ export const getEmployee = async (token: string): Promise<Employee> => {
     }
   };
 
-  export const updateOfficial = async (token: string, nip: string, officialData: OfficialData) => {
+  export const updateOfficial = async (token: string, oldNip: string, officialData: OfficialData) => {
     try {
       const response = await axios.put(
-        `http://localhost:8000/api/updateOfficial/${nip}`,
+        `http://localhost:8000/api/updateOfficial/${oldNip}`,
         officialData,
         {
           headers: {
@@ -127,7 +156,52 @@ export const getEmployee = async (token: string): Promise<Employee> => {
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || "Gagal memperbarui data pejabat");
+        // Lebih spesifik dalam menangani error
+        const errorMessage = error.response?.data?.error || 
+                            error.response?.data?.message || 
+                            "Gagal memperbarui data pejabat";
+        throw new Error(errorMessage);
+      }
+      throw error;
+    }
+  };
+
+  export const addDocument = async (token: string, documentData: DocumentData) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:8000/api/addDocument`,
+        documentData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || "Data document sudah ada dalam database");
+      }
+      throw error;
+    }
+  };
+
+  export const updateDocument = async (token: string, nomor_kontrak: string, documentData: DocumentData) => {
+    try {
+      const response = await axios.put(
+        `http://localhost:8000/api/updateDocument/${nomor_kontrak}`,
+        documentData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || "Gagal memperbarui data dokumen");
       }
       throw error;
     }

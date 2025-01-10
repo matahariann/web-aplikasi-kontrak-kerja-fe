@@ -5,15 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  PlusCircle,
-  Save,
-  Printer,
-  ArrowRight,
-  ArrowLeft,
-} from "lucide-react";
+import { PlusCircle, Save, Printer, ArrowRight, ArrowLeft } from "lucide-react";
 import OfficialsForm from "./officialForm";
 import VendorForm from "./vendorForm";
+import DocumentForm from "./documentForm";
 
 const STORAGE_KEYS = {
   CURRENT_STEP: "currentStep",
@@ -431,7 +426,7 @@ export default function BuatDokumen() {
         </div>
         <div className="flex justify-between mt-6">
           <div>
-            <Button >
+            <Button>
               <Save className="w-4 h-4 mr-2" />
               Simpan
             </Button>
@@ -591,9 +586,19 @@ export default function BuatDokumen() {
   return (
     <div className="p-2">
       <h1 className="text-2xl font-bold mb-6">Buat Dokumen</h1>
-      {currentStep === 1 && <VendorForm currentStep={currentStep} setCurrentStep={setCurrentStep} />}
-      {currentStep === 2 && <OfficialsForm currentStep={currentStep} setCurrentStep={setCurrentStep} />}
-      {currentStep === 3 && renderDocumentsForm()}
+      {currentStep === 1 && (
+        <VendorForm currentStep={currentStep} setCurrentStep={setCurrentStep} />
+      )}
+      {currentStep === 2 && (
+        <OfficialsForm
+          currentStep={currentStep}
+          setCurrentStep={setCurrentStep}
+        />
+      )}
+      {/* {currentStep === 3 && renderDocumentsForm()} */}
+      {currentStep === 3 && (
+        <DocumentForm currentStep={currentStep} setCurrentStep={setCurrentStep} />
+      )}
       {currentStep === 4 && renderContractForm()}
     </div>
   );
