@@ -86,6 +86,13 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
     );
   }, [isOfficialsEditMode]);
 
+  useEffect(() => {
+    const savedIds = localStorage.getItem(STORAGE_KEYS.SAVED_OFFICIALS_IDS);
+    if (savedIds) {
+        setSavedOfficialsIds(JSON.parse(savedIds));
+    }
+}, []);
+
   const handleOfficialsInputChange = (
     index: number,
     field: keyof OfficialData,
@@ -99,68 +106,159 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
     setOfficialsData(newOfficialsData);
   };
 
-  const handleOfficialsSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    setOfficialsError(null);
-    setIsOfficialsSubmitted(true);
+//   const handleOfficialsSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+//     e.preventDefault();
+//     setOfficialsError(null);
+//     setIsOfficialsSubmitted(true);
 
-    const hasEmptyFields = officialsData.some(
-        (official) => !official.nip || !official.nama || !official.periode_jabatan
-    );
+//     const hasEmptyFields = officialsData.some(
+//         (official) => !official.nip || !official.nama || !official.periode_jabatan
+//     );
 
-    if (hasEmptyFields) {
-        setOfficialsError("Mohon lengkapi semua input");
-        return;
-    }
+//     if (hasEmptyFields) {
+//         setOfficialsError("Mohon lengkapi semua input");
+//         return;
+//     }
 
-    try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            throw new Error("Anda belum login. Silakan login terlebih dahulu.");
-        }
+//     try {
+//         const token = localStorage.getItem("token");
+//         if (!token) {
+//             throw new Error("Anda belum login. Silakan login terlebih dahulu.");
+//         }
 
-        if (isOfficialsEditMode) {
-            // Update existing officials
-            for (let i = 0; i < officialsData.length; i++) {
-                const official = officialsData[i];
-                const oldNip = savedOfficialsIds[i]; // Menggunakan NIP lama dari savedOfficialsIds
-                await updateOfficial(token, oldNip, official);
-            }
-            // Update savedOfficialsIds dengan NIP baru
-            setSavedOfficialsIds(officialsData.map(official => official.nip));
-            setIsOfficialsEditMode(false);
-        } else {
-            // Add new officials
-            const savedIds = [];
-            for (const official of officialsData) {
-                const response = await addOfficial(token, official);
-                savedIds.push(response.data.nip);
-            }
-            setSavedOfficialsIds(savedIds);
-        }
+//         if (isOfficialsEditMode) {
+//             // Update existing officials
+//             for (let i = 0; i < officialsData.length; i++) {
+//                 const official = officialsData[i];
+//                 const oldNip = savedOfficialsIds[i]; // Menggunakan NIP lama dari savedOfficialsIds
+//                 await updateOfficial(token, oldNip, official);
+//             }
+//             // Update savedOfficialsIds dengan NIP baru
+//             setSavedOfficialsIds(officialsData.map(official => official.nip));
+//             setIsOfficialsEditMode(false);
+//         } else {
+//             // Add new officials
+//             const savedIds = [];
+//             for (const official of officialsData) {
+//                 const response = await addOfficial(token, official);
+//                 savedIds.push(response.data.nip);
+//             }
+//             setSavedOfficialsIds(savedIds);
+//         }
 
-        setIsOfficialsSaved(true);
-        setOfficialsShowSuccessAlert(true);
-        setOfficialsAlertType(isOfficialsEditMode ? "edit" : "save");
-        setIsOfficialsSubmitted(false);
+//         setIsOfficialsSaved(true);
+//         setOfficialsShowSuccessAlert(true);
+//         setOfficialsAlertType(isOfficialsEditMode ? "edit" : "save");
+//         setIsOfficialsSubmitted(false);
 
-        setTimeout(() => {
-            setOfficialsShowSuccessAlert(false);
-            setOfficialsAlertType(null);
-        }, 3000);
-    } catch (error) {
-        setOfficialsShowSuccessAlert(false);
-        setOfficialsError(
-            error instanceof Error ? error.message : "Terjadi kesalahan"
-        );
-    }
+//         setTimeout(() => {
+//             setOfficialsShowSuccessAlert(false);
+//             setOfficialsAlertType(null);
+//         }, 3000);
+//     } catch (error) {
+//         setOfficialsShowSuccessAlert(false);
+//         setOfficialsError(
+//             error instanceof Error ? error.message : "Terjadi kesalahan"
+//         );
+//     }
+// };
+
+const handleOfficialsSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  e.preventDefault();
+  setOfficialsError(null);
+  setIsOfficialsSubmitted(true);
+
+  const hasEmptyFields = officialsData.some(
+      (official) => !official.nip || !official.nama || !official.periode_jabatan
+  );
+
+  if (hasEmptyFields) {
+      setOfficialsError("Mohon lengkapi semua input");
+      return;
+  }
+
+  try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+          throw new Error("Anda belum login. Silakan login terlebih dahulu.");
+      }
+
+      let newSavedIds = [...savedOfficialsIds]; // Buat copy dari savedOfficialsIds
+
+      if (isOfficialsEditMode) {
+          // Update existing officials
+          for (let i = 0; i < officialsData.length; i++) {
+              const official = officialsData[i];
+              const oldNip = savedOfficialsIds[i];
+              
+              try {
+                  const response = await updateOfficial(token, oldNip, {
+                      nip: official.nip,
+                      nama: official.nama,
+                      jabatan: official.jabatan,
+                      periode_jabatan: official.periode_jabatan
+                  });
+                  
+                  // Update savedOfficialsIds dengan NIP baru
+                  newSavedIds[i] = official.nip;
+                  
+                  // Log untuk debugging
+                  console.log(`Updated official ${oldNip} to ${official.nip}`);
+              } catch (error) {
+                  console.error(`Error updating official ${oldNip}:`, error);
+                  throw error;
+              }
+          }
+          
+          // Update state savedOfficialsIds setelah semua updates selesai
+          setSavedOfficialsIds(newSavedIds);
+          
+          // Update localStorage dengan NIP baru
+          localStorage.setItem(STORAGE_KEYS.SAVED_OFFICIALS_IDS, JSON.stringify(newSavedIds));
+          
+          setIsOfficialsEditMode(false);
+      } else {
+          // Add new officials
+          const savedIds = [];
+          for (const official of officialsData) {
+              const response = await addOfficial(token, official);
+              savedIds.push(response.data.nip);
+          }
+          setSavedOfficialsIds(savedIds);
+          localStorage.setItem(STORAGE_KEYS.SAVED_OFFICIALS_IDS, JSON.stringify(savedIds));
+      }
+
+      setIsOfficialsSaved(true);
+      setOfficialsShowSuccessAlert(true);
+      setOfficialsAlertType(isOfficialsEditMode ? "edit" : "save");
+      setIsOfficialsSubmitted(false);
+
+      // Simpan data terbaru ke localStorage
+      localStorage.setItem(STORAGE_KEYS.OFFICIALS_DATA, JSON.stringify(officialsData));
+      localStorage.setItem(STORAGE_KEYS.IS_OFFICIALS_SAVED, JSON.stringify(true));
+      localStorage.setItem(STORAGE_KEYS.IS_OFFICIALS_EDIT_MODE, JSON.stringify(false));
+
+      setTimeout(() => {
+          setOfficialsShowSuccessAlert(false);
+          setOfficialsAlertType(null);
+      }, 3000);
+  } catch (error) {
+      setOfficialsShowSuccessAlert(false);
+      setOfficialsError(
+          error instanceof Error ? error.message : "Terjadi kesalahan saat memperbarui data"
+      );
+  }
 };
 
-
-  const handleEditMode = () => {
-    setIsOfficialsEditMode(true);
-    setIsOfficialsSaved(false);
-  };
+const handleEditMode = () => {
+  setIsOfficialsEditMode(true);
+  setIsOfficialsSaved(false);
+  // Pastikan savedOfficialsIds masih tersedia saat mode edit
+  const savedIds = localStorage.getItem(STORAGE_KEYS.SAVED_OFFICIALS_IDS);
+  if (savedIds) {
+      setSavedOfficialsIds(JSON.parse(savedIds));
+  }
+};
 
   return (
     <>
