@@ -106,63 +106,6 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
     setOfficialsData(newOfficialsData);
   };
 
-//   const handleOfficialsSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
-//     e.preventDefault();
-//     setOfficialsError(null);
-//     setIsOfficialsSubmitted(true);
-
-//     const hasEmptyFields = officialsData.some(
-//         (official) => !official.nip || !official.nama || !official.periode_jabatan
-//     );
-
-//     if (hasEmptyFields) {
-//         setOfficialsError("Mohon lengkapi semua input");
-//         return;
-//     }
-
-//     try {
-//         const token = localStorage.getItem("token");
-//         if (!token) {
-//             throw new Error("Anda belum login. Silakan login terlebih dahulu.");
-//         }
-
-//         if (isOfficialsEditMode) {
-//             // Update existing officials
-//             for (let i = 0; i < officialsData.length; i++) {
-//                 const official = officialsData[i];
-//                 const oldNip = savedOfficialsIds[i]; // Menggunakan NIP lama dari savedOfficialsIds
-//                 await updateOfficial(token, oldNip, official);
-//             }
-//             // Update savedOfficialsIds dengan NIP baru
-//             setSavedOfficialsIds(officialsData.map(official => official.nip));
-//             setIsOfficialsEditMode(false);
-//         } else {
-//             // Add new officials
-//             const savedIds = [];
-//             for (const official of officialsData) {
-//                 const response = await addOfficial(token, official);
-//                 savedIds.push(response.data.nip);
-//             }
-//             setSavedOfficialsIds(savedIds);
-//         }
-
-//         setIsOfficialsSaved(true);
-//         setOfficialsShowSuccessAlert(true);
-//         setOfficialsAlertType(isOfficialsEditMode ? "edit" : "save");
-//         setIsOfficialsSubmitted(false);
-
-//         setTimeout(() => {
-//             setOfficialsShowSuccessAlert(false);
-//             setOfficialsAlertType(null);
-//         }, 3000);
-//     } catch (error) {
-//         setOfficialsShowSuccessAlert(false);
-//         setOfficialsError(
-//             error instanceof Error ? error.message : "Terjadi kesalahan"
-//         );
-//     }
-// };
-
 const handleOfficialsSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
   e.preventDefault();
   setOfficialsError(null);

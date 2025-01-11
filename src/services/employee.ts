@@ -26,6 +26,16 @@ export interface OfficialData {
   periode_jabatan: string;
 }
 
+export interface ContractData {
+  nomor_kontrak?: string;
+  jenis_kontrak: string;
+  deskripsi: string;
+  jumlah_orang: number;
+  durasi_kontrak: number;
+  nilai_kontral_awal: number;
+  nilai_kontrak_akhir: number;
+}
+
 export interface DocumentData {
   nomor_kontrak: string;
   tanggal_kontrak: string;
@@ -288,6 +298,59 @@ export const updateDocumentWithOfficials = async (
       throw new Error(
         error.response?.data?.message ||
           "Gagal memperbarui data dokumen dan pejabat"
+      );
+    }
+    throw error;
+  }
+};
+
+export const addContract = async (
+  token: string,
+  contractData: ContractData
+) => {
+  try {
+    const response = await axios.post(
+      `http://localhost:8000/api/addContract`,
+      contractData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.error || "Gagal menambahkan data kontrak"
+      );
+    }
+    throw error;
+  }
+};
+
+export const updateContract = async (
+  token: string,
+  id: string,
+  data: ContractData
+) => {
+  try {
+    const response = await axios.put(
+      `http://localhost:8000/api/updateContract/${id}`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Gagal memperbarui data kontrak"
       );
     }
     throw error;
