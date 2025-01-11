@@ -11,8 +11,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Save, ArrowLeft, Pencil, Plus, Minus } from "lucide-react";
-import { addContract, updateContract, ContractData, DocumentData } from "@/services/employee";
+import {
+  addContract,
+  updateContract,
+  ContractData,
+  DocumentData,
+} from "@/services/employee";
 import { PrintContract } from "./generateDocs";
+import { Textarea } from "@nextui-org/react";
 
 enum ContractType {
   KONSULTAN = "Konsultan",
@@ -423,7 +429,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                 </SelectContent>
               </Select>
               <p className="text-sm text-gray-500 mt-1">
-                Batas maksimal nilai kontrak:{" "}
+                Batas maksimal harga untuk jenis kontrak {contractType}:{" "}
                 {formatCurrency(MAX_PRICE[contractType])}
               </p>
             </div>
@@ -443,36 +449,37 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                 </Button>
               )}
               <h3 className="font-medium mb-4">
-                Deskripsi Kontrak {index + 1}
+                Keterangan Kontrak {index + 1}
               </h3>
+              <div>
+                <Label htmlFor={`deskripsi_${index}`}>
+                  Deskripsi <span className="text-red-500">*</span>
+                </Label>
+                <Textarea
+                  id={`deskripsi_${index}`}
+                  value={contract.deskripsi}
+                  onChange={(e) =>
+                    handleContractInputChange(
+                      index,
+                      "deskripsi",
+                      e.target.value
+                    )
+                  }
+                  className={`min-h-[120px] ${
+                    isContractsSubmitted && !contract.deskripsi
+                      ? "border-red-300"
+                      : ""
+                  }`}
+                  placeholder="Masukkan deskripsi lengkap kontrak..."
+                  disabled={isContractsSaved && !isContractsEditMode}
+                />
+                {isContractsSubmitted && !contract.deskripsi && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Deskripsi tidak boleh kosong
+                  </p>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor={`deskripsi_${index}`}>
-                    Deskripsi <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id={`deskripsi_${index}`}
-                    value={contract.deskripsi}
-                    onChange={(e) =>
-                      handleContractInputChange(
-                        index,
-                        "deskripsi",
-                        e.target.value
-                      )
-                    }
-                    className={
-                      isContractsSubmitted && !contract.deskripsi
-                        ? "border-red-300"
-                        : ""
-                    }
-                    disabled={isContractsSaved && !isContractsEditMode}
-                  />
-                  {isContractsSubmitted && !contract.deskripsi && (
-                    <p className="text-red-500 text-sm mt-1">
-                      Deskripsi tidak boleh kosong
-                    </p>
-                  )}
-                </div>
                 <div>
                   <Label htmlFor={`jumlah_orang_${index}`}>
                     Jumlah Orang <span className="text-red-500">*</span>
