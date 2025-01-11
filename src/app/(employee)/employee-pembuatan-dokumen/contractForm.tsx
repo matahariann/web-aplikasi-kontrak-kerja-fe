@@ -32,7 +32,7 @@ export const formatCurrency = (value: number): string => {
   }).format(value);
 };
 
-const ContractsForm = ({ setCurrentStep }) => {
+const ContractsForm = ({ currentStep, setCurrentStep }) => {
   const [isContractsEditMode, setIsContractsEditMode] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.IS_CONTRACTS_EDIT_MODE);
     return saved ? JSON.parse(saved) : false;
