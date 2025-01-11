@@ -15,9 +15,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Printer } from "lucide-react";
-import { ContractData, DocumentData } from "@/services/employee";
+import { ContractData, DocumentData, VendorData } from "@/services/employee";
 
 interface GenerateDocumentProps {
+  vendorData: VendorData;
   contractData: ContractData;
   documentData: DocumentData;
 }
@@ -37,6 +38,7 @@ interface PrintDialogProps {
 interface PrintContractProps {
   contractsData: ContractData[];
   documentData: DocumentData;
+  vendorData: VendorData;
   isContractsSaved: boolean;
   isContractsEditMode: boolean;
   onError: (error: string) => void;
@@ -99,6 +101,7 @@ const PrintDialog = ({ isOpen, onClose, onConfirm }: PrintDialogProps) => {
 export const generateContractDocument = async ({
   contractData,
   documentData,
+  vendorData,
 }: GenerateDocumentProps) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -137,7 +140,7 @@ export const generateContractDocument = async ({
             alignment: AlignmentType.CENTER,
             children: [
               new TextRun({
-                text: `Nomor: ${documentData.nomor_kontrak}`,
+                text: `Nomor: ${vendorData.nama_pj}`,
                 size: 24,
               }),
             ],
@@ -328,84 +331,86 @@ export const generateContractDocument = async ({
 };
 
 export const PrintContract: React.FC<PrintContractProps> = ({
-    contractsData,
-    documentData,
-    isContractsSaved,
-    isContractsEditMode,
-    onError,
-  }) => {
-    const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
-    const [isPrintConfirmationOpen, setIsPrintConfirmationOpen] = useState(false);
-  
-    const handlePrintClick = () => {
-      setIsPrintConfirmationOpen(true);
-    };
-  
-    const handlePrintConfirmed = () => {
-      setIsPrintConfirmationOpen(false);
-      setIsPrintDialogOpen(true);
-    };
-  
-    const handlePrint = async (filename: string) => {
-      try {
-        if (!filename) {
-          onError("Nama file harus diisi");
-          return;
-        }
-  
-        // Generate dokumen untuk setiap kontrak
-        for (let i = 0; i < contractsData.length; i++) {
-          const contract = contractsData[i];
-          const doc = await generateContractDocument({
-            contractData: contract,
-            documentData: documentData,
-          });
-          const blob = await Packer.toBlob(doc);
-  
-          const sanitizedFilename = filename
-            .replace(/[^a-z0-9]/gi, "_")
-            .toLowerCase();
-          const fullFilename = `${sanitizedFilename}${
-            i > 0 ? `_${i + 1}` : ""
-          }.docx`;
-  
-          saveAs(blob, fullFilename);
-        }
-  
-        setIsPrintDialogOpen(false);
-  
-        // Refresh halaman setelah delay
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-      } catch (error) {
-        console.error("Error generating document:", error);
-        onError("Terjadi kesalahan saat mencetak dokumen");
-      }
-    };
-  
-    if (!isContractsSaved || isContractsEditMode) {
-      return null;
-    }
-  
-    return (
-      <>
-        <Button variant="outline" onClick={handlePrintClick}>
-          <Printer className="w-4 h-4 mr-2" />
-          Cetak
-        </Button>
-  
-        <PrintConfirmationDialog
-          isOpen={isPrintConfirmationOpen}
-          onClose={() => setIsPrintConfirmationOpen(false)}
-          onConfirm={handlePrintConfirmed}
-        />
-  
-        <PrintDialog
-          isOpen={isPrintDialogOpen}
-          onClose={() => setIsPrintDialogOpen(false)}
-          onConfirm={handlePrint}
-        />
-      </>
-    );
+  contractsData,
+  documentData,
+  vendorData,
+  isContractsSaved,
+  isContractsEditMode,
+  onError,
+}) => {
+  const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
+  const [isPrintConfirmationOpen, setIsPrintConfirmationOpen] = useState(false);
+
+  const handlePrintClick = () => {
+    setIsPrintConfirmationOpen(true);
   };
+
+  const handlePrintConfirmed = () => {
+    setIsPrintConfirmationOpen(false);
+    setIsPrintDialogOpen(true);
+  };
+
+  const handlePrint = async (filename: string) => {
+    try {
+      if (!filename) {
+        onError("Nama file harus diisi");
+        return;
+      }
+
+      // Generate dokumen untuk setiap kontrak
+      for (let i = 0; i < contractsData.length; i++) {
+        const contract = contractsData[i];
+        const doc = await generateContractDocument({
+          contractData: contract,
+          documentData: documentData,
+          vendorData: vendorData,
+        });
+        const blob = await Packer.toBlob(doc);
+
+        const sanitizedFilename = filename
+          .replace(/[^a-z0-9]/gi, "_")
+          .toLowerCase();
+        const fullFilename = `${sanitizedFilename}${
+          i > 0 ? `_${i + 1}` : ""
+        }.docx`;
+
+        saveAs(blob, fullFilename);
+      }
+
+      setIsPrintDialogOpen(false);
+
+      // Refresh halaman setelah delay
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (error) {
+      console.error("Error generating document:", error);
+      onError("Terjadi kesalahan saat mencetak dokumen");
+    }
+  };
+
+  if (!isContractsSaved || isContractsEditMode) {
+    return null;
+  }
+
+  return (
+    <>
+      <Button variant="outline" onClick={handlePrintClick}>
+        <Printer className="w-4 h-4 mr-2" />
+        Cetak
+      </Button>
+
+      <PrintConfirmationDialog
+        isOpen={isPrintConfirmationOpen}
+        onClose={() => setIsPrintConfirmationOpen(false)}
+        onConfirm={handlePrintConfirmed}
+      />
+
+      <PrintDialog
+        isOpen={isPrintDialogOpen}
+        onClose={() => setIsPrintDialogOpen(false)}
+        onConfirm={handlePrint}
+      />
+    </>
+  );
+};
