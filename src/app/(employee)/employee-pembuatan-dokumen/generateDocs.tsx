@@ -34,7 +34,7 @@ interface PrintContractProps {
   isContractsSaved: boolean;
   isContractsEditMode: boolean;
   onError: (error: string) => void;
-  clearLocalStorage: () => void;
+//   clearLocalStorage: () => void;
 }
 
 const PrintConfirmationDialog = ({
@@ -259,7 +259,7 @@ export const PrintContract: React.FC<PrintContractProps> = ({
   isContractsSaved,
   isContractsEditMode,
   onError,
-  clearLocalStorage,
+//   clearLocalStorage,
 }) => {
   const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
   const [isPrintConfirmationOpen, setIsPrintConfirmationOpen] = useState(false);
@@ -296,7 +296,7 @@ export const PrintContract: React.FC<PrintContractProps> = ({
         saveAs(blob, fullFilename);
       }
 
-      clearLocalStorage();
+    //   clearLocalStorage();
       setIsPrintDialogOpen(false);
 
       // Refresh halaman setelah delay

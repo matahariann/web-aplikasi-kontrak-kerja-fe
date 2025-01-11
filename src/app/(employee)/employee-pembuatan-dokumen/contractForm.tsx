@@ -361,11 +361,11 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
     }
   };
 
-  const clearAllLocalStorage = () => {
-    Object.values(STORAGE_KEYS).forEach((key) => {
-      localStorage.removeItem(key);
-    });
-  };
+  // const clearAllLocalStorage = () => {
+  //   Object.values(STORAGE_KEYS).forEach((key) => {
+  //     localStorage.removeItem(key);
+  //   });
+  // };
 
   return (
     <>
@@ -626,7 +626,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                 isContractsSaved={isContractsSaved}
                 isContractsEditMode={isContractsEditMode}
                 onError={setContractsError}
-                clearLocalStorage={clearAllLocalStorage}
+                // clearLocalStorage={clearAllLocalStorage}
               />
             </div>
             <div className="flex space-x-4">
