@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Save, ArrowLeft, Pencil, Plus, Minus, Printer } from "lucide-react";
+import { Save, ArrowLeft, Pencil, Plus, Minus } from "lucide-react";
 import { addContract, updateContract, ContractData } from "@/services/employee";
 import { PrintContract } from "./generateDocs";
 
@@ -32,7 +32,7 @@ export const formatCurrency = (value: number): string => {
   }).format(value);
 };
 
-const ContractsForm = ({ currentStep, setCurrentStep }) => {
+const ContractsForm = ({ setCurrentStep }) => {
   const [isContractsEditMode, setIsContractsEditMode] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.IS_CONTRACTS_EDIT_MODE);
     return saved ? JSON.parse(saved) : false;
