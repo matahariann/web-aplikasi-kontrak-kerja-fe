@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,15 +14,29 @@ import { Save, ArrowLeft, Pencil, Plus, Minus } from "lucide-react";
 import { addContract, updateContract, ContractData } from "@/services/employee";
 import { PrintContract } from "./generateDocs";
 
+enum ContractType {
+  KONSULTAN = "Konsultan",
+  BARANG = "Barang",
+  KONSTRUKSI = "Konstruksi",
+  JASA_LAINNYA = "Jasa Lainnya",
+}
+
+const MAX_PRICE = {
+  [ContractType.KONSULTAN]: 100000000, // 100 juta
+  [ContractType.BARANG]: 200000000, // 200 juta
+  [ContractType.KONSTRUKSI]: 200000000, // 200 juta
+  [ContractType.JASA_LAINNYA]: 200000000, // 200 juta
+};
+
 const STORAGE_KEYS = {
   CONTRACTS_DATA: "contractsData",
   IS_CONTRACTS_SAVED: "isContractsSaved",
   SAVED_CONTRACTS_IDS: "savedContractsIds",
   IS_CONTRACTS_EDIT_MODE: "isContractsEditMode",
+  CONTRACT_TYPE: "contractType",
 };
 
 const INITIAL_CONTRACT = {
-  jenis_kontrak: "",
   deskripsi: "",
   jumlah_orang: 0,
   durasi_kontrak: 0,
@@ -33,6 +54,10 @@ export const formatCurrency = (value: number): string => {
 };
 
 const ContractsForm = ({ currentStep, setCurrentStep }) => {
+  const [contractType, setContractType] = useState<ContractType>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.CONTRACT_TYPE);
+    return saved ? JSON.parse(saved) : ContractType.KONSULTAN;
+  });
   const [isContractsEditMode, setIsContractsEditMode] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.IS_CONTRACTS_EDIT_MODE);
     return saved ? JSON.parse(saved) : false;
@@ -52,7 +77,9 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
     const saved = localStorage.getItem(STORAGE_KEYS.SAVED_CONTRACTS_IDS);
     return saved ? JSON.parse(saved) : [];
   });
-  const [contractsData, setContractsData] = useState<ContractData[]>(() => {
+  const [contractsData, setContractsData] = useState<
+    Omit<ContractData, "jenis_kontrak">[]
+  >(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.CONTRACTS_DATA);
     return saved ? JSON.parse(saved) : [INITIAL_CONTRACT];
   });
@@ -63,6 +90,13 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
       JSON.stringify(contractsData)
     );
   }, [contractsData]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      STORAGE_KEYS.CONTRACT_TYPE,
+      JSON.stringify(contractType)
+    );
+  }, [contractType]);
 
   useEffect(() => {
     localStorage.setItem(
@@ -85,6 +119,36 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
     );
   }, [isContractsEditMode]);
 
+  const validateContractValue = (value: number): string | null => {
+    const maxValue = MAX_PRICE[contractType];
+    if (value > maxValue) {
+      return `Nilai kontrak untuk ${contractType} tidak boleh melebihi ${formatCurrency(
+        maxValue
+      )}`;
+    }
+    return null;
+  };
+
+  const handleContractTypeChange = (value: ContractType) => {
+    // Validate all existing contracts with new contract type
+    for (const contract of contractsData) {
+      const initialValueError = validateContractValue(
+        contract.nilai_kontral_awal
+      );
+      const finalValueError = validateContractValue(
+        contract.nilai_kontrak_akhir
+      );
+
+      if (initialValueError || finalValueError) {
+        setContractsError(initialValueError || finalValueError);
+        return;
+      }
+    }
+
+    setContractType(value);
+    setContractsError(null);
+  };
+
   const addNewContract = () => {
     setContractsData([...contractsData, { ...INITIAL_CONTRACT }]);
   };
@@ -98,7 +162,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
 
   const handleContractInputChange = (
     index: number,
-    field: keyof ContractData,
+    field: keyof Omit<ContractData, "jenis_kontrak">,
     value: string | number
   ) => {
     const newContractsData = [...contractsData];
@@ -106,7 +170,24 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
       ...newContractsData[index],
       [field]: value,
     };
+
+    // Validate contract values when changing values
+    if (field === "nilai_kontral_awal" || field === "nilai_kontrak_akhir") {
+      const initialValueError = validateContractValue(
+        newContractsData[index].nilai_kontral_awal
+      );
+      const finalValueError = validateContractValue(
+        newContractsData[index].nilai_kontrak_akhir
+      );
+
+      if (initialValueError || finalValueError) {
+        setContractsError(initialValueError || finalValueError);
+        return;
+      }
+    }
+
     setContractsData(newContractsData);
+    setContractsError(null);
   };
 
   const handleContractsSubmit = async (
@@ -125,7 +206,6 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
       // Validasi form data
       const hasEmptyFields = contractsData.some(
         (contract) =>
-          !contract.jenis_kontrak ||
           !contract.deskripsi ||
           !contract.jumlah_orang ||
           !contract.durasi_kontrak ||
@@ -133,7 +213,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
           !contract.nilai_kontrak_akhir
       );
 
-      if (hasEmptyFields) {
+      if (!contractType || hasEmptyFields) {
         setContractsError("Mohon lengkapi semua input");
         return;
       }
@@ -152,6 +232,21 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
         return;
       }
 
+      // Validasi maksimal harga kontrak
+      for (const contract of contractsData) {
+        const initialValueError = validateContractValue(
+          contract.nilai_kontral_awal
+        );
+        const finalValueError = validateContractValue(
+          contract.nilai_kontrak_akhir
+        );
+
+        if (initialValueError || finalValueError) {
+          setContractsError(initialValueError || finalValueError);
+          return;
+        }
+      }
+
       let newSavedIds: string[] = [];
 
       if (isContractsEditMode) {
@@ -160,6 +255,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
           const contract = contractsData[i];
           const formattedContract = {
             ...contract,
+            jenis_kontrak: contractType,
             jumlah_orang: Number(contract.jumlah_orang),
             durasi_kontrak: Number(contract.durasi_kontrak),
             nilai_kontral_awal: Number(contract.nilai_kontral_awal),
@@ -168,7 +264,6 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
 
           try {
             if (i < savedContractsIds.length) {
-              // Update existing contract
               const oldId = savedContractsIds[i];
               const response = await updateContract(
                 token,
@@ -179,7 +274,6 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                 newSavedIds.push(response.data.id);
               }
             } else {
-              // Add new contract
               const response = await addContract(token, formattedContract);
               if (response?.data?.id) {
                 newSavedIds.push(response.data.id);
@@ -196,6 +290,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
           try {
             const formattedContract = {
               ...contract,
+              jenis_kontrak: contractType,
               jumlah_orang: Number(contract.jumlah_orang),
               durasi_kontrak: Number(contract.durasi_kontrak),
               nilai_kontral_awal: Number(contract.nilai_kontral_awal),
@@ -301,12 +396,38 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
               </Button>
             )}
           </CardTitle>
-          <p className="text-sm text-red-500">*Wajib diisi</p>
+          <div className="space-y-2">
+            <p className="text-sm text-red-500">*Wajib diisi</p>
+            <div>
+              <Label htmlFor="contract_type">
+                Jenis Kontrak <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={contractType}
+                onValueChange={handleContractTypeChange}
+                disabled={isContractsSaved && !isContractsEditMode}
+              >
+                <SelectTrigger className="w-full max-w-xs">
+                  <SelectValue placeholder="Pilih jenis kontrak" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(ContractType).map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-gray-500 mt-1">
+                Batas maksimal nilai kontrak:{" "}
+                {formatCurrency(MAX_PRICE[contractType])}
+              </p>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {contractsData.map((contract, index) => (
             <div key={index} className="border p-4 rounded-lg relative">
-              {/* Hanya tampilkan tombol hapus jika bukan index 0 */}
               {index !== 0 && (!isContractsSaved || isContractsEditMode) && (
                 <Button
                   variant="ghost"
@@ -317,37 +438,8 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                   <Minus className="w-4 h-4" />
                 </Button>
               )}
-              <h3 className="font-medium mb-4">
-                Deskripsi Kontrak {index + 1}
-              </h3>
+              <h3 className="font-medium mb-4">Deskripsi Kontrak {index + 1}</h3>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor={`jenis_kontrak_${index}`}>
-                    Jenis Kontrak <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id={`jenis_kontrak_${index}`}
-                    value={contract.jenis_kontrak}
-                    onChange={(e) =>
-                      handleContractInputChange(
-                        index,
-                        "jenis_kontrak",
-                        e.target.value
-                      )
-                    }
-                    className={
-                      isContractsSubmitted && !contract.jenis_kontrak
-                        ? "border-red-300"
-                        : ""
-                    }
-                    disabled={isContractsSaved && !isContractsEditMode}
-                  />
-                  {isContractsSubmitted && !contract.jenis_kontrak && (
-                    <p className="text-red-500 text-sm mt-1">
-                      Jenis kontrak tidak boleh kosong
-                    </p>
-                  )}
-                </div>
                 <div>
                   <Label htmlFor={`deskripsi_${index}`}>
                     Deskripsi <span className="text-red-500">*</span>
@@ -406,8 +498,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                 </div>
                 <div>
                   <Label htmlFor={`durasi_kontrak_${index}`}>
-                    Durasi Kontrak (bulan){" "}
-                    <span className="text-red-500">*</span>
+                    Durasi Kontrak (bulan) <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id={`durasi_kontrak_${index}`}
@@ -436,8 +527,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                 </div>
                 <div>
                   <Label htmlFor={`nilai_kontral_awal_${index}`}>
-                    Harga Sebelum Negosiasi{" "}
-                    <span className="text-red-500">*</span>
+                    Harga Sebelum Negosiasi <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id={`nilai_kontral_awal_${index}`}
@@ -471,8 +561,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                 </div>
                 <div>
                   <Label htmlFor={`nilai_kontrak_akhir_${index}`}>
-                    Harga Setelah Negosiasi{" "}
-                    <span className="text-red-500">*</span>
+                    Harga Setelah Negosiasi <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id={`nilai_kontrak_akhir_${index}`}
@@ -530,7 +619,10 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                 )}
               </Button>
               <PrintContract
-                contractsData={contractsData}
+                contractsData={contractsData.map(contract => ({
+                  ...contract,
+                  jenis_kontrak: contractType
+                }))}
                 isContractsSaved={isContractsSaved}
                 isContractsEditMode={isContractsEditMode}
                 onError={setContractsError}
@@ -538,7 +630,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
               />
             </div>
             <div className="flex space-x-4">
-              <Button onClick={() => setCurrentStep(3)} >
+              <Button onClick={() => setCurrentStep(3)}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Sebelumnya
               </Button>
