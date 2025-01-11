@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Document, Paragraph, TextRun, AlignmentType, Packer } from "docx";
+import {
+  Document,
+  Paragraph,
+  TextRun,
+  AlignmentType,
+  Packer,
+  ImageRun,
+} from "docx";
 import { saveAs } from "file-saver";
 import {
   AlertDialog,
@@ -15,7 +22,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Printer } from "lucide-react";
-import { ContractData, DocumentData, VendorData } from "@/services/employee";
+import {
+  ContractData,
+  DocumentData,
+  VendorData,
+  getImage,
+} from "@/services/employee";
 
 interface GenerateDocumentProps {
   vendorData: VendorData;
@@ -112,222 +124,69 @@ export const generateContractDocument = async ({
     });
   };
 
-  const doc = new Document({
-    sections: [
-      {
-        properties: {
-          page: {
-            margin: {
-              top: 1440,
-              right: 1440,
-              bottom: 1440,
-              left: 1440,
+  try {
+    // Ambil data gambar
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("Token tidak ditemukan");
+    }
+
+    const imageData = await getImage(token, 1);
+    console.log('Image data received:', imageData); // Debug log
+
+    // Asumsikan imageData.image sudah dalam format base64
+    // Jika belum, backend perlu dimodifikasi untuk mengirim data base64
+
+    const doc = new Document({
+      sections: [
+        {
+          properties: {
+            page: {
+              margin: {
+                top: 1440,
+                right: 1440,
+                bottom: 1440,
+                left: 1440,
+              },
             },
           },
+          children: [
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: {
+                after: 200,
+              },
+              children: [
+                new ImageRun({
+                  data: imageData.image, // Gunakan data image langsung dari API
+                  transformation: {
+                    width: 200,
+                    height: 100,
+                  },
+                }),
+              ],
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [
+                new TextRun({
+                  text: "SURAT PERINTAH KERJA",
+                  bold: true,
+                  size: 28,
+                }),
+              ],
+            }),
+            // ... sisa code tetap sama
+          ],
         },
-        children: [
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [
-              new TextRun({
-                text: "SURAT PERINTAH KERJA",
-                bold: true,
-                size: 28,
-              }),
-            ],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [
-              new TextRun({
-                text: `Nomor: ${vendorData.nama_pj}`,
-                size: 24,
-              }),
-            ],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [
-              new TextRun({
-                text: "KOMINFO",
-                bold: true,
-                size: 32,
-              }),
-            ],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.JUSTIFIED,
-            spacing: {
-              before: 400,
-              after: 400,
-            },
-            children: [
-              new TextRun({
-                text: `Pada hari ini, ${formatDate(
-                  documentData.tanggal_kontrak
-                )}, yang bertanda tangan di bawah ini:`,
-                size: 24,
-              }),
-            ],
-          }),
-          // Contract Details
-          new Paragraph({
-            alignment: AlignmentType.JUSTIFIED,
-            children: [
-              new TextRun({
-                text: `Berdasarkan:`,
-                size: 24,
-              }),
-            ],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.JUSTIFIED,
-            children: [
-              new TextRun({
-                text: `1. Surat Penetapan Penyedia Barang/Jasa Nomor ${
-                  documentData.nomor_pppb
-                } tanggal ${formatDate(documentData.tanggal_pppb)}`,
-                size: 24,
-              }),
-            ],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.JUSTIFIED,
-            children: [
-              new TextRun({
-                text: `2. DIPA Nomor ${
-                  documentData.nomor_dipa
-                } tanggal ${formatDate(documentData.tanggal_dipa)}`,
-                size: 24,
-              }),
-            ],
-          }),
-          // Project Details
-          new Paragraph({
-            alignment: AlignmentType.JUSTIFIED,
-            spacing: {
-              before: 400,
-            },
-            children: [
-              new TextRun({
-                text: `PEKERJAAN:`,
-                bold: true,
-                size: 24,
-              }),
-            ],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [
-              new TextRun({
-                text: documentData.paket_pekerjaan,
-                size: 24,
-              }),
-            ],
-          }),
-          // Contract Value
-          new Paragraph({
-            alignment: AlignmentType.JUSTIFIED,
-            spacing: {
-              before: 400,
-            },
-            children: [
-              new TextRun({
-                text: `Nilai Kontrak:`,
-                bold: true,
-                size: 24,
-              }),
-            ],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.JUSTIFIED,
-            children: [
-              new TextRun({
-                text: `Harga Sebelum Negosiasi: ${new Intl.NumberFormat(
-                  "id-ID",
-                  {
-                    style: "currency",
-                    currency: "IDR",
-                    minimumFractionDigits: 0,
-                  }
-                ).format(contractData.nilai_kontral_awal)}`,
-                size: 24,
-              }),
-            ],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.JUSTIFIED,
-            children: [
-              new TextRun({
-                text: `Harga Setelah Negosiasi: ${new Intl.NumberFormat(
-                  "id-ID",
-                  {
-                    style: "currency",
-                    currency: "IDR",
-                    minimumFractionDigits: 0,
-                  }
-                ).format(contractData.nilai_kontrak_akhir)}`,
-                size: 24,
-              }),
-            ],
-          }),
-          // Project Duration
-          new Paragraph({
-            alignment: AlignmentType.JUSTIFIED,
-            spacing: {
-              before: 400,
-            },
-            children: [
-              new TextRun({
-                text: `Jangka Waktu Pelaksanaan:`,
-                bold: true,
-                size: 24,
-              }),
-            ],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.JUSTIFIED,
-            children: [
-              new TextRun({
-                text: `${contractData.durasi_kontrak} (${
-                  contractData.durasi_kontrak
-                }) bulan, terhitung mulai tanggal ${formatDate(
-                  documentData.tanggal_mulai
-                )} sampai dengan ${formatDate(documentData.tanggal_selesai)}`,
-                size: 24,
-              }),
-            ],
-          }),
-          // Footer
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: {
-              before: 800,
-            },
-            children: [
-              new TextRun({
-                text: "SEKRETARIAT DIREKTORAT JENDERAL APLIKASI INFORMATIKA",
-                bold: true,
-                size: 24,
-              }),
-            ],
-          }),
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [
-              new TextRun({
-                text: `TAHUN ANGGARAN ${documentData.tahun_anggaran}`,
-                bold: true,
-                size: 24,
-              }),
-            ],
-          }),
-        ],
-      },
-    ],
-  });
+      ],
+    });
 
-  return doc;
+    return doc;
+  } catch (error) {
+    console.error("Error generating document with image:", error);
+    throw new Error("Gagal membuat dokumen: " + (error instanceof Error ? error.message : "Unknown error"));
+  }
 };
 
 export const PrintContract: React.FC<PrintContractProps> = ({

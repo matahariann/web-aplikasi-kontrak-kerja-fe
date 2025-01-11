@@ -71,6 +71,12 @@ export interface DocumentWithOfficialsData {
   document: DocumentData;
 }
 
+export interface ImageData {
+  id: number;
+  name: string;
+  image: string;
+}
+
 export const getEmployee = async (token: string): Promise<Employee> => {
   try {
     const response = await axios.get(
@@ -354,5 +360,28 @@ export const updateContract = async (
       );
     }
     throw error;
+  }
+};
+
+export const getImage = async (token: string, id: number): Promise<ImageData> => {
+  try {
+    const response = await axios.get(
+      `http://localhost:8000/api/showImage/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      }
+    );
+
+    if (response.data.status === 'success') {
+      return response.data.data;
+    }
+
+    throw new Error(response.data.message || "Gagal mengambil gambar");
+  } catch (error) {
+    console.error("Error fetching image:", error);
+    throw new Error("Terjadi kesalahan dalam mendapatkan gambar");
   }
 };
