@@ -342,6 +342,11 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                     }
                     disabled={isContractsSaved && !isContractsEditMode}
                   />
+                  {isContractsSubmitted && !contract.jenis_kontrak && (
+                    <p className="text-red-500 text-sm mt-1">
+                      Jenis kontrak tidak boleh kosong
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor={`deskripsi_${index}`}>
@@ -364,6 +369,11 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                     }
                     disabled={isContractsSaved && !isContractsEditMode}
                   />
+                  {isContractsSubmitted && !contract.deskripsi && (
+                    <p className="text-red-500 text-sm mt-1">
+                      Deskripsi tidak boleh kosong
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor={`jumlah_orang_${index}`}>
@@ -388,6 +398,11 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                     }
                     disabled={isContractsSaved && !isContractsEditMode}
                   />
+                  {isContractsSubmitted && !contract.jumlah_orang && (
+                    <p className="text-red-500 text-sm mt-1">
+                      Jumlah orang harus diberi nilai
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor={`durasi_kontrak_${index}`}>
@@ -413,6 +428,11 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                     }
                     disabled={isContractsSaved && !isContractsEditMode}
                   />
+                  {isContractsSubmitted && !contract.durasi_kontrak && (
+                    <p className="text-red-500 text-sm mt-1">
+                      Durasi kontrak harus diberi nilai
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor={`nilai_kontral_awal_${index}`}>
@@ -443,6 +463,11 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                       {formatCurrency(contract.nilai_kontral_awal)}
                     </p>
                   )}
+                  {isContractsSubmitted && !contract.nilai_kontral_awal && (
+                    <p className="text-red-500 text-sm mt-1">
+                      Harga Sebelum Negosiasi harus diberi nilai
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor={`nilai_kontrak_akhir_${index}`}>
@@ -471,6 +496,11 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                   {contract.nilai_kontral_awal > 0 && (
                     <p className="text-sm text-gray-500 mt-1">
                       {formatCurrency(contract.nilai_kontrak_akhir)}
+                    </p>
+                  )}
+                  {isContractsSubmitted && !contract.nilai_kontrak_akhir && (
+                    <p className="text-red-500 text-sm mt-1">
+                      Harga Setelah Negosiasi harus diberi nilai
                     </p>
                   )}
                 </div>
@@ -506,15 +536,9 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                 onError={setContractsError}
                 clearLocalStorage={clearAllLocalStorage}
               />
-              {/* {isContractsSaved && !isContractsEditMode && (
-                <Button variant="outline" onClick={handlePrintClick}>
-                  <Printer className="w-4 h-4 mr-2" />
-                  Cetak
-                </Button>
-              )} */}
             </div>
             <div className="flex space-x-4">
-              <Button onClick={() => setCurrentStep(3)} variant="outline">
+              <Button onClick={() => setCurrentStep(3)} >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Sebelumnya
               </Button>
