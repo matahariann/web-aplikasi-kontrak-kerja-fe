@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Save, ArrowLeft, Pencil, Plus, Minus } from "lucide-react";
-import { addContract, updateContract, ContractData } from "@/services/employee";
+import { addContract, updateContract, ContractData, DocumentData } from "@/services/employee";
 import { PrintContract } from "./generateDocs";
 
 enum ContractType {
@@ -76,6 +76,10 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
   const [savedContractsIds, setSavedContractsIds] = useState<string[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.SAVED_CONTRACTS_IDS);
     return saved ? JSON.parse(saved) : [];
+  });
+  const [documentData] = useState<DocumentData>(() => {
+    const saved = localStorage.getItem("documentData");
+    return saved ? JSON.parse(saved) : null;
   });
   const [contractsData, setContractsData] = useState<
     Omit<ContractData, "jenis_kontrak">[]
@@ -438,7 +442,9 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                   <Minus className="w-4 h-4" />
                 </Button>
               )}
-              <h3 className="font-medium mb-4">Deskripsi Kontrak {index + 1}</h3>
+              <h3 className="font-medium mb-4">
+                Deskripsi Kontrak {index + 1}
+              </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor={`deskripsi_${index}`}>
@@ -498,7 +504,8 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                 </div>
                 <div>
                   <Label htmlFor={`durasi_kontrak_${index}`}>
-                    Durasi Kontrak (bulan) <span className="text-red-500">*</span>
+                    Durasi Kontrak (bulan){" "}
+                    <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id={`durasi_kontrak_${index}`}
@@ -527,7 +534,8 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                 </div>
                 <div>
                   <Label htmlFor={`nilai_kontral_awal_${index}`}>
-                    Harga Sebelum Negosiasi <span className="text-red-500">*</span>
+                    Harga Sebelum Negosiasi{" "}
+                    <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id={`nilai_kontral_awal_${index}`}
@@ -561,7 +569,8 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                 </div>
                 <div>
                   <Label htmlFor={`nilai_kontrak_akhir_${index}`}>
-                    Harga Setelah Negosiasi <span className="text-red-500">*</span>
+                    Harga Setelah Negosiasi{" "}
+                    <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id={`nilai_kontrak_akhir_${index}`}
@@ -619,10 +628,11 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                 )}
               </Button>
               <PrintContract
-                contractsData={contractsData.map(contract => ({
+                contractsData={contractsData.map((contract) => ({
                   ...contract,
-                  jenis_kontrak: contractType
+                  jenis_kontrak: contractType,
                 }))}
+                documentData={documentData}
                 isContractsSaved={isContractsSaved}
                 isContractsEditMode={isContractsEditMode}
                 onError={setContractsError}

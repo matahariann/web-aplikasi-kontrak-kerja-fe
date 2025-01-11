@@ -15,7 +15,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Printer } from "lucide-react";
-import { ContractData } from "@/services/employee";
+import { ContractData, DocumentData } from "@/services/employee";
+
+interface GenerateDocumentProps {
+  contractData: ContractData;
+  documentData: DocumentData;
+}
 
 interface PrintConfirmationDialogProps {
   isOpen: boolean;
@@ -31,10 +36,10 @@ interface PrintDialogProps {
 
 interface PrintContractProps {
   contractsData: ContractData[];
+  documentData: DocumentData;
   isContractsSaved: boolean;
   isContractsEditMode: boolean;
   onError: (error: string) => void;
-//   clearLocalStorage: () => void;
 }
 
 const PrintConfirmationDialog = ({
@@ -91,14 +96,26 @@ const PrintDialog = ({ isOpen, onClose, onConfirm }: PrintDialogProps) => {
   );
 };
 
-export const generateContractDocument = async (contractData: ContractData) => {
+export const generateContractDocument = async ({
+  contractData,
+  documentData,
+}: GenerateDocumentProps) => {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
   const doc = new Document({
     sections: [
       {
         properties: {
           page: {
             margin: {
-              top: 1440, // 1 inch
+              top: 1440,
               right: 1440,
               bottom: 1440,
               left: 1440,
@@ -120,12 +137,11 @@ export const generateContractDocument = async (contractData: ContractData) => {
             alignment: AlignmentType.CENTER,
             children: [
               new TextRun({
-                text: `Nomor: ${contractData.nomor_kontrak}`,
+                text: `Nomor: ${documentData.nomor_kontrak}`,
                 size: 24,
               }),
             ],
           }),
-          // Logo placeholder - you would need to add actual logo
           new Paragraph({
             alignment: AlignmentType.CENTER,
             children: [
@@ -137,46 +153,61 @@ export const generateContractDocument = async (contractData: ContractData) => {
             ],
           }),
           new Paragraph({
-            alignment: AlignmentType.CENTER,
+            alignment: AlignmentType.JUSTIFIED,
             spacing: {
               before: 400,
               after: 400,
             },
             children: [
               new TextRun({
-                text: "ANTARA",
+                text: `Pada hari ini, ${formatDate(
+                  documentData.tanggal_kontrak
+                )}, yang bertanda tangan di bawah ini:`,
                 size: 24,
               }),
             ],
           }),
+          // Contract Details
           new Paragraph({
-            alignment: AlignmentType.CENTER,
+            alignment: AlignmentType.JUSTIFIED,
             children: [
               new TextRun({
-                text: "PEJABAT PEMBUAT KOMITMEN",
-                bold: true,
+                text: `Berdasarkan:`,
                 size: 24,
               }),
             ],
           }),
           new Paragraph({
-            alignment: AlignmentType.CENTER,
+            alignment: AlignmentType.JUSTIFIED,
             children: [
               new TextRun({
-                text: "SEKRETARIAT DIREKTORAT JENDERAL",
-                bold: true,
+                text: `1. Surat Penetapan Penyedia Barang/Jasa Nomor ${
+                  documentData.nomor_pppb
+                } tanggal ${formatDate(documentData.tanggal_pppb)}`,
                 size: 24,
               }),
             ],
           }),
           new Paragraph({
-            alignment: AlignmentType.CENTER,
+            alignment: AlignmentType.JUSTIFIED,
+            children: [
+              new TextRun({
+                text: `2. DIPA Nomor ${
+                  documentData.nomor_dipa
+                } tanggal ${formatDate(documentData.tanggal_dipa)}`,
+                size: 24,
+              }),
+            ],
+          }),
+          // Project Details
+          new Paragraph({
+            alignment: AlignmentType.JUSTIFIED,
             spacing: {
-              after: 400,
+              before: 400,
             },
             children: [
               new TextRun({
-                text: "APLIKASI INFORMATIKA",
+                text: `PEKERJAAN:`,
                 bold: true,
                 size: 24,
               }),
@@ -186,48 +217,90 @@ export const generateContractDocument = async (contractData: ContractData) => {
             alignment: AlignmentType.CENTER,
             children: [
               new TextRun({
-                text: "DENGAN",
+                text: documentData.paket_pekerjaan,
                 size: 24,
               }),
             ],
           }),
+          // Contract Value
           new Paragraph({
-            alignment: AlignmentType.CENTER,
+            alignment: AlignmentType.JUSTIFIED,
             spacing: {
-              after: 400,
+              before: 400,
             },
             children: [
               new TextRun({
-                text: contractData.jenis_kontrak,
+                text: `Nilai Kontrak:`,
                 bold: true,
                 size: 24,
               }),
             ],
           }),
           new Paragraph({
-            alignment: AlignmentType.CENTER,
+            alignment: AlignmentType.JUSTIFIED,
             children: [
               new TextRun({
-                text: "PEKERJAAN:",
-                bold: true,
+                text: `Harga Sebelum Negosiasi: ${new Intl.NumberFormat(
+                  "id-ID",
+                  {
+                    style: "currency",
+                    currency: "IDR",
+                    minimumFractionDigits: 0,
+                  }
+                ).format(contractData.nilai_kontral_awal)}`,
                 size: 24,
               }),
             ],
           }),
           new Paragraph({
-            alignment: AlignmentType.CENTER,
+            alignment: AlignmentType.JUSTIFIED,
+            children: [
+              new TextRun({
+                text: `Harga Setelah Negosiasi: ${new Intl.NumberFormat(
+                  "id-ID",
+                  {
+                    style: "currency",
+                    currency: "IDR",
+                    minimumFractionDigits: 0,
+                  }
+                ).format(contractData.nilai_kontrak_akhir)}`,
+                size: 24,
+              }),
+            ],
+          }),
+          // Project Duration
+          new Paragraph({
+            alignment: AlignmentType.JUSTIFIED,
             spacing: {
-              after: 400,
+              before: 400,
             },
             children: [
               new TextRun({
-                text: contractData.deskripsi,
+                text: `Jangka Waktu Pelaksanaan:`,
+                bold: true,
                 size: 24,
               }),
             ],
           }),
           new Paragraph({
+            alignment: AlignmentType.JUSTIFIED,
+            children: [
+              new TextRun({
+                text: `${contractData.durasi_kontrak} (${
+                  contractData.durasi_kontrak
+                }) bulan, terhitung mulai tanggal ${formatDate(
+                  documentData.tanggal_mulai
+                )} sampai dengan ${formatDate(documentData.tanggal_selesai)}`,
+                size: 24,
+              }),
+            ],
+          }),
+          // Footer
+          new Paragraph({
             alignment: AlignmentType.CENTER,
+            spacing: {
+              before: 800,
+            },
             children: [
               new TextRun({
                 text: "SEKRETARIAT DIREKTORAT JENDERAL APLIKASI INFORMATIKA",
@@ -240,7 +313,7 @@ export const generateContractDocument = async (contractData: ContractData) => {
             alignment: AlignmentType.CENTER,
             children: [
               new TextRun({
-                text: "TAHUN ANGGARAN 2024",
+                text: `TAHUN ANGGARAN ${documentData.tahun_anggaran}`,
                 bold: true,
                 size: 24,
               }),
@@ -255,82 +328,84 @@ export const generateContractDocument = async (contractData: ContractData) => {
 };
 
 export const PrintContract: React.FC<PrintContractProps> = ({
-  contractsData,
-  isContractsSaved,
-  isContractsEditMode,
-  onError,
-//   clearLocalStorage,
-}) => {
-  const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
-  const [isPrintConfirmationOpen, setIsPrintConfirmationOpen] = useState(false);
-
-  const handlePrintClick = () => {
-    setIsPrintConfirmationOpen(true);
-  };
-
-  const handlePrintConfirmed = () => {
-    setIsPrintConfirmationOpen(false);
-    setIsPrintDialogOpen(true);
-  };
-
-  const handlePrint = async (filename: string) => {
-    try {
-      if (!filename) {
-        onError("Nama file harus diisi");
-        return;
+    contractsData,
+    documentData,
+    isContractsSaved,
+    isContractsEditMode,
+    onError,
+  }) => {
+    const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
+    const [isPrintConfirmationOpen, setIsPrintConfirmationOpen] = useState(false);
+  
+    const handlePrintClick = () => {
+      setIsPrintConfirmationOpen(true);
+    };
+  
+    const handlePrintConfirmed = () => {
+      setIsPrintConfirmationOpen(false);
+      setIsPrintDialogOpen(true);
+    };
+  
+    const handlePrint = async (filename: string) => {
+      try {
+        if (!filename) {
+          onError("Nama file harus diisi");
+          return;
+        }
+  
+        // Generate dokumen untuk setiap kontrak
+        for (let i = 0; i < contractsData.length; i++) {
+          const contract = contractsData[i];
+          const doc = await generateContractDocument({
+            contractData: contract,
+            documentData: documentData,
+          });
+          const blob = await Packer.toBlob(doc);
+  
+          const sanitizedFilename = filename
+            .replace(/[^a-z0-9]/gi, "_")
+            .toLowerCase();
+          const fullFilename = `${sanitizedFilename}${
+            i > 0 ? `_${i + 1}` : ""
+          }.docx`;
+  
+          saveAs(blob, fullFilename);
+        }
+  
+        setIsPrintDialogOpen(false);
+  
+        // Refresh halaman setelah delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } catch (error) {
+        console.error("Error generating document:", error);
+        onError("Terjadi kesalahan saat mencetak dokumen");
       }
-
-      // Generate dokumen untuk setiap kontrak
-      for (let i = 0; i < contractsData.length; i++) {
-        const contract = contractsData[i];
-        const doc = await generateContractDocument(contract);
-        const blob = await Packer.toBlob(doc);
-
-        const sanitizedFilename = filename
-          .replace(/[^a-z0-9]/gi, "_")
-          .toLowerCase();
-        const fullFilename = `${sanitizedFilename}${
-          i > 0 ? `_${i + 1}` : ""
-        }.docx`;
-
-        saveAs(blob, fullFilename);
-      }
-
-    //   clearLocalStorage();
-      setIsPrintDialogOpen(false);
-
-      // Refresh halaman setelah delay
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } catch (error) {
-      console.error("Error generating document:", error);
-      onError("Terjadi kesalahan saat mencetak dokumen");
+    };
+  
+    if (!isContractsSaved || isContractsEditMode) {
+      return null;
     }
+  
+    return (
+      <>
+        <Button variant="outline" onClick={handlePrintClick}>
+          <Printer className="w-4 h-4 mr-2" />
+          Cetak
+        </Button>
+  
+        <PrintConfirmationDialog
+          isOpen={isPrintConfirmationOpen}
+          onClose={() => setIsPrintConfirmationOpen(false)}
+          onConfirm={handlePrintConfirmed}
+        />
+  
+        <PrintDialog
+          isOpen={isPrintDialogOpen}
+          onClose={() => setIsPrintDialogOpen(false)}
+          onConfirm={handlePrint}
+        />
+      </>
+    );
   };
-
-  if (!isContractsSaved || isContractsEditMode) {
-    return null;
-  }
-
-  return (
-    <>
-      <Button variant="outline" onClick={handlePrintClick}>
-        <Printer className="w-4 h-4 mr-2" />
-        Cetak
-      </Button>
-
-      <PrintConfirmationDialog
-        isOpen={isPrintConfirmationOpen}
-        onClose={() => setIsPrintConfirmationOpen(false)}
-        onConfirm={handlePrintConfirmed}
-      />
-
-      <PrintDialog
-        isOpen={isPrintDialogOpen}
-        onClose={() => setIsPrintDialogOpen(false)}
-        onConfirm={handlePrint}
-      />
-    </>
-  );
-};
