@@ -363,6 +363,28 @@ export const updateContract = async (
   }
 };
 
+export const deleteContract = async (token: string, id: string) => {
+  try {
+    const response = await axios.delete(
+      `http://localhost:8000/api/deleteContract/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.error || "Gagal menghapus data kontrak"
+      );
+    }
+    throw error;
+  }
+};
+
 export const getImage = async (token: string, id: number): Promise<ImageData> => {
   try {
     const response = await axios.get(

@@ -14,13 +14,13 @@ import { Save, ArrowLeft, Pencil, Plus, Minus } from "lucide-react";
 import {
   addContract,
   updateContract,
+  deleteContract,
   ContractData,
   DocumentData,
   VendorData,
   OfficialData,
 } from "@/services/employee";
 import { PrintContract } from "./generateDocs";
-import { Textarea } from "@nextui-org/react";
 
 enum ContractType {
   KONSULTAN = "Konsultan",
@@ -173,12 +173,12 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
     setContractsData([...contractsData, { ...INITIAL_CONTRACT }]);
   };
 
-  const removeContract = (index: number) => {
-    if (contractsData.length > 1) {
-      const newContractsData = contractsData.filter((_, i) => i !== index);
-      setContractsData(newContractsData);
-    }
-  };
+  // const removeContract = (index: number) => {
+  //   if (contractsData.length > 1) {
+  //     const newContractsData = contractsData.filter((_, i) => i !== index);
+  //     setContractsData(newContractsData);
+  //   }
+  // };
 
   const handleContractInputChange = (
     index: number,
@@ -381,6 +381,60 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
     }
   };
 
+  const removeContract = async (index: number) => {
+    if (contractsData.length > 1) {
+      try {
+        // Jika dalam mode edit dan kontrak sudah tersimpan sebelumnya, hapus dari database
+        if (isContractsEditMode && index < savedContractsIds.length) {
+          const token = localStorage.getItem("token");
+          if (!token) {
+            throw new Error("Anda belum login. Silakan login terlebih dahulu.");
+          }
+
+          const contractId = savedContractsIds[index];
+
+          // Panggil API delete
+          await deleteContract(token, contractId);
+
+          // Update savedContractsIds
+          const newSavedIds = savedContractsIds.filter((_, i) => i !== index);
+          setSavedContractsIds(newSavedIds);
+
+          // Update localStorage
+          localStorage.setItem(
+            STORAGE_KEYS.SAVED_CONTRACTS_IDS,
+            JSON.stringify(newSavedIds)
+          );
+        }
+
+        // Hapus dari state UI
+        const newContractsData = contractsData.filter((_, i) => i !== index);
+        setContractsData(newContractsData);
+
+        // Update localStorage untuk contracts data
+        localStorage.setItem(
+          STORAGE_KEYS.CONTRACTS_DATA,
+          JSON.stringify(newContractsData)
+        );
+
+        // Tampilkan pesan sukses
+        setContractsShowSuccessAlert(true);
+        setContractsAlertType("delete");
+        setTimeout(() => {
+          setContractsShowSuccessAlert(false);
+          setContractsAlertType(null);
+        }, 3000);
+      } catch (error) {
+        console.error("Error deleting contract:", error);
+        setContractsError(
+          error instanceof Error
+            ? error.message
+            : "Terjadi kesalahan saat menghapus kontrak"
+        );
+      }
+    }
+  };
+
   // const clearAllLocalStorage = () => {
   //   Object.values(STORAGE_KEYS).forEach((key) => {
   //     localStorage.removeItem(key);
@@ -401,6 +455,8 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
             ? "Data kontrak berhasil disimpan!"
             : contractsAlertType === "edit"
             ? "Data kontrak berhasil diperbarui!"
+            : contractsAlertType === "delete"
+            ? "Data kontrak berhasil dihapus!"
             : ""}
         </div>
       )}
@@ -452,7 +508,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="absolute top-2 right-2"
+                  className="absolute top-2 right-2 hover:bg-red-100"
                   onClick={() => removeContract(index)}
                 >
                   <Minus className="w-4 h-4" />
@@ -465,7 +521,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                 <Label htmlFor={`deskripsi_${index}`}>
                   Deskripsi <span className="text-red-500">*</span>
                 </Label>
-                <Textarea
+                <textarea
                   id={`deskripsi_${index}`}
                   value={contract.deskripsi}
                   onChange={(e) =>
@@ -475,13 +531,18 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                       e.target.value
                     )
                   }
-                  className={`min-h-[120px] ${
+                  className={`w-full min-h-[120px] p-2 border border-gray-200 rounded-md resize-y ${
                     isContractsSubmitted && !contract.deskripsi
                       ? "border-red-300"
                       : ""
                   }`}
                   placeholder="Masukkan deskripsi lengkap kontrak..."
                   disabled={isContractsSaved && !isContractsEditMode}
+                  style={{
+                    resize: "vertical",
+                    minHeight: "120px",
+                    maxHeight: "400px",
+                  }}
                 />
                 {isContractsSubmitted && !contract.deskripsi && (
                   <p className="text-red-500 text-sm mt-1">
