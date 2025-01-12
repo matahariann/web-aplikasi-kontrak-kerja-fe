@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import OfficialsForm from "./officialForm";
-import VendorForm from "./vendorForm";
-import DocumentForm from "./documentForm";
-import ContractsForm from "./contractForm";
+import OfficialsForm from "@/components/form/OfficialForm";
+import VendorForm from "@/components/form/VendorForm";
+import DocumentForm from "@/components/form/DocumentForm";
+import ContractsForm from "@/components/form/ContractForm";
 
 const STORAGE_KEYS = {
   CURRENT_STEP: "currentStep",
@@ -14,8 +14,6 @@ export default function BuatDokumen() {
     const saved = localStorage.getItem(STORAGE_KEYS.CURRENT_STEP);
     return saved ? parseInt(saved) : 1;
   });
-
-
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.CURRENT_STEP, currentStep.toString());

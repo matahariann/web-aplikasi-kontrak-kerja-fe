@@ -20,7 +20,7 @@ import {
   VendorData,
   OfficialData,
 } from "@/services/employee";
-import { PrintContract } from "./generateDocs";
+import { PrintContract } from "@/components/GenerateDocx";
 
 enum ContractType {
   KONSULTAN = "Konsultan",
