@@ -6,6 +6,8 @@ import {
   AlignmentType,
   Packer,
   ImageRun,
+  BorderStyle,
+  Header,
 } from "docx";
 import { saveAs } from "file-saver";
 import {
@@ -70,9 +72,8 @@ const PrintConfirmationDialog = ({
         <AlertDialogHeader>
           <AlertDialogTitle>Konfirmasi Cetak</AlertDialogTitle>
           <AlertDialogDescription>
-            Apakah Anda yakin ingin mencetak dokumen? Setelah proses cetak, sesi
-            pembuatan dokumen akan selesai dan semua data sementara akan
-            dihapus.
+            Apakah Anda yakin ingin mencetak dokumen? Setelah dicetak, sesi
+            pembuatan dokumen akan selesai dan semua data form akan tereset.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -86,9 +87,27 @@ const PrintConfirmationDialog = ({
 
 const PrintDialog = ({ isOpen, onClose, onConfirm }: PrintDialogProps) => {
   const [filename, setFilename] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const handleConfirm = () => {
+    if (!filename.trim()) {
+      setError("Nama file harus diisi");
+      return;
+    }
+    setError(null);
+    onConfirm(filename);
+    setFilename("");
+    onClose();
+  };
+
+  const handleClose = () => {
+    setFilename("");
+    setError(null);
+    onClose();
+  };
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={onClose}>
+    <AlertDialog open={isOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Simpan Dokumen</AlertDialogTitle>
@@ -98,13 +117,19 @@ const PrintDialog = ({ isOpen, onClose, onConfirm }: PrintDialogProps) => {
           <Input
             id="filename"
             value={filename}
-            onChange={(e) => setFilename(e.target.value)}
+            onChange={(e) => {
+              setFilename(e.target.value);
+              setError(null); // Clear error when user types
+            }}
             placeholder="Masukkan nama file"
           />
+          {error && (
+            <p className="text-sm text-red-500 mt-2">{error}</p>
+          )}
         </div>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onClose}>Batal</AlertDialogCancel>
-          <AlertDialogAction onClick={() => onConfirm(filename)}>
+          <AlertDialogCancel onClick={handleClose}>Batal</AlertDialogCancel>
+          <AlertDialogAction onClick={handleConfirm}>
             Simpan
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -143,10 +168,7 @@ export const generateContractDocument = async ({
     }
 
     const imageData = await getImage(token, 1);
-    console.log("Image data received:", imageData); // Debug log
-
-    // Asumsikan imageData.image sudah dalam format base64
-    // Jika belum, backend perlu dimodifikasi untuk mengirim data base64
+    console.log("Image data received:", imageData);
 
     const vendorSection = new Paragraph({
       children: [
@@ -244,54 +266,235 @@ export const generateContractDocument = async ({
       ],
     });
 
-    const doc = new Document({
-      sections: [
-        {
-          properties: {
-            page: {
-              margin: {
-                top: 1440,
-                right: 1440,
-                bottom: 1440,
-                left: 1440,
+    const documentHeader = new Header({
+      children: [
+        new Paragraph({
+          children: [
+            new ImageRun({
+              data: imageData.image,
+              transformation: {
+                width: 80,
+                height: 80,
               },
+            }),
+            new TextRun({
+              text: "KEMENTERIAN KOMUNIKASI DAN INFORMATIKA",
+              bold: true,
+              size: 24,
+              font: "Arial",
+              color: "000080", // Navy blue
+              break: 1,
+            }),
+            new TextRun({
+              text: "DIREKTORAT JENDERAL APLIKASI INFORMATIKA",
+              bold: true,
+              size: 24,
+              font: "Arial",
+              color: "000080", // Navy blue
+              break: 1,
+            }),
+            new TextRun({
+              text: "SEKRETARIAT DIREKTORAT JENDERAL",
+              bold: true,
+              size: 24,
+              font: "Arial",
+              color: "000080", // Navy blue
+              break: 1,
+            }),
+            new TextRun({
+              text: "Indonesia Terhubung: Makin Digital, Makin Maju",
+              italics: true,
+              size: 20,
+              font: "Arial",
+              break: 1,
+            }),
+            new TextRun({
+              text: "Jl. Medan Merdeka Barat No. 9 Jakarta 10110 Tel/Fax: 021-3441491 www.kominfo.go.id",
+              size: 20,
+              font: "Arial",
+              break: 1,
+            }),
+          ],
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: "_______________________________________________________________________________",
+              size: 24,
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const coverPage = {
+      properties: {
+        page: {
+          margin: {
+            top: 1440,
+            right: 1440,
+            bottom: 1440,
+            left: 1440,
+          },
+          borders: {
+            pageBorderTop: {
+              style: BorderStyle.SINGLE,
+              size: 30,
+              color: "000000",
+              space: 24,
+            },
+            pageBorderRight: {
+              style: BorderStyle.SINGLE,
+              size: 30,
+              color: "000000",
+              space: 24,
+            },
+            pageBorderBottom: {
+              style: BorderStyle.SINGLE,
+              size: 30,
+              color: "000000",
+              space: 24,
+            },
+            pageBorderLeft: {
+              style: BorderStyle.SINGLE,
+              size: 30,
+              color: "000000",
+              space: 24,
             },
           },
-          children: [
-            // Header with logo
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              spacing: { after: 200 },
-              children: [
-                new ImageRun({
-                  data: imageData.image,
-                  transformation: {
-                    width: 200,
-                    height: 100,
-                  },
-                }),
-              ],
-            }),
-            // Title
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              spacing: { after: 400 },
-              children: [
-                new TextRun({
-                  text: "SURAT PERINTAH KERJA",
-                  bold: true,
-                  size: 28,
-                }),
-              ],
-            }),
-            // Data sections
-            vendorSection,
-            contractSection,
-            documentSection,
-            officialsSection,
-          ],
         },
+      },
+      children: [
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 400 },
+          children: [
+            new TextRun({
+              text: "SURAT PERINTAH KERJA",
+              bold: true,
+              size: 32,
+              break: 4,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [
+            new TextRun({
+              text: `Nomor: ${documentData.nomor_kontrak}`,
+              size: 24,
+              break: 1,
+            }),
+            new TextRun({
+              text: `Tgl. ${new Date().getFullYear()}`,
+              size: 24,
+              break: 1,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 400, after: 400 },
+          children: [
+            new ImageRun({
+              data: imageData.image,
+              transformation: {
+                width: 200,
+                height: 100,
+              },
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 800 },
+          children: [
+            new TextRun({
+              text: "ANTARA",
+              size: 24,
+              break: 2,
+            }),
+            new TextRun({
+              text: "PEJABAT PEMBUAT KOMITMEN",
+              size: 24,
+              bold: true,
+              break: 2,
+            }),
+            new TextRun({
+              text: "SEKRETARIAT DIREKTORAT JENDERAL",
+              size: 24,
+              bold: true,
+              break: 1,
+            }),
+            new TextRun({
+              text: "APLIKASI INFORMATIKA",
+              size: 24,
+              bold: true,
+              break: 1,
+            }),
+            new TextRun({
+              text: "DENGAN",
+              size: 24,
+              break: 2,
+            }),
+            new TextRun({
+              text: vendorData.nama_vendor,
+              size: 24,
+              bold: true,
+              break: 2,
+            }),
+            new TextRun({
+              text: "PEKERJAAN:",
+              size: 24,
+              break: 4,
+            }),
+            new TextRun({
+              text: documentData.paket_pekerjaan,
+              size: 24,
+              bold: true,
+              break: 2,
+            }),
+            new TextRun({
+              text: "SEKRETARIAT DIREKTORAT JENDERAL APLIKASI INFORMATIKA",
+              size: 24,
+              bold: true,
+              break: 4,
+            }),
+            new TextRun({
+              text: `TAHUN ANGGARAN ${documentData.tahun_anggaran}`,
+              size: 24,
+              bold: true,
+              break: 1,
+            }),
+          ],
+        }),
       ],
+    };
+
+    const contentPage = {
+      properties: {
+        page: {
+          margin: {
+            top: 1440,
+            right: 1440,
+            bottom: 1440,
+            left: 1440,
+          },
+        },
+      },
+      headers: {
+        default: documentHeader,
+      },
+      children: [
+        vendorSection,
+        contractSection,
+        documentSection,
+        officialsSection,
+      ],
+    };
+
+    const doc = new Document({
+      sections: [coverPage, contentPage],
     });
 
     return doc;
