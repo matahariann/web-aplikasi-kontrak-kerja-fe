@@ -2,24 +2,25 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 const GoogleDocViewer = ({ docId }) => {
-  // Base URL for Google Docs viewer
   const baseUrl = "https://docs.google.com/document/d/";
   const embedUrl = `${baseUrl}${docId}/preview`;
 
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
         <CardTitle className="flex justify-between items-center">
-          <span>Document Viewer</span>
+          <span>Template Dokumen Kontrak Kerja</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="min-h-[600px] p-0">
-        <iframe
-          src={embedUrl}
-          className="w-full h-full min-h-[600px] border-0"
-          title="Google Doc Viewer"
-          frameBorder="0"
-        />
+      <CardContent className="p-0">
+        <div className="w-full">
+          <iframe
+            src={embedUrl}
+            className="w-full h-[85vh]"
+            title="Google Doc Viewer"
+            frameBorder="0"
+          />
+        </div>
       </CardContent>
     </Card>
   );
