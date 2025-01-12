@@ -203,59 +203,6 @@ export const updateOfficial = async (
   }
 };
 
-export const addDocument = async (
-  token: string,
-  documentData: DocumentData
-) => {
-  try {
-    const response = await axios.post(
-      `http://localhost:8000/api/addDocument`,
-      documentData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.message ||
-          "Data document sudah ada dalam database"
-      );
-    }
-    throw error;
-  }
-};
-
-export const updateDocument = async (
-  token: string,
-  nomor_kontrak: string,
-  documentData: DocumentData
-) => {
-  try {
-    const response = await axios.put(
-      `http://localhost:8000/api/updateDocument/${nomor_kontrak}`,
-      documentData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.message || "Gagal memperbarui data dokumen"
-      );
-    }
-    throw error;
-  }
-};
-
 export const saveDocumentWithOfficials = async (
   token: string,
   data: DocumentWithOfficialsData
