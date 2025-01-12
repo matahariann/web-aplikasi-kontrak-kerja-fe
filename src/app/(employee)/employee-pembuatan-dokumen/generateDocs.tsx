@@ -26,6 +26,7 @@ import {
   ContractData,
   DocumentData,
   VendorData,
+  OfficialData,
   getImage,
 } from "@/services/employee";
 
@@ -33,6 +34,7 @@ interface GenerateDocumentProps {
   vendorData: VendorData;
   contractData: ContractData;
   documentData: DocumentData;
+  officialData: OfficialData[]; // Add this line
 }
 
 interface PrintConfirmationDialogProps {
@@ -51,6 +53,7 @@ interface PrintContractProps {
   contractsData: ContractData[];
   documentData: DocumentData;
   vendorData: VendorData;
+  officialData: OfficialData[]; // Add this line
   isContractsSaved: boolean;
   isContractsEditMode: boolean;
   onError: (error: string) => void;
@@ -112,6 +115,7 @@ const PrintDialog = ({ isOpen, onClose, onConfirm }: PrintDialogProps) => {
 
 export const generateContractDocument = async ({
   contractData,
+  officialData,
   documentData,
   vendorData,
 }: GenerateDocumentProps) => {
@@ -124,6 +128,13 @@ export const generateContractDocument = async ({
     });
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+    }).format(amount);
+  };
+
   try {
     // Ambil data gambar
     const token = localStorage.getItem("token");
@@ -132,10 +143,106 @@ export const generateContractDocument = async ({
     }
 
     const imageData = await getImage(token, 1);
-    console.log('Image data received:', imageData); // Debug log
+    console.log("Image data received:", imageData); // Debug log
 
     // Asumsikan imageData.image sudah dalam format base64
     // Jika belum, backend perlu dimodifikasi untuk mengirim data base64
+
+    const vendorSection = new Paragraph({
+      children: [
+        new TextRun({ text: "DATA VENDOR", bold: true, break: 2 }),
+        new TextRun({
+          text: `Nama Vendor: ${vendorData.nama_vendor}`,
+          break: 1,
+        }),
+        new TextRun({ text: `Alamat: ${vendorData.alamat_vendor}`, break: 1 }),
+        new TextRun({ text: `NPWP: ${vendorData.npwp}`, break: 1 }),
+        new TextRun({ text: `Bank: ${vendorData.bank_vendor}`, break: 1 }),
+        new TextRun({
+          text: `No. Rekening: ${vendorData.norek_vendor}`,
+          break: 1,
+        }),
+        new TextRun({
+          text: `Nama Rekening: ${vendorData.nama_rek_vendor}`,
+          break: 1,
+        }),
+      ],
+    });
+
+    const contractSection = new Paragraph({
+      children: [
+        new TextRun({ text: "DATA KONTRAK", bold: true, break: 2 }),
+        new TextRun({
+          text: `Jenis Kontrak: ${contractData.jenis_kontrak}`,
+          break: 1,
+        }),
+        new TextRun({ text: `Deskripsi: ${contractData.deskripsi}`, break: 1 }),
+        new TextRun({
+          text: `Jumlah Orang: ${contractData.jumlah_orang}`,
+          break: 1,
+        }),
+        new TextRun({
+          text: `Durasi Kontrak: ${contractData.durasi_kontrak} bulan`,
+          break: 1,
+        }),
+        new TextRun({
+          text: `Nilai Kontrak Awal: ${formatCurrency(
+            contractData.nilai_kontral_awal
+          )}`,
+          break: 1,
+        }),
+        new TextRun({
+          text: `Nilai Kontrak Akhir: ${formatCurrency(
+            contractData.nilai_kontrak_akhir
+          )}`,
+          break: 1,
+        }),
+      ],
+    });
+
+    const documentSection = new Paragraph({
+      children: [
+        new TextRun({ text: "DATA DOKUMEN", bold: true, break: 2 }),
+        new TextRun({
+          text: `Nomor Kontrak: ${documentData.nomor_kontrak}`,
+          break: 1,
+        }),
+        new TextRun({
+          text: `Tanggal Kontrak: ${formatDate(documentData.tanggal_kontrak)}`,
+          break: 1,
+        }),
+        new TextRun({
+          text: `Paket Pekerjaan: ${documentData.paket_pekerjaan}`,
+          break: 1,
+        }),
+        new TextRun({
+          text: `Tahun Anggaran: ${documentData.tahun_anggaran}`,
+          break: 1,
+        }),
+        new TextRun({
+          text: `Nomor DIPA: ${documentData.nomor_dipa}`,
+          break: 1,
+        }),
+        new TextRun({
+          text: `Tanggal DIPA: ${formatDate(documentData.tanggal_dipa)}`,
+          break: 1,
+        }),
+      ],
+    });
+
+    // Create officials section
+    const officialsSection = new Paragraph({
+      children: [
+        new TextRun({ text: "DATA PEJABAT", bold: true, break: 2 }),
+        ...officialData.map(
+          (official) =>
+            new TextRun({
+              text: `${official.nama} - ${official.jabatan} (${official.nip})`,
+              break: 1,
+            })
+        ),
+      ],
+    });
 
     const doc = new Document({
       sections: [
@@ -151,14 +258,13 @@ export const generateContractDocument = async ({
             },
           },
           children: [
+            // Header with logo
             new Paragraph({
               alignment: AlignmentType.CENTER,
-              spacing: {
-                after: 200,
-              },
+              spacing: { after: 200 },
               children: [
                 new ImageRun({
-                  data: imageData.image, // Gunakan data image langsung dari API
+                  data: imageData.image,
                   transformation: {
                     width: 200,
                     height: 100,
@@ -166,8 +272,10 @@ export const generateContractDocument = async ({
                 }),
               ],
             }),
+            // Title
             new Paragraph({
               alignment: AlignmentType.CENTER,
+              spacing: { after: 400 },
               children: [
                 new TextRun({
                   text: "SURAT PERINTAH KERJA",
@@ -176,7 +284,11 @@ export const generateContractDocument = async ({
                 }),
               ],
             }),
-            // ... sisa code tetap sama
+            // Data sections
+            vendorSection,
+            contractSection,
+            documentSection,
+            officialsSection,
           ],
         },
       ],
@@ -185,7 +297,10 @@ export const generateContractDocument = async ({
     return doc;
   } catch (error) {
     console.error("Error generating document with image:", error);
-    throw new Error("Gagal membuat dokumen: " + (error instanceof Error ? error.message : "Unknown error"));
+    throw new Error(
+      "Gagal membuat dokumen: " +
+        (error instanceof Error ? error.message : "Unknown error")
+    );
   }
 };
 
@@ -193,6 +308,7 @@ export const PrintContract: React.FC<PrintContractProps> = ({
   contractsData,
   documentData,
   vendorData,
+  officialData, // Add this line
   isContractsSaved,
   isContractsEditMode,
   onError,
@@ -223,6 +339,7 @@ export const PrintContract: React.FC<PrintContractProps> = ({
           contractData: contract,
           documentData: documentData,
           vendorData: vendorData,
+          officialData: officialData, // Add this line
         });
         const blob = await Packer.toBlob(doc);
 

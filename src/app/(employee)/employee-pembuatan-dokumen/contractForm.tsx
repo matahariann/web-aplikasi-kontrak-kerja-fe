@@ -17,6 +17,7 @@ import {
   ContractData,
   DocumentData,
   VendorData,
+  OfficialData,
 } from "@/services/employee";
 import { PrintContract } from "./generateDocs";
 import { Textarea } from "@nextui-org/react";
@@ -82,6 +83,10 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
   });
   const [savedContractsIds, setSavedContractsIds] = useState<string[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.SAVED_CONTRACTS_IDS);
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [officialData] = useState<OfficialData[]>(() => {
+    const saved = localStorage.getItem("officialsData");
     return saved ? JSON.parse(saved) : [];
   });
   const [vendorData] = useState<VendorData>(() => {
@@ -645,6 +650,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                   jenis_kontrak: contractType,
                 }))}
                 vendorData={vendorData}
+                officialData={officialData}
                 documentData={documentData}
                 isContractsSaved={isContractsSaved}
                 isContractsEditMode={isContractsEditMode}
