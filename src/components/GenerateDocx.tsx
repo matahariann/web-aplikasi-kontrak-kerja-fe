@@ -275,38 +275,37 @@ export const generateContractDocument = async ({
             }),
             new TextRun({
               text: "KEMENTERIAN KOMUNIKASI DAN INFORMATIKA",
-              bold: true,
-              size: 24,
+              size: 14 * 2,
               font: "Arial",
               color: "000080", // Navy blue
               break: 1,
             }),
             new TextRun({
               text: "DIREKTORAT JENDERAL APLIKASI INFORMATIKA",
-              bold: true,
-              size: 24,
+              size: 12 * 2,
               font: "Arial",
               color: "000080", // Navy blue
               break: 1,
             }),
             new TextRun({
               text: "SEKRETARIAT DIREKTORAT JENDERAL",
-              bold: true,
-              size: 24,
+              size: 10 * 2,
               font: "Arial",
               color: "000080", // Navy blue
               break: 1,
             }),
             new TextRun({
-              text: "Indonesia Terhubung: Makin Digital, Makin Maju",
-              italics: true,
-              size: 20,
-              font: "Arial",
+              text: "Indonesia Terkoneksi: Makin Digital, Makin Maju",
+              // italics: true,
+              bold: true,
+              size: 12 * 2,
+              font: "Brush Script MT",
+              color: "87CEEB",
               break: 1,
             }),
             new TextRun({
-              text: "Jl. Medan Merdeka Barat No. 9 Jakarta 10110 Tel/Fax: 021-3441491 www.kominfo.go.id",
-              size: 20,
+              text: "Jl. Medan Merdeka Barat No. 9 Jakarta 10110 Tel./Fax. 021-3441491 www.kominfo.go.id",
+              size: 7 * 2,
               font: "Arial",
               break: 1,
             }),
@@ -315,7 +314,7 @@ export const generateContractDocument = async ({
         new Paragraph({
           children: [
             new TextRun({
-              text: "_______________________________________________________________________________",
+              text: "___________________________________________________________________________",
               size: 24,
             }),
           ],
