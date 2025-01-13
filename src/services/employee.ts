@@ -24,7 +24,7 @@ export interface OfficialData {
   nama: string;
   jabatan: string;
   periode_jabatan: string;
-  surat_keputusan: string; 
+  surat_keputusan?: string; 
 }
 
 export interface ContractData {
@@ -199,6 +199,44 @@ export const updateOfficial = async (
       throw new Error(
         error.response?.data?.message || "Gagal memperbarui data pejabat"
       );
+    }
+    throw error;
+  }
+};
+
+export const getPeriodes = async (token: string) => {
+  try {
+    const response = await axios.get(
+      `http://localhost:8000/api/getPeriodes`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Gagal mengambil data periode");
+    }
+    throw error;
+  }
+};
+
+export const getOfficialsByPeriode = async (token: string, periode: string) => {
+  try {
+    const response = await axios.get(
+      `http://localhost:8000/api/getOfficialsByPeriode/${periode}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Gagal mengambil data pejabat");
     }
     throw error;
   }

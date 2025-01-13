@@ -4,7 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Save, ArrowRight, ArrowLeft, Pencil } from "lucide-react";
-import { addOfficial, updateOfficial, OfficialData } from "@/services/employee";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  addOfficial,
+  updateOfficial,
+  getPeriodes,
+  getOfficialsByPeriode,
+  OfficialData,
+} from "@/services/employee";
 
 const STORAGE_KEYS = {
   OFFICIALS_DATA: "officialsData",
@@ -18,7 +31,6 @@ const INITIAL_OFFICIALS = [
     nip: "",
     nama: "",
     jabatan: "Pejabat Pembuat Komitmen Sekretariat Ditjen Aplikasi Informatika",
-    periode_jabatan: "",
     surat_keputusan: "",
   },
   {
@@ -26,12 +38,14 @@ const INITIAL_OFFICIALS = [
     nama: "",
     jabatan:
       "Pejabat Pengadaan Barang/Jasa Sekretariat Ditjen Aplikasi Informatika",
-    periode_jabatan: "",
-    surat_keputusan: "",
+    surat_keputusan: "", // Ini akan diabaikan di form
   },
 ];
 
 const OfficialsForm = ({ currentStep, setCurrentStep }) => {
+  const [periodes, setPeriodes] = useState<string[]>([]);
+  const [selectedPeriode, setSelectedPeriode] = useState<string>("");
+  const [isFromDatabase, setIsFromDatabase] = useState(false);
   const [isOfficialsEditMode, setIsOfficialsEditMode] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.IS_OFFICIALS_EDIT_MODE);
     return saved ? JSON.parse(saved) : false;
@@ -55,6 +69,22 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
     const saved = localStorage.getItem(STORAGE_KEYS.OFFICIALS_DATA);
     return saved ? JSON.parse(saved) : INITIAL_OFFICIALS;
   });
+
+  useEffect(() => {
+    const fetchPeriodes = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const response = await getPeriodes(token);
+        setPeriodes(response.data);
+      } catch (error) {
+        console.error("Failed to fetch periodes:", error);
+      }
+    };
+
+    fetchPeriodes();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(
@@ -91,6 +121,40 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
     }
   }, []);
 
+  const handlePeriodeChange = async (periode: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      setSelectedPeriode(periode);
+
+      if (periode === "new") {
+        setOfficialsData(
+          INITIAL_OFFICIALS.map((official) => ({
+            ...official,
+            periode_jabatan: "",
+          }))
+        );
+        setIsFromDatabase(false);
+        setIsOfficialsSaved(false);
+        setIsOfficialsEditMode(false);
+        setSavedOfficialsIds([]);
+        return;
+      }
+
+      setSelectedPeriode(periode);
+      const response = await getOfficialsByPeriode(token, periode);
+      setOfficialsData(response.data);
+      setIsFromDatabase(true);
+      setIsOfficialsSaved(false);
+    } catch (error) {
+      console.error("Failed to fetch officials:", error);
+      setOfficialsError(
+        "Gagal mengambil data pejabat untuk periode yang dipilih"
+      );
+    }
+  };
+
   const handleOfficialsInputChange = (
     index: number,
     field: keyof OfficialData,
@@ -111,12 +175,23 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
     setOfficialsError(null);
     setIsOfficialsSubmitted(true);
 
+    if (isFromDatabase) {
+      // Jika data dari database, langsung set sebagai tersimpan
+      setIsOfficialsSaved(true);
+      setOfficialsShowSuccessAlert(true);
+      setOfficialsAlertType("save");
+      setTimeout(() => {
+        setOfficialsShowSuccessAlert(false);
+        setOfficialsAlertType(null);
+      }, 3000);
+      return;
+    }
+
     const hasEmptyFields = officialsData.some(
       (official) =>
         !official.nip ||
         !official.nama ||
-        !official.periode_jabatan ||
-        !official.surat_keputusan
+        !official.periode_jabatan
     );
 
     if (hasEmptyFields) {
@@ -139,7 +214,7 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
           await updateOfficial(token, oldNip, {
             nip: official.nip,
             nama: official.nama,
-            jabatan: official.jabatan, // Pastikan jabatan tetap terkirim
+            jabatan: official.jabatan,
             periode_jabatan: official.periode_jabatan,
             surat_keputusan: official.surat_keputusan,
           });
@@ -148,10 +223,8 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
         // Update savedOfficialsIds dengan NIP yang baru
         const newSavedIds = officialsData.map((official) => official.nip);
         setSavedOfficialsIds(newSavedIds);
-        localStorage.setItem(
-          STORAGE_KEYS.SAVED_OFFICIALS_IDS,
-          JSON.stringify(newSavedIds)
-        );
+
+        setIsOfficialsEditMode(false);
       } else {
         // Add new officials
         const savedIds = [];
@@ -160,17 +233,12 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
           savedIds.push(official.nip);
         }
         setSavedOfficialsIds(savedIds);
-        localStorage.setItem(
-          STORAGE_KEYS.SAVED_OFFICIALS_IDS,
-          JSON.stringify(savedIds)
-        );
       }
 
       setIsOfficialsSaved(true);
       setOfficialsShowSuccessAlert(true);
       setOfficialsAlertType(isOfficialsEditMode ? "edit" : "save");
       setIsOfficialsSubmitted(false);
-      setIsOfficialsEditMode(false);
 
       // Simpan data terbaru ke localStorage
       localStorage.setItem(
@@ -185,6 +253,10 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
         STORAGE_KEYS.IS_OFFICIALS_EDIT_MODE,
         JSON.stringify(false)
       );
+      localStorage.setItem(
+        STORAGE_KEYS.SAVED_OFFICIALS_IDS,
+        JSON.stringify(savedOfficialsIds)
+      );
 
       setTimeout(() => {
         setOfficialsShowSuccessAlert(false);
@@ -195,7 +267,7 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
       setOfficialsError(
         error instanceof Error
           ? error.message
-          : "Terjadi kesalahan saat memperbarui data"
+          : "Terjadi kesalahan saat menyimpan data"
       );
     }
   };
@@ -240,6 +312,61 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
           <p className="text-sm text-red-500">*Wajib diisi</p>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="border p-4 rounded-lg mb-6">
+            <Label htmlFor="periode-select">
+              Periode Jabatan <span className="text-red-500">*</span>
+            </Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Select
+                  onValueChange={handlePeriodeChange}
+                  value={selectedPeriode}
+                  disabled={isOfficialsSaved && !isOfficialsEditMode}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Pilih periode atau tambah baru" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new">Tambah Periode Baru</SelectItem>
+                    {periodes.map((periode) => (
+                      <SelectItem key={periode} value={periode}>
+                        {periode}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {selectedPeriode === "new" && (
+                <div>
+                  <Input
+                    placeholder="Masukkan periode baru"
+                    value={officialsData[0]?.periode_jabatan || ""}
+                    onChange={(e) => {
+                      const newPeriode = e.target.value;
+                      setOfficialsData((prev) =>
+                        prev.map((official) => ({
+                          ...official,
+                          periode_jabatan: newPeriode,
+                        }))
+                      );
+                    }}
+                    disabled={isOfficialsSaved && !isOfficialsEditMode}
+                    className={
+                      isOfficialsSubmitted && !officialsData[0]?.periode_jabatan
+                        ? "border-red-300"
+                        : ""
+                    }
+                  />
+                  {isOfficialsSubmitted &&
+                    !officialsData[0]?.periode_jabatan && (
+                      <p className="text-red-500 text-sm mt-1">
+                        Periode jabatan tidak boleh kosong
+                      </p>
+                    )}
+                </div>
+              )}
+            </div>
+          </div>
           {officialsData.map((official, index) => (
             <div key={index} className="border p-4 rounded-lg">
               <h3 className="font-medium mb-4">{official.jabatan}</h3>
@@ -259,7 +386,10 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
                         ? "border-red-300"
                         : ""
                     }
-                    disabled={isOfficialsSaved && !isOfficialsEditMode}
+                    disabled={
+                      isFromDatabase ||
+                      (isOfficialsSaved && !isOfficialsEditMode)
+                    }
                   />
                   {isOfficialsSubmitted && !official.nip && (
                     <p className="text-red-500 text-sm mt-1">
@@ -282,7 +412,10 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
                         ? "border-red-300"
                         : ""
                     }
-                    disabled={isOfficialsSaved && !isOfficialsEditMode}
+                    disabled={
+                      isFromDatabase ||
+                      (isOfficialsSaved && !isOfficialsEditMode)
+                    }
                   />
                   {isOfficialsSubmitted && !official.nama && (
                     <p className="text-red-500 text-sm mt-1">
@@ -290,60 +423,39 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
                     </p>
                   )}
                 </div>
-                <div>
-                  <Label htmlFor={`periode_jabatan_${index}`}>
-                    Periode Jabatan <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id={`periode_jabatan_${index}`}
-                    value={official.periode_jabatan}
-                    onChange={(e) =>
-                      handleOfficialsInputChange(
-                        index,
-                        "periode_jabatan",
-                        e.target.value
-                      )
-                    }
-                    className={
-                      isOfficialsSubmitted && !official.periode_jabatan
-                        ? "border-red-300"
-                        : ""
-                    }
-                    disabled={isOfficialsSaved && !isOfficialsEditMode}
-                  />
-                  {isOfficialsSubmitted && !official.periode_jabatan && (
-                    <p className="text-red-500 text-sm mt-1">
-                      Periode jabatan tidak boleh kosong
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor={`surat_keputusan_${index}`}>
-                    Surat Keputusan <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id={`surat_keputusan_${index}`}
-                    value={official.surat_keputusan}
-                    onChange={(e) =>
-                      handleOfficialsInputChange(
-                        index,
-                        "surat_keputusan",
-                        e.target.value
-                      )
-                    }
-                    className={
-                      isOfficialsSubmitted && !official.surat_keputusan
-                        ? "border-red-300"
-                        : ""
-                    }
-                    disabled={isOfficialsSaved && !isOfficialsEditMode}
-                  />
-                  {isOfficialsSubmitted && !official.surat_keputusan && (
-                    <p className="text-red-500 text-sm mt-1">
-                      Surat Keputusan tidak boleh kosong
-                    </p>
-                  )}
-                </div>
+                {/* Surat Keputusan hanya untuk Pejabat Pembuat Komitmen */}
+                {official.jabatan.includes("Pejabat Pembuat Komitmen") && (
+                  <div className="col-span-2">
+                    <Label htmlFor={`surat_keputusan_${index}`}>
+                      Surat Keputusan <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id={`surat_keputusan_${index}`}
+                      value={official.surat_keputusan}
+                      onChange={(e) =>
+                        handleOfficialsInputChange(
+                          index,
+                          "surat_keputusan",
+                          e.target.value
+                        )
+                      }
+                      className={
+                        isOfficialsSubmitted && !official.surat_keputusan
+                          ? "border-red-300"
+                          : ""
+                      }
+                      disabled={
+                        isFromDatabase ||
+                        (isOfficialsSaved && !isOfficialsEditMode)
+                      }
+                    />
+                    {isOfficialsSubmitted && !official.surat_keputusan && (
+                      <p className="text-red-500 text-sm mt-1">
+                        Surat Keputusan tidak boleh kosong
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))}
