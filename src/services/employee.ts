@@ -24,6 +24,7 @@ export interface OfficialData {
   nama: string;
   jabatan: string;
   periode_jabatan: string;
+  surat_keputusan: string; 
 }
 
 export interface ContractData {
