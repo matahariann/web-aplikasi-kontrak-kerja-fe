@@ -323,7 +323,7 @@ export const generateContractDocument = async ({
       ],
     });
 
-    const jabatanText = officialData[0].jabatan.toUpperCase();
+    const namaVendorText = vendorData.nama_vendor.toUpperCase();
 
     const coverPage = {
       properties: {
@@ -415,11 +415,25 @@ export const generateContractDocument = async ({
               break: 5,
             }),
             new TextRun({
-              text: jabatanText,
+              text: "PEJABAT PEMBUAT KOMITMEN",
               font: "Arial Narrow",
               size: 12 * 2,
               bold: true,
               break: 3,
+            }),
+            new TextRun({
+              text: "SEKRETARIAT DIREKTORAT JENDERAL",
+              font: "Arial Narrow",
+              size: 12 * 2,
+              bold: true,
+              break: 1,
+            }),
+            new TextRun({
+              text: "APLIKASI INFORMATIKA",
+              font: "Arial Narrow",
+              size: 12 * 2,
+              bold: true,
+              break: 1,
             }),
             new TextRun({
               text: "DENGAN",
@@ -429,7 +443,7 @@ export const generateContractDocument = async ({
               break: 2,
             }),
             new TextRun({
-              text: `${vendorData.nama_vendor}`,
+              text: namaVendorText,
               font: "Arial Narrow",
               size: 12 * 2,
               bold: true,
@@ -440,7 +454,7 @@ export const generateContractDocument = async ({
               font: "Arial Narrow",
               size: 19 * 2,
               bold: true,
-              break: 5,
+              break: 3,
             }),
             new TextRun({
               text: `${documentData.paket_pekerjaan}`,
@@ -452,14 +466,14 @@ export const generateContractDocument = async ({
             new TextRun({
               text: "SEKRETARIAT DIREKTORAT JENDERAL APLIKASI INFORMATIKA",
               font: "Arial Narrow",
-              size: 12 * 2,
+              size: 10 * 2,
               bold: true,
               break: 3,
             }),
             new TextRun({
               text: `TAHUN ANGGARAN ${documentData.tahun_anggaran}`,
               font: "Arial Narrow",
-              size: 12 * 2,
+              size: 10 * 2,
               bold: true,
               break: 1,
             }),
