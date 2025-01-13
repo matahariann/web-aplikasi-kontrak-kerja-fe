@@ -123,15 +123,11 @@ const PrintDialog = ({ isOpen, onClose, onConfirm }: PrintDialogProps) => {
             }}
             placeholder="Masukkan nama file"
           />
-          {error && (
-            <p className="text-sm text-red-500 mt-2">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={handleClose}>Batal</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm}>
-            Simpan
-          </AlertDialogAction>
+          <AlertDialogAction onClick={handleConfirm}>Simpan</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -259,7 +255,7 @@ export const generateContractDocument = async ({
         ...officialData.map(
           (official) =>
             new TextRun({
-              text: `${official.nama} - ${official.jabatan} (${official.nip})`,
+              text: `${official.nama} - ${official.jabatan} (${official.nip}) ${official.surat_keputusan}`,
               break: 1,
             })
         ),
@@ -327,37 +323,39 @@ export const generateContractDocument = async ({
       ],
     });
 
+    const jabatanText = officialData[0].jabatan.toUpperCase();
+
     const coverPage = {
       properties: {
         page: {
           margin: {
             top: 1440,
             right: 1440,
-            bottom: 1440,
+            bottom: 2000,
             left: 1440,
           },
           borders: {
             pageBorderTop: {
               style: BorderStyle.SINGLE,
-              size: 30,
+              size: 50,
               color: "000000",
               space: 24,
             },
             pageBorderRight: {
               style: BorderStyle.SINGLE,
-              size: 30,
+              size: 50,
               color: "000000",
               space: 24,
             },
             pageBorderBottom: {
               style: BorderStyle.SINGLE,
-              size: 30,
+              size: 50,
               color: "000000",
               space: 24,
             },
             pageBorderLeft: {
               style: BorderStyle.SINGLE,
-              size: 30,
+              size: 50,
               color: "000000",
               space: 24,
             },
@@ -371,35 +369,35 @@ export const generateContractDocument = async ({
           children: [
             new TextRun({
               text: "SURAT PERINTAH KERJA",
+              font: "Arial Narrow",
               bold: true,
-              size: 32,
-              break: 4,
+              size: 28 * 2,
+              // break: 4,
             }),
-          ],
-        }),
-        new Paragraph({
-          alignment: AlignmentType.CENTER,
-          children: [
             new TextRun({
               text: `Nomor: ${documentData.nomor_kontrak}`,
-              size: 24,
+              font: "Arial Narrow",
+              bold: true,
+              size: 12 * 2,
               break: 1,
             }),
             new TextRun({
-              text: `Tgl. ${new Date().getFullYear()}`,
-              size: 24,
+              text: `Tgl.${documentData.tahun_anggaran}`,
+              font: "Arial Narrow",
+              bold: true,
+              size: 12 * 2,
               break: 1,
             }),
           ],
         }),
         new Paragraph({
           alignment: AlignmentType.CENTER,
-          spacing: { before: 400, after: 400 },
+          spacing: { before: 200 },
           children: [
             new ImageRun({
               data: imageData.image,
               transformation: {
-                width: 200,
+                width: 100,
                 height: 100,
               },
             }),
@@ -407,62 +405,61 @@ export const generateContractDocument = async ({
         }),
         new Paragraph({
           alignment: AlignmentType.CENTER,
-          spacing: { before: 800 },
+          // spacing: { before: 800 },
           children: [
             new TextRun({
               text: "ANTARA",
-              size: 24,
-              break: 2,
+              font: "Arial Narrow",
+              bold: true,
+              size: 12 * 2,
+              break: 5,
             }),
             new TextRun({
-              text: "PEJABAT PEMBUAT KOMITMEN",
-              size: 24,
+              text: jabatanText,
+              font: "Arial Narrow",
+              size: 12 * 2,
               bold: true,
-              break: 2,
-            }),
-            new TextRun({
-              text: "SEKRETARIAT DIREKTORAT JENDERAL",
-              size: 24,
-              bold: true,
-              break: 1,
-            }),
-            new TextRun({
-              text: "APLIKASI INFORMATIKA",
-              size: 24,
-              bold: true,
-              break: 1,
+              break: 3,
             }),
             new TextRun({
               text: "DENGAN",
-              size: 24,
+              font: "Arial Narrow",
+              size: 12 * 2,
+              bold: true,
               break: 2,
             }),
             new TextRun({
-              text: vendorData.nama_vendor,
-              size: 24,
+              text: `${vendorData.nama_vendor}`,
+              font: "Arial Narrow",
+              size: 12 * 2,
               bold: true,
               break: 2,
             }),
             new TextRun({
               text: "PEKERJAAN:",
-              size: 24,
-              break: 4,
+              font: "Arial Narrow",
+              size: 19 * 2,
+              bold: true,
+              break: 5,
             }),
             new TextRun({
-              text: documentData.paket_pekerjaan,
-              size: 24,
+              text: `${documentData.paket_pekerjaan}`,
+              font: "Arial Narrow",
+              size: 12 * 2,
               bold: true,
-              break: 2,
+              break: 4,
             }),
             new TextRun({
               text: "SEKRETARIAT DIREKTORAT JENDERAL APLIKASI INFORMATIKA",
-              size: 24,
+              font: "Arial Narrow",
+              size: 12 * 2,
               bold: true,
-              break: 4,
+              break: 3,
             }),
             new TextRun({
               text: `TAHUN ANGGARAN ${documentData.tahun_anggaran}`,
-              size: 24,
+              font: "Arial Narrow",
+              size: 12 * 2,
               bold: true,
               break: 1,
             }),
