@@ -24,6 +24,7 @@ const STORAGE_KEYS = {
   IS_OFFICIALS_SAVED: "isOfficialsSaved",
   SAVED_OFFICIALS_IDS: "savedOfficialsIds",
   IS_OFFICIALS_EDIT_MODE: "isOfficialsEditMode",
+  SELECTED_PERIOD: "selectedPeriod",
 };
 
 const INITIAL_OFFICIALS = [
@@ -44,7 +45,10 @@ const INITIAL_OFFICIALS = [
 
 const OfficialsForm = ({ currentStep, setCurrentStep }) => {
   const [periodes, setPeriodes] = useState<string[]>([]);
-  const [selectedPeriode, setSelectedPeriode] = useState<string>("");
+  const [selectedPeriode, setSelectedPeriode] = useState<string>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.SELECTED_PERIOD);
+    return saved || "";
+  });
   const [isFromDatabase, setIsFromDatabase] = useState(false);
   const [isOfficialsEditMode, setIsOfficialsEditMode] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.IS_OFFICIALS_EDIT_MODE);
@@ -78,6 +82,18 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
 
         const response = await getPeriodes(token);
         setPeriodes(response.data);
+
+        const storedPeriode = localStorage.getItem(
+          STORAGE_KEYS.SELECTED_PERIOD
+        );
+        if (
+          storedPeriode &&
+          !response.data.includes(storedPeriode) &&
+          storedPeriode !== "new"
+        ) {
+          localStorage.removeItem(STORAGE_KEYS.SELECTED_PERIOD);
+          setSelectedPeriode("");
+        }
       } catch (error) {
         console.error("Failed to fetch periodes:", error);
       }
@@ -121,12 +137,28 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
     }
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.SELECTED_PERIOD, selectedPeriode);
+  }, [selectedPeriode]);
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      const storedPeriode = localStorage.getItem(STORAGE_KEYS.SELECTED_PERIOD);
+      if (storedPeriode && storedPeriode !== "new") {
+        await handlePeriodeChange(storedPeriode);
+      }
+    };
+
+    fetchInitialData();
+  }, []);
+
   const handlePeriodeChange = async (periode: string) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
 
       setSelectedPeriode(periode);
+      localStorage.setItem(STORAGE_KEYS.SELECTED_PERIOD, periode);
 
       if (periode === "new") {
         setOfficialsData(
@@ -142,7 +174,6 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
         return;
       }
 
-      setSelectedPeriode(periode);
       const response = await getOfficialsByPeriode(token, periode);
       setOfficialsData(response.data);
       setIsFromDatabase(true);
@@ -187,12 +218,16 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
       return;
     }
 
-    const hasEmptyFields = officialsData.some(
-      (official) =>
-        !official.nip ||
-        !official.nama ||
-        !official.periode_jabatan
-    );
+    const hasEmptyFields = officialsData.some((official) => {
+      const basicFieldsEmpty =
+        !official.nip || !official.nama || !official.periode_jabatan;
+
+      // Additional check for PPK's surat_keputusan
+      const isPPK = official.jabatan.includes("Pejabat Pembuat Komitmen");
+      const skEmpty = isPPK && !official.surat_keputusan;
+
+      return basicFieldsEmpty || skEmpty;
+    });
 
     if (hasEmptyFields) {
       setOfficialsError("Mohon lengkapi semua input");
@@ -339,7 +374,7 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
               {selectedPeriode === "new" && (
                 <div>
                   <Input
-                    placeholder="Masukkan periode baru"
+                    placeholder="cth. 2024"
                     value={officialsData[0]?.periode_jabatan || ""}
                     onChange={(e) => {
                       const newPeriode = e.target.value;
@@ -451,7 +486,8 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
                     />
                     {isOfficialsSubmitted && !official.surat_keputusan && (
                       <p className="text-red-500 text-sm mt-1">
-                        Surat Keputusan tidak boleh kosong
+                        Surat Keputusan tidak boleh kosong untuk Pejabat Pembuat
+                        Komitmen
                       </p>
                     )}
                   </div>
