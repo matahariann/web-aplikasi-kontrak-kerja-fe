@@ -85,33 +85,34 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
     e.preventDefault();
     setDocumentError(null);
     setIsDocumentSubmitted(true);
-
+  
     const requiredFields = Object.keys(documentData) as (keyof DocumentData)[];
     const emptyFields = requiredFields.filter((field) => !documentData[field]);
-
+  
     if (emptyFields.length > 0) {
       setDocumentError(`Mohon lengkapi semua input`);
       return;
     }
-
+  
     try {
       const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("Anda belum login. Silakan login terlebih dahulu.");
       }
-
+  
       // Get officials data from localStorage
       const savedOfficialsData = localStorage.getItem(STORAGE_KEYS.OFFICIALS_DATA);
       const officialsData = savedOfficialsData ? JSON.parse(savedOfficialsData) : [];
-
-      // Prepare combined data
+  
+      // Prepare combined data dengan periode_jabatan
       const combinedData: DocumentWithOfficialsData = {
         officials: officialsData.map((official: OfficialData) => ({
-          nip: official.nip
+          nip: official.nip,
+          periode_jabatan: official.periode_jabatan // Menambahkan periode_jabatan ke data yang dikirim
         })),
         document: documentData
       };
-
+  
       let response;
       if (isDocumentEditMode && savedDocumentId) {
         response = await updateDocumentWithOfficials(token, savedDocumentId, combinedData);
@@ -134,7 +135,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
           );
         }
       }
-
+  
       setDocumentShowSuccessAlert(true);
       setDocumentAlertType(isDocumentEditMode ? "edit" : "save");
       setIsDocumentSubmitted(false);

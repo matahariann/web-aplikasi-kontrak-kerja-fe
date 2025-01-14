@@ -176,6 +176,7 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
 
       const response = await getOfficialsByPeriode(token, periode);
       setOfficialsData(response.data);
+      setSavedOfficialsIds(response.data.map(official => official.id));
       setIsFromDatabase(true);
       setIsOfficialsSaved(false);
     } catch (error) {
@@ -244,20 +245,20 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
         // Update existing officials
         for (let i = 0; i < officialsData.length; i++) {
           const official = officialsData[i];
-          const oldNip = savedOfficialsIds[i];
+          const officialId = savedOfficialsIds[i];
 
-          await updateOfficial(token, oldNip, {
+          await updateOfficial(token, officialId, {
             nip: official.nip,
             nama: official.nama,
             jabatan: official.jabatan,
             periode_jabatan: official.periode_jabatan,
             surat_keputusan: official.surat_keputusan,
           });
-        }
+        } 
 
         // Update savedOfficialsIds dengan NIP yang baru
-        const newSavedIds = officialsData.map((official) => official.nip);
-        setSavedOfficialsIds(newSavedIds);
+        // const newSavedIds = officialsData.map((official) => official.nip);
+        // setSavedOfficialsIds(newSavedIds);
 
         setIsOfficialsEditMode(false);
       } else {
@@ -265,7 +266,7 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
         const savedIds = [];
         for (const official of officialsData) {
           const response = await addOfficial(token, official);
-          savedIds.push(official.nip);
+          savedIds.push(response.data.id);
         }
         setSavedOfficialsIds(savedIds);
       }

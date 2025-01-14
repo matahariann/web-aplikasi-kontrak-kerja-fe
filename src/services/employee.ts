@@ -20,11 +20,12 @@ export interface VendorData {
 }
 
 export interface OfficialData {
+  id?: string;
   nip: string;
   nama: string;
   jabatan: string;
   periode_jabatan: string;
-  surat_keputusan?: string; 
+  surat_keputusan?: string;
 }
 
 export interface ContractData {
@@ -68,7 +69,7 @@ export interface DocumentData {
 }
 
 export interface DocumentWithOfficialsData {
-  officials: Array<{ nip: string }>;
+  officials: OfficialData[];
   document: DocumentData;
 }
 
@@ -179,12 +180,12 @@ export const addOfficial = async (
 
 export const updateOfficial = async (
   token: string,
-  nip: string,
+  id: string,
   data: OfficialData
 ) => {
   try {
     const response = await axios.put(
-      `http://localhost:8000/api/updateOfficial/${nip}`,
+      `http://localhost:8000/api/updateOfficial/${id}`,
       data,
       {
         headers: {
