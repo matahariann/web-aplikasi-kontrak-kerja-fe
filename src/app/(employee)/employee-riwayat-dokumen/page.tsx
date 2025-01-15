@@ -11,17 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Printer, Search } from "lucide-react";
 import { generateContractDocument } from "@/components/GenerateDocx";
-import { getSessionData } from "@/services/employee";
+import { getDocumentData } from "@/services/employee";
 import { Packer } from "docx";
 import { saveAs } from "file-saver";
 
@@ -39,6 +34,7 @@ export default function RiwayatDokumen() {
       return;
     }
 
+    // Fetch documents with eager loaded relationships
     fetch("http://localhost:8000/api/documents", {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -58,25 +54,26 @@ export default function RiwayatDokumen() {
       });
   }, []);
 
-  const handlePrint = async (sessionId) => {
+  const handlePrint = async (nomorKontrak) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("Token tidak ditemukan");
       }
 
-      const sessionData = await getSessionData(token, sessionId);
+      const documentData = await getDocumentData(token, nomorKontrak);
 
-      for (const contract of sessionData.contracts) {
+      // Generate document for each contract using the related data
+      for (const contract of documentData.contracts) {
         const doc = await generateContractDocument({
           contractData: contract,
-          documentData: sessionData.document,
-          vendorData: sessionData.vendor,
-          officialData: sessionData.officials,
+          documentData: documentData,
+          vendorData: documentData.vendor,
+          officialData: documentData.officials,
         });
 
         const blob = await Packer.toBlob(doc);
-        const filename = `kontrak_${sessionData.document.nomor_kontrak}_${contract.id}.docx`;
+        const filename = `kontrak_${documentData.nomor_kontrak}_${contract.id}.docx`;
         saveAs(blob, filename);
       }
     } catch (error) {
@@ -89,7 +86,8 @@ export default function RiwayatDokumen() {
   const filteredDocuments = documents.filter(
     (doc) =>
       doc.nomor_kontrak?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.paket_pekerjaan?.toLowerCase().includes(searchTerm.toLowerCase())
+      doc.paket_pekerjaan?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doc.vendor?.nama_vendor?.toLowerCase().includes(searchTerm.toLowerCase()) // Added vendor name search
   );
 
   return (
@@ -104,7 +102,7 @@ export default function RiwayatDokumen() {
             <div className="relative w-72">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
               <Input
-                placeholder="Cari dokumen..."
+                placeholder="Cari dokumen atau vendor..."
                 className="pl-8"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -124,49 +122,54 @@ export default function RiwayatDokumen() {
                 <TableRow>
                   <TableHead>No. Kontrak</TableHead>
                   <TableHead>Paket Pekerjaan</TableHead>
+                  <TableHead>Vendor</TableHead>
                   <TableHead>Tanggal Kontrak</TableHead>
                   <TableHead>Tahun Anggaran</TableHead>
                   <TableHead>Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {!isLoading && filteredDocuments.map((doc) => (
-                  <TableRow key={doc.nomor_kontrak}>
-                    <TableCell>{doc.nomor_kontrak}</TableCell>
-                    <TableCell>{doc.paket_pekerjaan}</TableCell>
-                    <TableCell>
-                      {format(new Date(doc.tanggal_kontrak), "dd MMMM yyyy", {
-                        locale: id,
-                      })}
-                    </TableCell>
-                    <TableCell>{doc.tahun_anggaran}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePrint(doc.form_session_id)}
-                        className="flex items-center gap-2"
-                      >
-                        <Printer className="h-4 w-4" />
-                        Cetak
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {!isLoading &&
+                  filteredDocuments.map((doc) => (
+                    <TableRow key={doc.nomor_kontrak}>
+                      <TableCell>{doc.nomor_kontrak}</TableCell>
+                      <TableCell>{doc.paket_pekerjaan}</TableCell>
+                      <TableCell>{doc.vendor?.nama_vendor}</TableCell>
+                      <TableCell>
+                        {format(new Date(doc.tanggal_kontrak), "dd MMMM yyyy", {
+                          locale: id,
+                        })}
+                      </TableCell>
+                      <TableCell>{doc.tahun_anggaran}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePrint(doc.nomor_kontrak)}
+                          className="flex items-center gap-2"
+                        >
+                          <Printer className="h-4 w-4" />
+                          Cetak
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-4">
+                    <TableCell colSpan={6} className="text-center py-4">
                       Loading...
                     </TableCell>
                   </TableRow>
-                ) : filteredDocuments.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-4">
-                      {documents.length === 0
-                        ? "Belum ada dokumen"
-                        : "Tidak ada dokumen yang sesuai dengan pencarian"}
-                    </TableCell>
-                  </TableRow>
+                ) : (
+                  filteredDocuments.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-4">
+                        {documents.length === 0
+                          ? "Belum ada dokumen"
+                          : "Tidak ada dokumen yang sesuai dengan pencarian"}
+                      </TableCell>
+                    </TableRow>
+                  )
                 )}
               </TableBody>
             </Table>
