@@ -424,26 +424,26 @@ export const deleteContract = async (token: string, id: string) => {
   }
 };
 
-export const getSessionData = async (token: string, sessionId: string) => {
-  try {
-    const response = await axios.get(
-      `http://localhost:8000/api/session-data/${sessionId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.message || "Gagal mengambil data session"
+  export const getSessionData = async (token: string, sessionId: string) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/session-data/${sessionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(
+          error.response?.data?.message || "Gagal mengambil data session"
+        );
+      }
+      throw error;
     }
-    throw error;
-  }
-};
+  };
 
 export const getImage = async (
   token: string,
