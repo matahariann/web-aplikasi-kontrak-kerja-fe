@@ -44,6 +44,7 @@ const INITIAL_OFFICIALS = [
 ];
 
 const OfficialsForm = ({ currentStep, setCurrentStep }) => {
+  const [inputDisabled, setInputDisabled] = useState(true);
   const [periodes, setPeriodes] = useState<string[]>([]);
   const [formSessionId, setFormSessionId] = useState<string | null>(() => {
     return localStorage.getItem("form_session_id");
@@ -191,8 +192,8 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
       setOfficialsData(response.data);
       setSavedOfficialsIds(response.data.map((official) => official.id));
       setIsFromDatabase(true);
-      setIsOfficialsSaved(true); // Ubah menjadi true karena data dari database
-      setIsOfficialsEditMode(false); // Pastikan mode edit false
+      setIsOfficialsSaved(false); // Set ke false agar tombol tetap "Simpan"
+      setIsOfficialsEditMode(false);
     } catch (error) {
       console.error("Failed to fetch officials:", error);
       setOfficialsError(
@@ -246,37 +247,35 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
         throw new Error("Anda belum login. Silakan login terlebih dahulu.");
       }
 
-      if (isOfficialsEditMode) {
-        // Update existing officials
-        for (let i = 0; i < officialsData.length; i++) {
-          const official = officialsData[i];
-          const officialId = savedOfficialsIds[i];
+      const savedIds = [];
+      for (let i = 0; i < officialsData.length; i++) {
+        const official = officialsData[i];
+        const officialId =
+          isFromDatabase || isOfficialsEditMode ? savedOfficialsIds[i] : null;
 
-          await updateOfficial(token, officialId, {
+        let response;
+        if (isFromDatabase || isOfficialsEditMode) {
+          response = await updateOfficial(token, officialId, {
+            ...official,
+            form_session_id: formSessionId,
+          });
+        } else {
+          response = await addOfficial(token, {
             ...official,
             form_session_id: formSessionId,
           });
         }
-      } else {
-        // Add new officials
-        const savedIds = [];
-        for (const official of officialsData) {
-          const response = await addOfficial(token, {
-            ...official,
-            form_session_id: formSessionId,
-          });
-          savedIds.push(response.data.id);
-        }
-        setSavedOfficialsIds(savedIds);
+        savedIds.push(response.data.id);
       }
+      setSavedOfficialsIds(savedIds);
 
-      // Update states setelah berhasil menyimpan
+      // Setelah simpan, set state untuk menampilkan tombol Edit
       setIsOfficialsSaved(true);
       setIsOfficialsEditMode(false);
+      setInputDisabled(true);
       setOfficialsShowSuccessAlert(true);
       setOfficialsAlertType(isOfficialsEditMode ? "edit" : "save");
       setIsOfficialsSubmitted(false);
-      setIsFromDatabase(selectedPeriode !== "new"); // Update isFromDatabase berdasarkan periode
 
       // Update localStorage
       localStorage.setItem(
@@ -293,7 +292,7 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
       );
       localStorage.setItem(
         STORAGE_KEYS.SAVED_OFFICIALS_IDS,
-        JSON.stringify(savedOfficialsIds)
+        JSON.stringify(savedIds)
       );
 
       setTimeout(() => {
@@ -312,18 +311,7 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
 
   const handleEditMode = () => {
     setIsOfficialsEditMode(true);
-    setIsOfficialsSaved(false);
-
-    // Pastikan data yang tersimpan di localStorage tetap ada saat mode edit
-    const savedData = localStorage.getItem(STORAGE_KEYS.OFFICIALS_DATA);
-    if (savedData) {
-      setOfficialsData(JSON.parse(savedData));
-    }
-
-    const savedIds = localStorage.getItem(STORAGE_KEYS.SAVED_OFFICIALS_IDS);
-    if (savedIds) {
-      setSavedOfficialsIds(JSON.parse(savedIds));
-    }
+    setInputDisabled(false);
   };
 
   return (
@@ -502,21 +490,28 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
           <div className="flex justify-between mt-6">
             <Button
               onClick={
-                isOfficialsSaved && !isOfficialsEditMode
-                  ? handleEditMode
-                  : handleOfficialsSubmit
+                !isOfficialsSaved
+                  ? handleOfficialsSubmit
+                  : isOfficialsEditMode
+                  ? handleOfficialsSubmit
+                  : handleEditMode
               }
-              variant={isOfficialsEditMode ? "secondary" : "default"}
+              variant="default"
             >
-              {isOfficialsSaved && !isOfficialsEditMode ? (
+              {!isOfficialsSaved ? (
                 <>
-                  <Pencil className="w-4 h-4 mr-2" />
-                  Edit
+                  <Save className="w-4 h-4 mr-2" />
+                  Simpan
+                </>
+              ) : isOfficialsEditMode ? (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Simpan Perubahan
                 </>
               ) : (
                 <>
-                  <Save className="w-4 h-4 mr-2" />
-                  {isOfficialsEditMode ? "Simpan Perubahan" : "Simpan"}
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Edit
                 </>
               )}
             </Button>
