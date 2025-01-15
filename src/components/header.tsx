@@ -23,14 +23,15 @@ const Header = () => {
   const scrolled = useScroll(5);
   const selectedLayout = useSelectedLayoutSegment();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
   const getData = async (token: string) => {
     try {
-      const res = await getEmployee(token);
-      setEmployee(res);
+      const employeeData = await getEmployee(token);
+      setEmployee(employeeData);
+      console.log("Employee data:", employeeData); // untuk debugging
     } catch (error) {
       console.error("Error getting employee data:", error);
-      // Optional: Handle error UI state
-      router.push("/"); // Redirect ke login jika terjadi error
+      router.push("/");
     }
   };
 

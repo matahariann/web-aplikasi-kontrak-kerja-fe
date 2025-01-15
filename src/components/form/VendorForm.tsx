@@ -15,6 +15,9 @@ const STORAGE_KEYS = {
 };
 
 const VendorForm = ({ currentStep, setCurrentStep }) => {
+  const [formSessionId, setFormSessionId] = useState<string | null>(() => {
+    return localStorage.getItem("form_session_id");
+  });
   const [vendorError, setVendorError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.IS_EDIT_MODE);
@@ -86,22 +89,49 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
         throw new Error("Anda belum login. Silakan login terlebih dahulu.");
       }
 
+      let currentFormSessionId = localStorage.getItem("form_session_id");
+
       let response;
       if (isEditMode && savedVendorId) {
-        response = await updateVendor(token, savedVendorId, vendorData);
+        response = await updateVendor(token, savedVendorId, {
+          ...vendorData,
+          form_session_id: currentFormSessionId,
+        });
       } else {
-        response = await addVendor(token, vendorData);
+        response = await addVendor(token, {
+          ...vendorData,
+          form_session_id: currentFormSessionId,
+        });
       }
 
       if (response) {
+        // Perbarui state dan localStorage secara berurutan
+        const vendorId = isEditMode ? savedVendorId : response.data.id;
+
+        // Update form session ID
+        if (response.form_session_id) {
+          setFormSessionId(response.form_session_id);
+          localStorage.setItem("form_session_id", response.form_session_id);
+        }
+
+        // Update vendor ID
+        setSavedVendorId(vendorId);
+        localStorage.setItem(
+          STORAGE_KEYS.SAVED_VENDOR_ID,
+          JSON.stringify(vendorId)
+        );
+
+        // Update status
+        setIsVendorSaved(true);
+        setIsEditMode(false);
+        localStorage.setItem(STORAGE_KEYS.IS_VENDOR_SAVED, "true");
+        localStorage.setItem(STORAGE_KEYS.IS_EDIT_MODE, "false");
+
+        // Tampilkan alert sukses
         setVendorShowSuccessAlert(true);
         setVendorAlertType(isEditMode ? "edit" : "save");
         setIsVendorSubmitted(false);
-        setIsVendorSaved(true);
-        setIsEditMode(false); // Reset edit mode setelah berhasil submit
-        if (!isEditMode) {
-          setSavedVendorId(response.data.id);
-        }
+
         setTimeout(() => {
           setVendorShowSuccessAlert(false);
           setVendorAlertType(null);
@@ -118,6 +148,18 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
   const handleEditMode = () => {
     setIsEditMode(true);
     setIsVendorSaved(false);
+    // Update status di localStorage saat masuk mode edit
+    localStorage.setItem(STORAGE_KEYS.IS_EDIT_MODE, "true");
+    localStorage.setItem(STORAGE_KEYS.IS_VENDOR_SAVED, "false");
+  };
+
+  const handleNext = () => {
+    if (
+      localStorage.getItem(STORAGE_KEYS.IS_VENDOR_SAVED) === "true" &&
+      localStorage.getItem(STORAGE_KEYS.IS_EDIT_MODE) !== "true"
+    ) {
+      setCurrentStep(2);
+    }
   };
 
   useEffect(() => {
@@ -136,11 +178,18 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
   }, [isEditMode]);
 
   useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.SAVED_VENDOR_ID,
-      JSON.stringify(savedVendorId)
-    );
-  }, [savedVendorId]);
+    if (isVendorSaved && !isEditMode) {
+      // Pastikan status tersimpan di localStorage
+      localStorage.setItem(STORAGE_KEYS.IS_VENDOR_SAVED, "true");
+      localStorage.setItem(STORAGE_KEYS.IS_EDIT_MODE, "false");
+    }
+  }, [isVendorSaved, isEditMode]);
+
+  useEffect(() => {
+    if (formSessionId) {
+      localStorage.setItem("form_session_id", formSessionId);
+    }
+  }, [formSessionId]);
 
   return (
     <>
@@ -343,6 +392,7 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
                   : handleVendorSubmit
               }
               variant={isEditMode ? "secondary" : "default"}
+              disabled={isVendorSubmitted}
             >
               {isVendorSaved && !isEditMode ? (
                 <>
@@ -357,7 +407,7 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
               )}
             </Button>
             <Button
-              onClick={() => setCurrentStep(2)}
+              onClick={handleNext}
               disabled={!isVendorSaved || isEditMode}
               style={{ userSelect: "none" }}
             >

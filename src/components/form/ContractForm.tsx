@@ -62,6 +62,10 @@ export const formatCurrency = (value: number): string => {
 };
 
 const ContractsForm = ({ currentStep, setCurrentStep }) => {
+  const [contractsError, setContractsError] = useState<string | null>(null);
+  const [formSessionId, setFormSessionId] = useState<string | null>(() => {
+    return localStorage.getItem("form_session_id");
+  });
   const [contractType, setContractType] = useState<ContractType>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.CONTRACT_TYPE);
     return saved ? JSON.parse(saved) : ContractType.KONSULTAN;
@@ -70,7 +74,6 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
     const saved = localStorage.getItem(STORAGE_KEYS.IS_CONTRACTS_EDIT_MODE);
     return saved ? JSON.parse(saved) : false;
   });
-  const [contractsError, setContractsError] = useState<string | null>(null);
   const [contractsAlertType, setContractsAlertType] = useState<
     "save" | "delete" | "edit" | null
   >(null);
@@ -138,6 +141,18 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
       JSON.stringify(isContractsEditMode)
     );
   }, [isContractsEditMode]);
+
+  useEffect(() => {
+    const sessionId = localStorage.getItem("form_session_id");
+    if (!sessionId) {
+      setContractsError(
+        "Mohon isi form vendor, pejabat, dan dokumen terlebih dahulu"
+      );
+      setCurrentStep(3); // Kembali ke form document
+    } else {
+      setFormSessionId(sessionId);
+    }
+  }, []);
 
   const validateContractValue = (value: number): string | null => {
     const maxValue = MAX_PRICE[contractType];
@@ -217,12 +232,21 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
     setContractsError(null);
     setIsContractsSubmitted(true);
 
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Anda belum login. Silakan login terlebih dahulu.");
-      }
+    // Periksa token terlebih dahulu
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setContractsError("Anda belum login. Silakan login terlebih dahulu.");
+      return;
+    }
 
+    // Periksa form_session_id
+    const formSessionId = localStorage.getItem("form_session_id");
+    if (!formSessionId) {
+      setContractsError("Form session tidak ditemukan");
+      return;
+    }
+
+    try {
       // Validasi form data
       const hasEmptyFields = contractsData.some(
         (contract) =>
@@ -280,6 +304,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
             durasi_kontrak: Number(contract.durasi_kontrak),
             nilai_kontral_awal: Number(contract.nilai_kontral_awal),
             nilai_kontrak_akhir: Number(contract.nilai_kontrak_akhir),
+            form_session_id: formSessionId,
           };
 
           try {
@@ -315,6 +340,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
               durasi_kontrak: Number(contract.durasi_kontrak),
               nilai_kontral_awal: Number(contract.nilai_kontral_awal),
               nilai_kontrak_akhir: Number(contract.nilai_kontrak_akhir),
+              form_session_id: formSessionId,
             };
 
             const response = await addContract(token, formattedContract);
@@ -370,6 +396,17 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
           : "Terjadi kesalahan saat menyimpan data"
       );
     }
+  };
+
+  const handleError = (error: any) => {
+    console.error("Submit error:", error);
+    setContractsShowSuccessAlert(false);
+    setIsContractsSubmitted(false);
+    setContractsError(
+      error instanceof Error
+        ? error.message
+        : "Terjadi kesalahan saat menyimpan data"
+    );
   };
 
   const handleEditMode = () => {

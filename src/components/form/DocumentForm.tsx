@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Save, ArrowRight, Pencil, ArrowLeft } from "lucide-react";
-import { DocumentData, updateDocumentWithOfficials, saveDocumentWithOfficials, DocumentWithOfficialsData, OfficialData } from "@/services/employee";
+import {
+  DocumentData,
+  updateDocument,
+  DocumentWithOfficialsData,
+  OfficialData,
+  addDocument,
+} from "@/services/employee";
 
 const STORAGE_KEYS = {
   DOCUMENT_DATA: "documentData",
@@ -18,6 +24,9 @@ const STORAGE_KEYS = {
 
 const DocumentForm = ({ currentStep, setCurrentStep }) => {
   const [documentError, setDocumentError] = useState<string | null>(null);
+  const [formSessionId, setFormSessionId] = useState<string | null>(() => {
+    return localStorage.getItem("form_session_id");
+  });
   const [isDocumentEditMode, setIsEditMode] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.IS_DOCUMENT_EDIT_MODE);
     return saved ? JSON.parse(saved) : false;
@@ -81,71 +90,83 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
     }));
   };
 
-  const handleDocumentSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleDocumentSubmit = async (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
     e.preventDefault();
     setDocumentError(null);
     setIsDocumentSubmitted(true);
-  
+
+    if (!formSessionId) {
+      setDocumentError("Form session tidak ditemukan");
+      return;
+    }
+
     const requiredFields = Object.keys(documentData) as (keyof DocumentData)[];
     const emptyFields = requiredFields.filter((field) => !documentData[field]);
-  
+
     if (emptyFields.length > 0) {
       setDocumentError(`Mohon lengkapi semua input`);
       return;
     }
-  
+
     try {
       const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("Anda belum login. Silakan login terlebih dahulu.");
       }
-  
-      // Get officials data from localStorage
-      const savedOfficialsData = localStorage.getItem(STORAGE_KEYS.OFFICIALS_DATA);
-      const officialsData = savedOfficialsData ? JSON.parse(savedOfficialsData) : [];
-  
-      // Prepare combined data dengan periode_jabatan
+
+      const savedOfficialsData = localStorage.getItem(
+        STORAGE_KEYS.OFFICIALS_DATA
+      );
+      const officialsData = savedOfficialsData
+        ? JSON.parse(savedOfficialsData)
+        : [];
+
+      // Prepare combined data
       const combinedData: DocumentWithOfficialsData = {
         officials: officialsData.map((official: OfficialData) => ({
           nip: official.nip,
-          periode_jabatan: official.periode_jabatan // Menambahkan periode_jabatan ke data yang dikirim
+          periode_jabatan: official.periode_jabatan,
         })),
-        document: documentData
+        document: {
+          ...documentData,
+          form_session_id: formSessionId,
+        },
       };
-  
+
       let response;
       if (isDocumentEditMode && savedDocumentId) {
-        response = await updateDocumentWithOfficials(token, savedDocumentId, combinedData);
-        
-        // Update savedDocumentId with new nomor_kontrak if it changed
-        if (response && response.data.document.nomor_kontrak !== savedDocumentId) {
-          setSavedDocumentId(response.data.document.nomor_kontrak);
-          localStorage.setItem(
-            STORAGE_KEYS.SAVED_DOCUMENT_ID,
-            JSON.stringify(response.data.document.nomor_kontrak)
-          );
-        }
+        response = await updateDocument(token, savedDocumentId, combinedData);
       } else {
-        response = await saveDocumentWithOfficials(token, combinedData);
-        if (response) {
-          setSavedDocumentId(response.data.document.nomor_kontrak);
-          localStorage.setItem(
-            STORAGE_KEYS.SAVED_DOCUMENT_ID,
-            JSON.stringify(response.data.document.nomor_kontrak)
-          );
-        }
+        response = await addDocument(token, combinedData);
       }
-  
-      setDocumentShowSuccessAlert(true);
-      setDocumentAlertType(isDocumentEditMode ? "edit" : "save");
-      setIsDocumentSubmitted(false);
-      setIsDocumentSaved(true);
-      setIsEditMode(false);
-      
-      setTimeout(() => {
-        setDocumentShowSuccessAlert(false);
-        setDocumentAlertType(null);
-      }, 3000);
+
+      if (response?.data?.document) {
+        setDocumentShowSuccessAlert(true);
+        setDocumentAlertType(isDocumentEditMode ? "edit" : "save");
+        setIsDocumentSubmitted(false);
+        setIsDocumentSaved(true);
+        setIsEditMode(false);
+        setSavedDocumentId(response.data.document.nomor_kontrak);
+
+        // Update localStorage
+        localStorage.setItem(
+          STORAGE_KEYS.DOCUMENT_DATA,
+          JSON.stringify(response.data.document)
+        );
+        localStorage.setItem(STORAGE_KEYS.IS_DOCUMENT_SAVED, "true");
+        localStorage.setItem(STORAGE_KEYS.IS_DOCUMENT_EDIT_MODE, "false");
+        localStorage.setItem(
+          STORAGE_KEYS.SAVED_DOCUMENT_ID,
+          JSON.stringify(response.data.document.nomor_kontrak)
+        );
+
+        setTimeout(() => {
+          setDocumentShowSuccessAlert(false);
+          setDocumentAlertType(null);
+        }, 3000);
+      }
     } catch (error) {
       setDocumentShowSuccessAlert(false);
       setDocumentError(
@@ -174,7 +195,10 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
   }, [isDocumentSaved]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.IS_DOCUMENT_EDIT_MODE, JSON.stringify(isDocumentEditMode));
+    localStorage.setItem(
+      STORAGE_KEYS.IS_DOCUMENT_EDIT_MODE,
+      JSON.stringify(isDocumentEditMode)
+    );
   }, [isDocumentEditMode]);
 
   useEffect(() => {
@@ -183,6 +207,16 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
       JSON.stringify(savedDocumentId)
     );
   }, [savedDocumentId]);
+
+  useEffect(() => {
+    const sessionId = localStorage.getItem("form_session_id");
+    if (!sessionId) {
+      setDocumentError("Mohon isi form vendor dan pejabat terlebih dahulu");
+      setCurrentStep(2); // Kembali ke form officials
+    } else {
+      setFormSessionId(sessionId);
+    }
+  }, []);
 
   return (
     <>

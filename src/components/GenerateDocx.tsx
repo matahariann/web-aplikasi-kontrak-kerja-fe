@@ -30,13 +30,14 @@ import {
   VendorData,
   OfficialData,
   getImage,
+  getSessionData
 } from "@/services/employee";
 
 interface GenerateDocumentProps {
   vendorData: VendorData;
-  contractData: ContractData;
+  contractData: ContractData[];
   documentData: DocumentData;
-  officialData: OfficialData[]; // Add this line
+  officialData: OfficialData[];
 }
 
 interface PrintConfirmationDialogProps {
@@ -55,7 +56,7 @@ interface PrintContractProps {
   contractsData: ContractData[];
   documentData: DocumentData;
   vendorData: VendorData;
-  officialData: OfficialData[]; // Add this line
+  officialData: OfficialData[];
   isContractsSaved: boolean;
   isContractsEditMode: boolean;
   onError: (error: string) => void;
@@ -518,19 +519,30 @@ export const generateContractDocument = async ({
 };
 
 export const PrintContract: React.FC<PrintContractProps> = ({
-  contractsData,
-  documentData,
-  vendorData,
-  officialData, // Add this line
   isContractsSaved,
   isContractsEditMode,
   onError,
 }) => {
   const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
   const [isPrintConfirmationOpen, setIsPrintConfirmationOpen] = useState(false);
+  const [sessionData, setSessionData] = useState<any>(null);
 
-  const handlePrintClick = () => {
-    setIsPrintConfirmationOpen(true);
+  const handlePrintClick = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const sessionId = localStorage.getItem("form_session_id");
+
+      if (!token || !sessionId) {
+        throw new Error("Token atau session id tidak ditemukan");
+      }
+
+      // Ambil data dari session
+      const data = await getSessionData(token, sessionId);
+      setSessionData(data);
+      setIsPrintConfirmationOpen(true);
+    } catch (error) {
+      onError(error instanceof Error ? error.message : "Terjadi kesalahan");
+    }
   };
 
   const handlePrintConfirmed = () => {
@@ -540,35 +552,32 @@ export const PrintContract: React.FC<PrintContractProps> = ({
 
   const handlePrint = async (filename: string) => {
     try {
-      if (!filename) {
-        onError("Nama file harus diisi");
+      if (!filename || !sessionData) {
+        onError("Nama file harus diisi dan data harus tersedia");
         return;
       }
 
       // Generate dokumen untuk setiap kontrak
-      for (let i = 0; i < contractsData.length; i++) {
-        const contract = contractsData[i];
+      for (const contract of sessionData.contracts) {
         const doc = await generateContractDocument({
           contractData: contract,
-          documentData: documentData,
-          vendorData: vendorData,
-          officialData: officialData, // Add this line
+          documentData: sessionData.document,
+          vendorData: sessionData.vendor,
+          officialData: sessionData.officials,
         });
-        const blob = await Packer.toBlob(doc);
 
+        const blob = await Packer.toBlob(doc);
         const sanitizedFilename = filename
           .replace(/[^a-z0-9]/gi, "_")
           .toLowerCase();
-        const fullFilename = `${sanitizedFilename}${
-          i > 0 ? `_${i + 1}` : ""
-        }.docx`;
+
+        // Tambahkan identifier kontrak ke nama file
+        const fullFilename = `${sanitizedFilename}_${contract.id}.docx`;
 
         saveAs(blob, fullFilename);
       }
 
       setIsPrintDialogOpen(false);
-
-      // Refresh halaman setelah delay
       setTimeout(() => {
         window.location.reload();
       }, 1000);

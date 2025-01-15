@@ -2,11 +2,18 @@ import axios from "axios";
 
 export type Employee = {
   nip: string;
-  nama_vendor: string;
+  nama: string;
   email: string;
   noTelp: string;
   alamat: string;
 };
+
+export interface EmployeeResponse {
+  success: boolean;
+  data: {
+    employee: Employee;
+  };
+}
 
 export interface VendorData {
   nama_vendor: string;
@@ -17,6 +24,13 @@ export interface VendorData {
   bank_vendor: string;
   norek_vendor: string;
   nama_rek_vendor: string;
+  form_session_id?: string;
+}
+
+export interface VendorResponse {
+  message: string;
+  data: VendorData & { id: number };
+  form_session_id: string;
 }
 
 export interface OfficialData {
@@ -26,6 +40,13 @@ export interface OfficialData {
   jabatan: string;
   periode_jabatan: string;
   surat_keputusan?: string;
+  form_session_id?: string;
+}
+
+export interface OfficialResponse {
+  message: string;
+  data: OfficialData & { id: string };
+  form_session_id: string;
 }
 
 export interface ContractData {
@@ -36,6 +57,12 @@ export interface ContractData {
   durasi_kontrak: number;
   nilai_kontral_awal: number;
   nilai_kontrak_akhir: number;
+  form_session_id?: string;
+}
+
+export interface ContractResponse {
+  message: string;
+  data: ContractData & { id: string };
 }
 
 export interface DocumentData {
@@ -66,6 +93,14 @@ export interface DocumentData {
   nomor_dipa: string;
   tanggal_dipa: string;
   kode_kegiatan: string;
+  form_session_id?: string;
+}
+
+export interface DocumentResponse {
+  message: string;
+  data: {
+    document: DocumentData;
+  };
 }
 
 export interface DocumentWithOfficialsData {
@@ -81,31 +116,32 @@ export interface ImageData {
 
 export const getEmployee = async (token: string): Promise<Employee> => {
   try {
-    const response = await axios.get(
-      "http://localhost:8000/api/employee/authenticated",
+    const response = await axios.get<EmployeeResponse>(
+      `http://localhost:8000/api/employee/authenticated`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          Accept: "application/json", // Tambahkan header Accept
         },
       }
     );
-
-    // Sesuaikan dengan struktur response dari backend
-    if (response.data.success) {
-      return response.data.data.operator;
-    }
-
-    throw new Error(response.data.message || "Gagal mengambil data");
+    // Return hanya bagian employee dari response
+    return response.data.data.employee;
   } catch (error) {
-    console.error("Error fetching employee:", error);
-    throw new Error("Terjadi kesalahan dalam mendapatkan data operator");
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Gagal mengambil data pegawai"
+      );
+    }
+    throw error;
   }
 };
 
-export const addVendor = async (token: string, vendorData: VendorData) => {
+export const addVendor = async (
+  token: string,
+  vendorData: VendorData
+): Promise<VendorResponse> => {
   try {
-    const response = await axios.post(
+    const response = await axios.post<VendorResponse>(
       `http://localhost:8000/api/addVendor`,
       vendorData,
       {
@@ -119,7 +155,7 @@ export const addVendor = async (token: string, vendorData: VendorData) => {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(
-        error.response?.data?.message || "Data vendor sudah ada dalam database"
+        error.response?.data?.message || "Gagal menyimpan data vendor"
       );
     }
     throw error;
@@ -130,9 +166,9 @@ export const updateVendor = async (
   token: string,
   vendorId: number,
   vendorData: VendorData
-) => {
+): Promise<VendorResponse> => {
   try {
-    const response = await axios.put(
+    const response = await axios.put<VendorResponse>(
       `http://localhost:8000/api/updateVendor/${vendorId}`,
       vendorData,
       {
@@ -155,9 +191,9 @@ export const updateVendor = async (
 export const addOfficial = async (
   token: string,
   officialData: OfficialData
-) => {
+): Promise<OfficialResponse> => {
   try {
-    const response = await axios.post(
+    const response = await axios.post<OfficialResponse>(
       `http://localhost:8000/api/addOfficial`,
       officialData,
       {
@@ -166,13 +202,12 @@ export const addOfficial = async (
         },
       }
     );
-
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.message || "Data pejabat sudah ada dalam database"
-      );
+      const errorMessage =
+        error.response?.data?.error || "Gagal meyimpan data pejabat";
+      throw new Error(errorMessage);
     }
     throw error;
   }
@@ -182,9 +217,9 @@ export const updateOfficial = async (
   token: string,
   id: string,
   data: OfficialData
-) => {
+): Promise<OfficialResponse> => {
   try {
-    const response = await axios.put(
+    const response = await axios.put<OfficialResponse>(
       `http://localhost:8000/api/updateOfficial/${id}`,
       data,
       {
@@ -197,9 +232,9 @@ export const updateOfficial = async (
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.message || "Gagal memperbarui data pejabat"
-      );
+      const errorMessage =
+        error.response?.data?.error || "Gagal memperbarui data pejabat";
+      throw new Error(errorMessage);
     }
     throw error;
   }
@@ -207,18 +242,17 @@ export const updateOfficial = async (
 
 export const getPeriodes = async (token: string) => {
   try {
-    const response = await axios.get(
-      `http://localhost:8000/api/getPeriodes`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.get(`http://localhost:8000/api/getPeriodes`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "Gagal mengambil data periode");
+      throw new Error(
+        error.response?.data?.message || "Gagal mengambil data periode"
+      );
     }
     throw error;
   }
@@ -237,47 +271,56 @@ export const getOfficialsByPeriode = async (token: string, periode: string) => {
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "Gagal mengambil data pejabat");
-    }
-    throw error;
-  }
-};
-
-export const saveDocumentWithOfficials = async (
-  token: string,
-  data: DocumentWithOfficialsData
-) => {
-  try {
-    const response = await axios.post(
-      `http://localhost:8000/api/saveDocumentWithOfficials`,
-      data,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
       throw new Error(
-        error.response?.data?.message ||
-          "Gagal menyimpan data dokumen dan pejabat"
+        error.response?.data?.message || "Gagal mengambil data pejabat"
       );
     }
     throw error;
   }
 };
 
-export const updateDocumentWithOfficials = async (
+export const addDocument = async (
+  token: string,
+  data: DocumentWithOfficialsData
+): Promise<DocumentResponse> => {
+  try {
+    const formSessionId = localStorage.getItem("form_session_id");
+    const requestData = {
+      ...data,
+      form_session_id: formSessionId,
+    };
+
+    const response = await axios.post<DocumentResponse>(
+      `http://localhost:8000/api/addDocument`,
+      requestData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const errorMessage =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        "Gagal menambahkan data dokumen";
+      throw new Error(errorMessage);
+    }
+    throw error;
+  }
+};
+
+export const updateDocument = async (
   token: string,
   nomor_kontrak: string,
   data: DocumentWithOfficialsData
-) => {
+): Promise<DocumentResponse> => {
   try {
-    const response = await axios.put(
-      `http://localhost:8000/api/updateDocumentWithOfficials/${nomor_kontrak}`,
+    const response = await axios.put<DocumentResponse>(
+      `http://localhost:8000/api/updateDocument/${nomor_kontrak}`,
       data,
       {
         headers: {
@@ -289,8 +332,7 @@ export const updateDocumentWithOfficials = async (
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(
-        error.response?.data?.message ||
-          "Gagal memperbarui data dokumen dan pejabat"
+        error.response?.data?.message || "Gagal memperbarui data dokumen"
       );
     }
     throw error;
@@ -300,15 +342,20 @@ export const updateDocumentWithOfficials = async (
 export const addContract = async (
   token: string,
   contractData: ContractData
-) => {
+): Promise<ContractResponse> => {
   try {
-    const response = await axios.post(
+    const formSessionId = localStorage.getItem("form_session_id");
+    const requestData = {
+      ...contractData,
+      form_session_id: formSessionId,
+    };
+
+    const response = await axios.post<ContractResponse>(
       `http://localhost:8000/api/addContract`,
-      contractData,
+      requestData,
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
         },
       }
     );
@@ -327,15 +374,20 @@ export const updateContract = async (
   token: string,
   id: string,
   data: ContractData
-) => {
+): Promise<ContractResponse> => {
   try {
-    const response = await axios.put(
+    const formSessionId = localStorage.getItem("form_session_id");
+    const requestData = {
+      ...data,
+      form_session_id: formSessionId,
+    };
+
+    const response = await axios.put<ContractResponse>(
       `http://localhost:8000/api/updateContract/${id}`,
-      data,
+      requestData,
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
         },
       }
     );
@@ -343,7 +395,7 @@ export const updateContract = async (
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(
-        error.response?.data?.message || "Gagal memperbarui data kontrak"
+        error.response?.data?.error || "Gagal memperbarui data kontrak"
       );
     }
     throw error;
@@ -372,7 +424,31 @@ export const deleteContract = async (token: string, id: string) => {
   }
 };
 
-export const getImage = async (token: string, id: number): Promise<ImageData> => {
+export const getSessionData = async (token: string, sessionId: string) => {
+  try {
+    const response = await axios.get(
+      `http://localhost:8000/api/session-data/${sessionId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Gagal mengambil data session"
+      );
+    }
+    throw error;
+  }
+};
+
+export const getImage = async (
+  token: string,
+  id: number
+): Promise<ImageData> => {
   try {
     const response = await axios.get(
       `http://localhost:8000/api/showImage/${id}`,
@@ -384,7 +460,7 @@ export const getImage = async (token: string, id: number): Promise<ImageData> =>
       }
     );
 
-    if (response.data.status === 'success') {
+    if (response.data.status === "success") {
       return response.data.data;
     }
 

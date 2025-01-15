@@ -45,6 +45,9 @@ const INITIAL_OFFICIALS = [
 
 const OfficialsForm = ({ currentStep, setCurrentStep }) => {
   const [periodes, setPeriodes] = useState<string[]>([]);
+  const [formSessionId, setFormSessionId] = useState<string | null>(() => {
+    return localStorage.getItem("form_session_id");
+  });
   const [selectedPeriode, setSelectedPeriode] = useState<string>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.SELECTED_PERIOD);
     return saved || "";
@@ -142,6 +145,16 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
   }, [selectedPeriode]);
 
   useEffect(() => {
+    const sessionId = localStorage.getItem("form_session_id");
+    if (!sessionId) {
+      setOfficialsError("Mohon isi form vendor terlebih dahulu");
+      setCurrentStep(1); // Kembali ke form vendor
+    } else {
+      setFormSessionId(sessionId);
+    }
+  }, []);
+
+  useEffect(() => {
     const fetchInitialData = async () => {
       const storedPeriode = localStorage.getItem(STORAGE_KEYS.SELECTED_PERIOD);
       if (storedPeriode && storedPeriode !== "new") {
@@ -176,9 +189,10 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
 
       const response = await getOfficialsByPeriode(token, periode);
       setOfficialsData(response.data);
-      setSavedOfficialsIds(response.data.map(official => official.id));
+      setSavedOfficialsIds(response.data.map((official) => official.id));
       setIsFromDatabase(true);
-      setIsOfficialsSaved(false);
+      setIsOfficialsSaved(true); // Ubah menjadi true karena data dari database
+      setIsOfficialsEditMode(false); // Pastikan mode edit false
     } catch (error) {
       console.error("Failed to fetch officials:", error);
       setOfficialsError(
@@ -207,23 +221,14 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
     setOfficialsError(null);
     setIsOfficialsSubmitted(true);
 
-    if (isFromDatabase) {
-      // Jika data dari database, langsung set sebagai tersimpan
-      setIsOfficialsSaved(true);
-      setOfficialsShowSuccessAlert(true);
-      setOfficialsAlertType("save");
-      setTimeout(() => {
-        setOfficialsShowSuccessAlert(false);
-        setOfficialsAlertType(null);
-      }, 3000);
+    if (!formSessionId) {
+      setOfficialsError("Form session tidak ditemukan");
       return;
     }
 
     const hasEmptyFields = officialsData.some((official) => {
       const basicFieldsEmpty =
         !official.nip || !official.nama || !official.periode_jabatan;
-
-      // Additional check for PPK's surat_keputusan
       const isPPK = official.jabatan.includes("Pejabat Pembuat Komitmen");
       const skEmpty = isPPK && !official.surat_keputusan;
 
@@ -248,35 +253,32 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
           const officialId = savedOfficialsIds[i];
 
           await updateOfficial(token, officialId, {
-            nip: official.nip,
-            nama: official.nama,
-            jabatan: official.jabatan,
-            periode_jabatan: official.periode_jabatan,
-            surat_keputusan: official.surat_keputusan,
+            ...official,
+            form_session_id: formSessionId,
           });
-        } 
-
-        // Update savedOfficialsIds dengan NIP yang baru
-        // const newSavedIds = officialsData.map((official) => official.nip);
-        // setSavedOfficialsIds(newSavedIds);
-
-        setIsOfficialsEditMode(false);
+        }
       } else {
         // Add new officials
         const savedIds = [];
         for (const official of officialsData) {
-          const response = await addOfficial(token, official);
+          const response = await addOfficial(token, {
+            ...official,
+            form_session_id: formSessionId,
+          });
           savedIds.push(response.data.id);
         }
         setSavedOfficialsIds(savedIds);
       }
 
+      // Update states setelah berhasil menyimpan
       setIsOfficialsSaved(true);
+      setIsOfficialsEditMode(false);
       setOfficialsShowSuccessAlert(true);
       setOfficialsAlertType(isOfficialsEditMode ? "edit" : "save");
       setIsOfficialsSubmitted(false);
+      setIsFromDatabase(selectedPeriode !== "new"); // Update isFromDatabase berdasarkan periode
 
-      // Simpan data terbaru ke localStorage
+      // Update localStorage
       localStorage.setItem(
         STORAGE_KEYS.OFFICIALS_DATA,
         JSON.stringify(officialsData)
@@ -300,11 +302,11 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
       }, 3000);
     } catch (error) {
       setOfficialsShowSuccessAlert(false);
-      setOfficialsError(
-        error instanceof Error
-          ? error.message
-          : "Terjadi kesalahan saat menyimpan data"
-      );
+      if (error instanceof Error) {
+        setOfficialsError(error.message);
+      } else {
+        setOfficialsError("Terjadi kesalahan saat menyimpan data");
+      }
     }
   };
 
