@@ -17,6 +17,8 @@ import {
   getPeriodes,
   getOfficialsByPeriode,
   OfficialData,
+  checkDocument,
+  updateDocumentOfficial
 } from "@/services/employee";
 
 const STORAGE_KEYS = {
@@ -269,7 +271,19 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
       }
       setSavedOfficialsIds(savedIds);
 
-      // Setelah simpan, set state untuk menampilkan tombol Edit
+      // Cek apakah document sudah ada sebelum mencoba update relasi
+      const documentCheck = await checkDocument(token, formSessionId);
+      if (documentCheck.exists) {
+        try {
+          await updateDocumentOfficial(token, formSessionId, savedIds);
+        } catch (error) {
+          console.error("Error updating document-official relation:", error);
+          setOfficialsError("Gagal memperbarui relasi dengan dokumen");
+          return;
+        }
+      }
+
+      // Update states
       setIsOfficialsSaved(true);
       setIsOfficialsEditMode(false);
       setInputDisabled(true);

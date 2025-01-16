@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Save, ArrowRight, Pencil } from "lucide-react";
 import { addVendor, updateVendor, VendorData } from "@/services/employee";
+import { isErrored } from "stream";
 
 const STORAGE_KEYS = {
   VENDOR_DATA: "vendorData",
@@ -392,7 +393,6 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
                   : handleVendorSubmit
               }
               variant={isEditMode ? "secondary" : "default"}
-              disabled={isVendorSubmitted}
             >
               {isVendorSaved && !isEditMode ? (
                 <>

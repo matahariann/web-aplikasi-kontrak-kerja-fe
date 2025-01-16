@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Icon } from "@iconify/react";
+import { FileClock, FilePlus2, House } from "lucide-react";
 
 export default function Sidebar() {
   return (
@@ -14,7 +14,7 @@ export default function Sidebar() {
           className="flex items-center px-4 py-2 mx-2 text-gray-700 rounded-lg hover:bg-gray-100"
           draggable={false}
         >
-          <Icon icon="lucide:home" className="w-5 h-5" />
+          <House className="w-5 h-5" />
           <span className="ml-3">Beranda</span>
         </Link>
         <Link
@@ -22,7 +22,7 @@ export default function Sidebar() {
           className="flex items-center px-4 py-2 mx-2 text-gray-700 rounded-lg hover:bg-gray-100"
           draggable={false}
         >
-          <Icon icon="mdi:archive-time-outline" className="w-5 h-5" />
+          <FileClock className="w-5 h-5" />
           <span className="ml-3">Riwayat Dokumen</span>
         </Link>
         <Link
@@ -30,7 +30,7 @@ export default function Sidebar() {
           className="flex items-center px-4 py-2 mx-2 text-gray-700 rounded-lg hover:bg-gray-100"
           draggable={false}
         >
-          <Icon icon="mdi:file-document-plus-outline" className="w-5 h-5" />
+          <FilePlus2 className="w-5 h-5" />
           <span className="ml-3">Pembuatan Dokumen</span>
         </Link>
       </div>

@@ -747,13 +747,12 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                   ...contract,
                   jenis_kontrak: contractType,
                 }))}
+                documentData={documentData}  // Pastikan documentData memiliki nomor_kontrak
                 vendorData={vendorData}
                 officialData={officialData}
-                documentData={documentData}
                 isContractsSaved={isContractsSaved}
                 isContractsEditMode={isContractsEditMode}
                 onError={setContractsError}
-                // clearLocalStorage={clearAllLocalStorage}
               />
             </div>
             <div className="flex space-x-4">

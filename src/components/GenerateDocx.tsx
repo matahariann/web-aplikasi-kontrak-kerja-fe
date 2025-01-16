@@ -30,12 +30,12 @@ import {
   VendorData,
   OfficialData,
   getImage,
-  getSessionData
+  getDocumentData,
 } from "@/services/employee";
 
 interface GenerateDocumentProps {
   vendorData: VendorData;
-  contractData: ContractData[];
+  contractsData: ContractData[];
   documentData: DocumentData;
   officialData: OfficialData[];
 }
@@ -136,7 +136,7 @@ const PrintDialog = ({ isOpen, onClose, onConfirm }: PrintDialogProps) => {
 };
 
 export const generateContractDocument = async ({
-  contractData,
+  contractsData,
   officialData,
   documentData,
   vendorData,
@@ -188,34 +188,38 @@ export const generateContractDocument = async ({
       ],
     });
 
-    const contractSection = new Paragraph({
+    const contractsSection = new Paragraph({
       children: [
         new TextRun({ text: "DATA KONTRAK", bold: true, break: 2 }),
-        new TextRun({
-          text: `Jenis Kontrak: ${contractData.jenis_kontrak}`,
-          break: 1,
-        }),
-        new TextRun({ text: `Deskripsi: ${contractData.deskripsi}`, break: 1 }),
-        new TextRun({
-          text: `Jumlah Orang: ${contractData.jumlah_orang}`,
-          break: 1,
-        }),
-        new TextRun({
-          text: `Durasi Kontrak: ${contractData.durasi_kontrak} bulan`,
-          break: 1,
-        }),
-        new TextRun({
-          text: `Nilai Kontrak Awal: ${formatCurrency(
-            contractData.nilai_kontral_awal
-          )}`,
-          break: 1,
-        }),
-        new TextRun({
-          text: `Nilai Kontrak Akhir: ${formatCurrency(
-            contractData.nilai_kontrak_akhir
-          )}`,
-          break: 1,
-        }),
+        ...contractsData.flatMap((contract, index) => [
+          new TextRun({ text: `Kontrak ${index + 1}`, bold: true, break: 1 }),
+          new TextRun({
+            text: `Jenis Kontrak: ${contract.jenis_kontrak}`,
+            break: 1,
+          }),
+          new TextRun({ text: `Deskripsi: ${contract.deskripsi}`, break: 1 }),
+          new TextRun({
+            text: `Jumlah Orang: ${contract.jumlah_orang}`,
+            break: 1,
+          }),
+          new TextRun({
+            text: `Durasi Kontrak: ${contract.durasi_kontrak} bulan`,
+            break: 1,
+          }),
+          new TextRun({
+            text: `Nilai Kontrak Awal: ${formatCurrency(
+              contract.nilai_kontral_awal
+            )}`,
+            break: 1,
+          }),
+          new TextRun({
+            text: `Nilai Kontrak Akhir: ${formatCurrency(
+              contract.nilai_kontrak_akhir
+            )}`,
+            break: 1,
+          }),
+          new TextRun({ text: "", break: 1 }), // Add spacing between contracts
+        ]),
       ],
     });
 
@@ -498,7 +502,7 @@ export const generateContractDocument = async ({
       },
       children: [
         vendorSection,
-        contractSection,
+        contractsSection,
         documentSection,
         officialsSection,
       ],
@@ -519,28 +523,38 @@ export const generateContractDocument = async ({
 };
 
 export const PrintContract: React.FC<PrintContractProps> = ({
+  contractsData,
+  documentData,
+  vendorData,
+  officialData,
   isContractsSaved,
   isContractsEditMode,
   onError,
 }) => {
   const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
   const [isPrintConfirmationOpen, setIsPrintConfirmationOpen] = useState(false);
-  const [sessionData, setSessionData] = useState<any>(null);
 
   const handlePrintClick = async () => {
     try {
       const token = localStorage.getItem("token");
-      const sessionId = localStorage.getItem("form_session_id");
-
-      if (!token || !sessionId) {
-        throw new Error("Token atau session id tidak ditemukan");
+      if (!token) {
+        throw new Error("Token tidak ditemukan");
       }
 
-      // Ambil data dari session
-      const data = await getSessionData(token, sessionId);
-      setSessionData(data);
+      // Menggunakan nomor_kontrak dari documentData yang sudah ada
+      const nomorKontrak = documentData?.nomor_kontrak;
+      if (!nomorKontrak) {
+        throw new Error("Nomor kontrak tidak tersedia");
+      }
+
+      console.log("Initiating print for document:", nomorKontrak);
+
+      // Fetch document data with all relationships
+      const data = await getDocumentData(token, nomorKontrak);
+      // Ganti dari setIsPrintDialogOpen menjadi setIsPrintConfirmationOpen
       setIsPrintConfirmationOpen(true);
     } catch (error) {
+      console.error("Error in handlePrintClick:", error);
       onError(error instanceof Error ? error.message : "Terjadi kesalahan");
     }
   };
@@ -552,30 +566,26 @@ export const PrintContract: React.FC<PrintContractProps> = ({
 
   const handlePrint = async (filename: string) => {
     try {
-      if (!filename || !sessionData) {
+      if (!filename || !documentData) {
         onError("Nama file harus diisi dan data harus tersedia");
         return;
       }
 
-      // Generate dokumen untuk setiap kontrak
-      for (const contract of sessionData.contracts) {
-        const doc = await generateContractDocument({
-          contractData: contract,
-          documentData: sessionData.document,
-          vendorData: sessionData.vendor,
-          officialData: sessionData.officials,
-        });
+      // Generate single document with all contracts
+      const doc = await generateContractDocument({
+        contractsData: contractsData, // Pass all contracts
+        documentData: documentData,
+        vendorData: vendorData,
+        officialData: officialData,
+      });
 
-        const blob = await Packer.toBlob(doc);
-        const sanitizedFilename = filename
-          .replace(/[^a-z0-9]/gi, "_")
-          .toLowerCase();
+      const blob = await Packer.toBlob(doc);
+      const sanitizedFilename = filename
+        .replace(/[^a-z0-9]/gi, "_")
+        .toLowerCase();
+      const fullFilename = `${sanitizedFilename}.docx`;
 
-        // Tambahkan identifier kontrak ke nama file
-        const fullFilename = `${sanitizedFilename}_${contract.id}.docx`;
-
-        saveAs(blob, fullFilename);
-      }
+      saveAs(blob, fullFilename);
 
       setIsPrintDialogOpen(false);
       setTimeout(() => {

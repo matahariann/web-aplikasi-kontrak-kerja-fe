@@ -279,6 +279,61 @@ export const getOfficialsByPeriode = async (token: string, periode: string) => {
   }
 };
 
+export const updateDocumentOfficial = async (
+  token: string,
+  form_session_id: string,
+  official_ids: string[]
+): Promise<any> => {
+  try {
+    const response = await axios.post(
+      `http://localhost:8000/api/updateDocumentOfficial`,
+      {
+        form_session_id,
+        official_ids,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.error ||
+          "Gagal memperbarui relasi document-official"
+      );
+    }
+    throw error;
+  }
+};
+
+export const checkDocument = async (
+  token: string,
+  formSessionId: string
+): Promise<{ exists: boolean; data?: any }> => {
+  try {
+    const response = await axios.get(
+      `http://localhost:8000/api/checkDocument/${formSessionId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.error || "Gagal mengecek keberadaan dokumen"
+      );
+    }
+    throw error;
+  }
+};
+
 export const addDocument = async (
   token: string,
   data: DocumentWithOfficialsData
@@ -447,6 +502,8 @@ export const getSessionData = async (token: string, sessionId: string) => {
 
 export const getDocumentData = async (token: string, nomorKontrak: string) => {
   try {
+    console.log("Fetching document data for:", nomorKontrak); // Debug log
+
     const response = await axios.get(
       `http://localhost:8000/api/document-data/${nomorKontrak}`,
       {
@@ -455,13 +512,33 @@ export const getDocumentData = async (token: string, nomorKontrak: string) => {
         },
       }
     );
+
+    // Check if response has data
+    if (!response.data) {
+      throw new Error("No data received from server");
+    }
+
+    console.log("Document data received:", response.data); // Debug log
     return response.data;
   } catch (error) {
+    console.error("Error fetching document:", error); // Debug log
+
     if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.message || "Gagal mengambil data dokumen"
-      );
+      // Check for 404 status
+      if (error.response?.status === 404) {
+        throw new Error(
+          `Dokumen dengan nomor kontrak ${nomorKontrak} tidak ditemukan`
+        );
+      }
+
+      // Get error message from response if available
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Gagal mengambil data dokumen";
+      throw new Error(errorMessage);
     }
+
     throw error;
   }
 };

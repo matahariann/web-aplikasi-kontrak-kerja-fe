@@ -67,15 +67,6 @@ const Header = () => {
       <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200 shadow-md">
         {/* Left side - Menu and Search */}
         <div className="flex items-center space-x-4">
-          {/* <button className="p-1.5 hover:bg-gray-100 rounded-lg">
-            <Icon icon="lucide:menu" className="w-6 h-6 text-gray-600" />
-          </button>
-          <button className="p-1.5 hover:bg-gray-100 rounded-lg">
-            <Icon icon="lucide:search" className="w-6 h-6 text-gray-600" />
-          </button>
-          <button className="p-1.5 hover:bg-gray-100 rounded-lg">
-            <Icon icon="lucide:maximize" className="w-6 h-6 text-gray-600" />
-          </button> */}
         </div>
 
         {/* Center - Title */}
