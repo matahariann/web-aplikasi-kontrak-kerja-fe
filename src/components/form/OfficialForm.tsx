@@ -18,7 +18,7 @@ import {
   getOfficialsByPeriode,
   OfficialData,
   checkDocument,
-  updateDocumentOfficial
+  updateDocumentOfficial,
 } from "@/services/employee";
 
 const STORAGE_KEYS = {
@@ -325,7 +325,16 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
 
   const handleEditMode = () => {
     setIsOfficialsEditMode(true);
-    setInputDisabled(false);
+    setIsOfficialsSaved(false);
+    // Pastikan data yang tersimpan di localStorage tetap ada saat mode edit
+    const savedData = localStorage.getItem(STORAGE_KEYS.OFFICIALS_DATA);
+    if (savedData) {
+      setOfficialsData(JSON.parse(savedData));
+    }
+    const savedIds = localStorage.getItem(STORAGE_KEYS.SAVED_OFFICIALS_IDS);
+    if (savedIds) {
+      setSavedOfficialsIds(JSON.parse(savedIds));
+    }
   };
 
   return (
@@ -504,23 +513,23 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
           <div className="flex justify-between mt-6">
             <Button
               onClick={
-                !isOfficialsSaved
+                isOfficialsEditMode
                   ? handleOfficialsSubmit
-                  : isOfficialsEditMode
+                  : !isOfficialsSaved
                   ? handleOfficialsSubmit
                   : handleEditMode
               }
-              variant="default"
+              variant={isOfficialsEditMode ? "secondary" : "default"}
             >
-              {!isOfficialsSaved ? (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Simpan
-                </>
-              ) : isOfficialsEditMode ? (
+              {isOfficialsEditMode ? (
                 <>
                   <Save className="w-4 h-4 mr-2" />
                   Simpan Perubahan
+                </>
+              ) : !isOfficialsSaved ? (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Simpan
                 </>
               ) : (
                 <>
