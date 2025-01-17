@@ -28,7 +28,11 @@ import { getImage } from "@/services/employee";
 import { VendorData } from "@/services/vendor";
 import { OfficialData } from "@/services/official";
 import { DocumentData } from "@/services/documents";
-import { ContractData } from "@/services/contract";
+import {
+  ContractData,
+  completeForm,
+  clearFormSession,
+} from "@/services/contract";
 
 interface GenerateDocumentProps {
   vendorData: VendorData;
@@ -57,6 +61,8 @@ interface PrintContractProps {
   isContractsSaved: boolean;
   isContractsEditMode: boolean;
   onError: (error: string) => void;
+  setCurrentStep: (step: number) => void;
+  onDownloadSuccess: () => void;
 }
 
 const PrintConfirmationDialog = ({
@@ -527,9 +533,12 @@ export const PrintContract: React.FC<PrintContractProps> = ({
   isContractsSaved,
   isContractsEditMode,
   onError,
+  setCurrentStep,
+  onDownloadSuccess,
 }) => {
   const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
   const [isPrintConfirmationOpen, setIsPrintConfirmationOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handlePrintClick = async () => {
     try {
@@ -538,17 +547,11 @@ export const PrintContract: React.FC<PrintContractProps> = ({
         throw new Error("Token tidak ditemukan");
       }
 
-      // Menggunakan nomor_kontrak dari documentData yang sudah ada
       const nomorKontrak = documentData?.nomor_kontrak;
       if (!nomorKontrak) {
         throw new Error("Nomor kontrak tidak tersedia");
       }
 
-      console.log("Initiating print for document:", nomorKontrak);
-
-      // Fetch document data with all relationships
-      // const data = await getDocumentData(token, nomorKontrak);
-      // Ganti dari setIsPrintDialogOpen menjadi setIsPrintConfirmationOpen
       setIsPrintConfirmationOpen(true);
     } catch (error) {
       console.error("Error in handlePrintClick:", error);
@@ -562,35 +565,60 @@ export const PrintContract: React.FC<PrintContractProps> = ({
   };
 
   const handlePrint = async (filename: string) => {
+    setIsProcessing(true);
     try {
       if (!filename || !documentData) {
         onError("Nama file harus diisi dan data harus tersedia");
         return;
       }
 
-      // Generate single document with all contracts
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Token tidak ditemukan");
+      }
+
+      // Generate document
       const doc = await generateContractDocument({
-        contractsData: contractsData, // Pass all contracts
-        documentData: documentData,
-        vendorData: vendorData,
-        officialData: officialData,
+        contractsData,
+        documentData,
+        vendorData,
+        officialData,
       });
 
+      // Save document
       const blob = await Packer.toBlob(doc);
       const sanitizedFilename = filename
         .replace(/[^a-z0-9]/gi, "_")
         .toLowerCase();
       const fullFilename = `${sanitizedFilename}.docx`;
-
       saveAs(blob, fullFilename);
 
+      // Complete the form session
+      await completeForm(token);
+
+      // Clear the form session
+      await clearFormSession(token);
+
       setIsPrintDialogOpen(false);
+
+      // Reset form step to 1 and reload the page
+      setCurrentStep(1);
+
+      onDownloadSuccess();
+
+      // Reload the page after a short delay to reset all forms
       setTimeout(() => {
         window.location.reload();
       }, 1000);
     } catch (error) {
-      console.error("Error generating document:", error);
-      onError("Terjadi kesalahan saat mencetak dokumen");
+      console.error("Error in print process:", error);
+      onError(
+        error instanceof Error
+          ? `Terjadi kesalahan: ${error.message}`
+          : "Terjadi kesalahan saat mencetak dokumen"
+      );
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -600,9 +628,13 @@ export const PrintContract: React.FC<PrintContractProps> = ({
 
   return (
     <>
-      <Button variant="outline" onClick={handlePrintClick}>
+      <Button
+        variant="outline"
+        onClick={handlePrintClick}
+        disabled={isProcessing}
+      >
         <Printer className="w-4 h-4 mr-2" />
-        Cetak
+        {isProcessing ? "Memproses..." : "Cetak"}
       </Button>
 
       <PrintConfirmationDialog

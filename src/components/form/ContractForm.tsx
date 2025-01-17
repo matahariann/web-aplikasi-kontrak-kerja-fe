@@ -72,6 +72,8 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
   const [documentData, setDocumentData] = useState<DocumentData | null>(null);
   const [vendorData, setVendorData] = useState<VendorData | null>(null);
   const [officialData, setOfficialData] = useState<OfficialData[]>([]);
+  const [showDownloadSuccessAlert, setShowDownloadSuccessAlert] =
+    useState(false);
 
   const validateContractValue = (value: number): string | null => {
     const maxValue = MAX_PRICE[contractType];
@@ -260,6 +262,13 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
     setIsSaved(false);
   };
 
+  const handleDownloadSuccess = () => {
+    setShowDownloadSuccessAlert(true);
+    setTimeout(() => {
+      setShowDownloadSuccessAlert(false);
+    }, 3000);
+  };
+
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
@@ -334,6 +343,12 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
             : alertType === "edit"
             ? "Data kontrak berhasil diperbarui!"
             : ""}
+        </div>
+      )}
+
+      {showDownloadSuccessAlert && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4 text-sm">
+          File berhasil didownload!
         </div>
       )}
 
@@ -582,6 +597,8 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                   isContractsSaved={isSaved}
                   isContractsEditMode={isEditMode}
                   onError={setError}
+                  setCurrentStep={setCurrentStep}
+                  onDownloadSuccess={handleDownloadSuccess}
                 />
               )}
             </div>
