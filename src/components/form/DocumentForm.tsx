@@ -12,11 +12,10 @@ import {
   addDocument,
   DocumentWithOfficialsData,
 } from "@/services/documents";
-import{
-  getOfficialData
-} from "@/services/official";
+import { getOfficialData } from "@/services/official";
 
 const DocumentForm = ({ currentStep, setCurrentStep }) => {
+  const [initialNomorKontrak, setInitialNomorKontrak] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
@@ -95,11 +94,8 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
 
       let response;
       if (isEditMode) {
-        response = await updateDocument(
-          token,
-          documentData.nomor_kontrak,
-          data
-        );
+        // Gunakan nomor kontrak awal untuk endpoint update
+        response = await updateDocument(token, initialNomorKontrak, data);
       } else {
         response = await addDocument(token, data);
       }
@@ -109,9 +105,10 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
       setShowSuccessAlert(true);
       setAlertType(isEditMode ? "edit" : "save");
 
-      // Update document data with response
+      // Update document data dan nomor kontrak awal dengan response
       if (response.data.document) {
         setDocumentData(response.data.document);
+        setInitialNomorKontrak(response.data.document.nomor_kontrak);
       }
 
       setTimeout(() => {
@@ -135,14 +132,16 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
         const token = localStorage.getItem("token");
         if (!token) return;
 
-        const response = await getDocumentData(token);
+        const response = await getDocumentData();
         const { document, session } = response.data;
 
         if (document) {
           setDocumentData(document);
+          setInitialNomorKontrak(document.nomor_kontrak); // Simpan nomor kontrak awal
           setIsSaved(true);
         } else if (session.temp_data?.document) {
           setDocumentData(session.temp_data.document);
+          setInitialNomorKontrak(session.temp_data.document.nomor_kontrak);
         }
       } catch (error) {
         console.error("Error fetching document data:", error);
@@ -808,9 +807,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
 
           <div className="flex justify-between mt-6">
             <Button
-              onClick={
-                isSaved && !isEditMode ? handleEditMode : handleSubmit
-              }
+              onClick={isSaved && !isEditMode ? handleEditMode : handleSubmit}
               variant={isEditMode ? "secondary" : "default"}
             >
               {isSaved && !isEditMode ? (
