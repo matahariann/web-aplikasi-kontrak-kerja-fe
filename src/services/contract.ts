@@ -1,3 +1,4 @@
+import axios from "axios";
 import axiosInstance from "@/lib/axios";
 
 export interface ContractData {
@@ -8,6 +9,17 @@ export interface ContractData {
   durasi_kontrak: number;
   nilai_kontral_awal: number;
   nilai_kontrak_akhir: number;
+}
+
+interface ContractResponse {
+  message: string;
+  data: {
+    contract: ContractData;
+    session: {
+      id: string;
+      current_step: string;
+    };
+  };
 }
 
 export const getContractData = async () => {
@@ -29,45 +41,125 @@ export const getContractData = async () => {
   }
 };
 
-export const addContract = async (contractData: ContractData) => {
+export const addContract = async (
+  token: string,
+  data: ContractData
+): Promise<ContractResponse> => {
   try {
-    const response = await axiosInstance.post("/add-contract", {
-      contract: contractData,
-    });
+    const response = await axios.post<ContractResponse>(
+      `http://localhost:8000/api/add-contract`,
+      { contract: data },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
-  } catch {
-    throw new Error("Gagal menyimpan data kontrak");
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.error || "Gagal menyimpan data kontrak"
+      );
+    }
+    throw error;
   }
 };
 
 export const updateContract = async (
+  token: string,
   id: string,
-  contractData: ContractData
-) => {
+  contracts: ContractData[]
+): Promise<ContractResponse> => {
   try {
-    const response = await axiosInstance.put(`/update-contract/${id}`, {
-      contract: contractData,
-    });
+    const response = await axios.put<ContractResponse>(
+      `http://localhost:8000/api/update-contract/${id}`,
+      { contracts },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
-  } catch {
-    throw new Error("Gagal memperbarui data kontrak");
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.error || "Gagal memperbarui data kontrak"
+      );
+    }
+    throw error;
   }
 };
 
-export const completeForm = async () => {
+export const deleteContract = async (
+  token: string,
+  id: string
+): Promise<{ message: string; data: { deleted_id: string } }> => {
   try {
-    const response = await axiosInstance.post("/complete-form");
+    const response = await axios.delete(
+      `http://localhost:8000/api/delete-contract/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
-  } catch {
-    throw new Error("Gagal menyelesaikan form");
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.error || "Gagal menghapus data kontrak"
+      );
+    }
+    throw error;
   }
 };
 
-export const clearFormSession = async () => {
+export const completeForm = async (
+  token: string
+): Promise<{ message: string }> => {
   try {
-    const response = await axiosInstance.post("/clear-form");
+    const response = await axios.post(
+      "http://localhost:8000/api/complete-form",
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
-  } catch {
-    throw new Error("Gagal membersihkan sesi form");
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.error || "Gagal menyelesaikan form"
+      );
+    }
+    throw error;
+  }
+};
+
+export const clearFormSession = async (
+  token: string
+): Promise<{ message: string }> => {
+  try {
+    const response = await axios.post(
+      "http://localhost:8000/api/clear-form",
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.error || "Gagal menghapus session form"
+      );
+    }
+    throw error;
   }
 };

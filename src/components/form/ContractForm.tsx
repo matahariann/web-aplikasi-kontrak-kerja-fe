@@ -18,6 +18,7 @@ import {
   getContractData,
   addContract,
   updateContract,
+  deleteContract,
 } from "@/services/contract";
 import { PrintContract } from "@/components/GenerateDocx";
 import { getVendorData, VendorData } from "@/services/vendor";
@@ -106,10 +107,35 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
     setContractsData([...contractsData, { ...INITIAL_CONTRACT }]);
   };
 
-  const removeContract = (index: number) => {
-    if (contractsData.length > 1) {
+  const removeContract = async (index: number) => {
+    try {
+      const contractToRemove = contractsData[index];
+
+      if (contractsData.length <= 1) {
+        setError("Harus ada minimal satu kontrak");
+        return;
+      }
+
+      if (contractToRemove.id) {
+        // Kontrak sudah ada di database
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("Token tidak ditemukan");
+        }
+
+        // Delete from database
+        await deleteContract(token, String(contractToRemove.id));
+      }
+
+      // Update local state
       const newContractsData = contractsData.filter((_, i) => i !== index);
       setContractsData(newContractsData);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat menghapus kontrak"
+      );
     }
   };
 
@@ -183,17 +209,34 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
         }
       }
 
-      // Save all contracts
-      for (const contract of contractsData) {
-        const contractData = {
-          ...contract,
-          jenis_kontrak: contractType,
-        };
+      const contractsWithType = contractsData.map((contract) => ({
+        ...contract,
+        jenis_kontrak: contractType,
+        // Pastikan id adalah string atau tidak ada
+        ...(contract.id ? { id: String(contract.id) } : {}),
+      }));
 
-        if (isEditMode && contract.id) {
-          await updateContract(token, contract.id, contractData);
-        } else {
-          await addContract(token, contractData);
+      if (isEditMode) {
+        // Get the ID of the first contract for the update endpoint
+        const firstContract = contractsData.find((c) => c.id);
+        if (!firstContract?.id) {
+          throw new Error("Invalid contract ID");
+        }
+
+        // Update existing contracts and add new ones
+        const response = await updateContract(
+          token,
+          String(firstContract.id),
+          contractsWithType
+        );
+
+        if (response.data.contracts) {
+          setContractsData(response.data.contracts);
+        }
+      } else {
+        // Add new contracts
+        for (const contract of contractsWithType) {
+          await addContract(token, contract);
         }
       }
 
@@ -225,10 +268,9 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
         if (docResponse.data.document) {
           setDocumentData(docResponse.data.document);
         } else if (docResponse.data.session?.temp_data?.document) {
-          // Use temp data if available
           setDocumentData(docResponse.data.session.temp_data.document);
         }
-  
+
         // Fetch vendor data
         const vendorResponse = await getVendorData();
         if (vendorResponse.data.vendor) {
@@ -236,7 +278,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
         } else if (vendorResponse.data.session?.temp_data?.vendor) {
           setVendorData(vendorResponse.data.session.temp_data.vendor);
         }
-  
+
         // Fetch official data
         const officialResponse = await getOfficialData();
         if (officialResponse.data.officials) {
@@ -244,23 +286,28 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
         } else if (officialResponse.data.session?.temp_data?.officials) {
           setOfficialData(officialResponse.data.session.temp_data.officials);
         }
-  
-        // Fetch existing contract data
+
+        // Fetch contract data
         const contractResponse = await getContractData();
-        if (contractResponse.data.contract) {
-          setContractsData([contractResponse.data.contract]);
-          setContractType(contractResponse.data.contract.jenis_kontrak as ContractType);
+        if (contractResponse.data.contracts?.length > 0) {
+          setContractsData(contractResponse.data.contracts);
+          setContractType(
+            contractResponse.data.contracts[0].jenis_kontrak as ContractType
+          );
           setIsSaved(true);
-        } else if (contractResponse.data.session?.temp_data?.contract) {
-          setContractsData([contractResponse.data.session.temp_data.contract]);
-          if (contractResponse.data.session.temp_data.contract.jenis_kontrak) {
-            setContractType(contractResponse.data.session.temp_data.contract.jenis_kontrak as ContractType);
+        } else if (contractResponse.data.session?.temp_data?.contracts) {
+          setContractsData(contractResponse.data.session.temp_data.contracts);
+          if (
+            contractResponse.data.session.temp_data.contracts[0]?.jenis_kontrak
+          ) {
+            setContractType(
+              contractResponse.data.session.temp_data.contracts[0]
+                .jenis_kontrak as ContractType
+            );
           }
         }
-  
       } catch (error) {
         console.error("Error fetching initial data:", error);
-        // Set specific error message based on what failed
         if (error instanceof Error) {
           setError(`Gagal mengambil data: ${error.message}`);
         } else {
@@ -268,9 +315,10 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
         }
       }
     };
-  
+
     fetchInitialData();
   }, []);
+
   return (
     <>
       {error && (
@@ -333,7 +381,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
         <CardContent className="space-y-4">
           {contractsData.map((contract, index) => (
             <div key={index} className="border p-4 rounded-lg relative">
-              {index !== 0 && (!isSaved || isEditMode) && (
+              {index !== 0 && (
                 <Button
                   variant="ghost"
                   size="sm"

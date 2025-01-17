@@ -35,7 +35,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { generateContractDocument } from "@/components/GenerateDocx";
-import { getDocumentData } from "@/services/employee";
+import { getDocumentData } from "@/services/documents";
 import { Packer } from "docx";
 import { saveAs } from "file-saver";
 

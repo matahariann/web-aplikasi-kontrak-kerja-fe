@@ -24,11 +24,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Printer } from "lucide-react";
-import { getImage } from "@/services/employee";
+import {
+  getImage,
+} from "@/services/employee";
 import { VendorData } from "@/services/vendor";
 import { OfficialData } from "@/services/official";
-import { getDocumentData, DocumentData } from "@/services/documents";
-import { completeForm, ContractData } from "@/services/contract";
+import { DocumentData, getDocumentData } from "@/services/documents";
+import { ContractData } from "@/services/contract";
+
 
 interface GenerateDocumentProps {
   vendorData: VendorData;
@@ -63,23 +66,25 @@ const PrintConfirmationDialog = ({
   isOpen,
   onClose,
   onConfirm,
-}: PrintConfirmationDialogProps) => (
-  <AlertDialog open={isOpen} onOpenChange={onClose}>
-    <AlertDialogContent>
-      <AlertDialogHeader>
-        <AlertDialogTitle>Konfirmasi Cetak</AlertDialogTitle>
-        <AlertDialogDescription>
-          Apakah Anda yakin ingin mencetak dokumen? Setelah dicetak, sesi
-          pembuatan dokumen akan selesai dan semua data form akan tereset.
-        </AlertDialogDescription>
-      </AlertDialogHeader>
-      <AlertDialogFooter>
-        <AlertDialogCancel onClick={onClose}>Batal</AlertDialogCancel>
-        <AlertDialogAction onClick={onConfirm}>Ya, Cetak</AlertDialogAction>
-      </AlertDialogFooter>
-    </AlertDialogContent>
-  </AlertDialog>
-);
+}: PrintConfirmationDialogProps) => {
+  return (
+    <AlertDialog open={isOpen} onOpenChange={onClose}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Konfirmasi Cetak</AlertDialogTitle>
+          <AlertDialogDescription>
+            Apakah Anda yakin ingin mencetak dokumen? Setelah dicetak, sesi
+            pembuatan dokumen akan selesai dan semua data form akan tereset.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={onClose}>Batal</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm}>Ya, Cetak</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
 
 const PrintDialog = ({ isOpen, onClose, onConfirm }: PrintDialogProps) => {
   const [filename, setFilename] = useState("");
@@ -90,9 +95,9 @@ const PrintDialog = ({ isOpen, onClose, onConfirm }: PrintDialogProps) => {
       setError("Nama file harus diisi");
       return;
     }
+    setError(null);
     onConfirm(filename);
     setFilename("");
-    setError(null);
     onClose();
   };
 
@@ -115,22 +120,14 @@ const PrintDialog = ({ isOpen, onClose, onConfirm }: PrintDialogProps) => {
             value={filename}
             onChange={(e) => {
               setFilename(e.target.value);
-              setError(null);
+              setError(null); // Clear error when user types
             }}
             placeholder="Masukkan nama file"
           />
           {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
         </div>
         <AlertDialogFooter>
-          <AlertDialogCancel
-            onClick={() => {
-              setFilename("");
-              setError(null);
-              onClose();
-            }}
-          >
-            Batal
-          </AlertDialogCancel>
+          <AlertDialogCancel onClick={handleClose}>Batal</AlertDialogCancel>
           <AlertDialogAction onClick={handleConfirm}>Simpan</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -157,14 +154,18 @@ export const generateContractDocument = async ({
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
     }).format(amount);
   };
 
   try {
     // Ambil data gambar
-    const imageData = await getImage(1);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("Token tidak ditemukan");
+    }
+
+    const imageData = await getImage(token, 1);
+    console.log("Image data received:", imageData);
 
     const vendorSection = new Paragraph({
       children: [
@@ -532,21 +533,28 @@ export const PrintContract: React.FC<PrintContractProps> = ({
 }) => {
   const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
   const [isPrintConfirmationOpen, setIsPrintConfirmationOpen] = useState(false);
-  const [sessionData, setSessionData] = useState<any>(null);
 
   const handlePrintClick = async () => {
     try {
-      if (!documentData?.nomor_kontrak) {
-        throw new Error("Data dokumen tidak lengkap");
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Token tidak ditemukan");
       }
 
-      // Fetch latest data before printing
-      const updatedDoc = await getDocumentData();
-      if (updatedDoc) {
-        setSessionData(updatedDoc);
-        setIsPrintConfirmationOpen(true);
+      // Menggunakan nomor_kontrak dari documentData yang sudah ada
+      const nomorKontrak = documentData?.nomor_kontrak;
+      if (!nomorKontrak) {
+        throw new Error("Nomor kontrak tidak tersedia");
       }
+
+      console.log("Initiating print for document:", nomorKontrak);
+
+      // Fetch document data with all relationships
+      // const data = await getDocumentData(token, nomorKontrak);
+      // Ganti dari setIsPrintDialogOpen menjadi setIsPrintConfirmationOpen
+      setIsPrintConfirmationOpen(true);
     } catch (error) {
+      console.error("Error in handlePrintClick:", error);
       onError(error instanceof Error ? error.message : "Terjadi kesalahan");
     }
   };
@@ -558,26 +566,26 @@ export const PrintContract: React.FC<PrintContractProps> = ({
 
   const handlePrint = async (filename: string) => {
     try {
-      if (!filename) {
-        onError("Nama file harus diisi");
+      if (!filename || !documentData) {
+        onError("Nama file harus diisi dan data harus tersedia");
         return;
       }
 
+      // Generate single document with all contracts
       const doc = await generateContractDocument({
-        contractsData,
-        documentData,
-        vendorData,
-        officialData,
+        contractsData: contractsData, // Pass all contracts
+        documentData: documentData,
+        vendorData: vendorData,
+        officialData: officialData,
       });
 
       const blob = await Packer.toBlob(doc);
       const sanitizedFilename = filename
         .replace(/[^a-z0-9]/gi, "_")
         .toLowerCase();
-      saveAs(blob, `${sanitizedFilename}.docx`);
+      const fullFilename = `${sanitizedFilename}.docx`;
 
-      // Complete form and clear session
-      await completeForm();
+      saveAs(blob, fullFilename);
 
       setIsPrintDialogOpen(false);
       setTimeout(() => {
@@ -603,10 +611,7 @@ export const PrintContract: React.FC<PrintContractProps> = ({
       <PrintConfirmationDialog
         isOpen={isPrintConfirmationOpen}
         onClose={() => setIsPrintConfirmationOpen(false)}
-        onConfirm={() => {
-          setIsPrintConfirmationOpen(false);
-          setIsPrintDialogOpen(true);
-        }}
+        onConfirm={handlePrintConfirmed}
       />
 
       <PrintDialog
