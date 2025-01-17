@@ -602,14 +602,15 @@ export const PrintContract: React.FC<PrintContractProps> = ({
       setIsPrintDialogOpen(false);
 
       // Reset form step to 1 and reload the page
-      setCurrentStep(1);
+      // setCurrentStep(1);
 
       onDownloadSuccess();
 
       // Reload the page after a short delay to reset all forms
       setTimeout(() => {
+        setCurrentStep(1);
         window.location.reload();
-      }, 1000);
+      }, 2000);
     } catch (error) {
       console.error("Error in print process:", error);
       onError(
