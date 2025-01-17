@@ -40,44 +40,112 @@ import { getData, getDataDetail } from "@/services/employee";
 import { Packer } from "docx";
 import { saveAs } from "file-saver";
 
+interface Document {
+  id: number;
+  nomor_kontrak: string;
+  tanggal_kontrak: string;
+  paket_pekerjaan: string;
+  tahun_anggaran: string;
+  vendor?: {
+    id: number;
+    nama_vendor: string;
+  };
+}
+
+interface SortConfig {
+  key: string | null;
+  direction: "asc" | "desc";
+}
+
 export default function RiwayatDokumen() {
-  const [documents, setDocuments] = useState([]);
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    key: null,
+    direction: "asc",
+  });
   const [filterYear, setFilterYear] = useState("all");
-  const [years, setYears] = useState([]);
+  const [years, setYears] = useState<string[]>([]);
 
   useEffect(() => {
     fetchDocuments();
   }, []);
 
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       setIsLoading(true);
+  //       const data = await getData();
+  //       console.log("Fetched data:", data); // Debug log
+
+  //       if (Array.isArray(data)) {
+  //         setDocuments(data);
+  //         const uniqueYears = [
+  //           ...new Set(data.map((doc) => doc.tahun_anggaran)),
+  //         ]
+  //           .sort()
+  //           .reverse();
+  //         setYears(uniqueYears);
+  //       } else {
+  //         console.log("Received non-array data:", data); // Debug log
+  //         setDocuments([]);
+  //         setYears([]);
+  //       }
+  //     } catch (error) {
+  //       console.error("Fetch error:", error); // Debug log
+  //       setError(
+  //         error instanceof Error ? error.message : "Gagal mengambil data"
+  //       );
+  //       setDocuments([]);
+  //       setYears([]);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, []);
+
   const fetchDocuments = async () => {
     try {
       setIsLoading(true);
+      setError("");
+
       const data = await getData();
-      setDocuments(data);
+      console.log("Fetched documents:", data); // Debug log
 
-      // Extract unique years
-      const uniqueYears = [...new Set(data.map((doc) => doc.tahun_anggaran))]
-        .sort()
-        .reverse();
-      setYears(uniqueYears);
+      if (Array.isArray(data)) {
+        setDocuments(data);
 
-      setIsLoading(false);
+        // Extract unique years
+        const uniqueYears = [...new Set(data.map((doc) => doc.tahun_anggaran))]
+          .sort()
+          .reverse();
+        setYears(uniqueYears);
+      } else {
+        console.warn("Received non-array data:", data);
+        setDocuments([]);
+        setYears([]);
+      }
     } catch (error) {
+      console.error("Error in fetchDocuments:", error);
       setError(error instanceof Error ? error.message : "Gagal mengambil data");
+      setDocuments([]);
+      setYears([]);
+    } finally {
       setIsLoading(false);
     }
   };
 
-  const handlePrint = async (nomorKontrak) => {
+  const handlePrint = async (id: number) => {
     try {
       setError("");
-      const response = await getDataDetail(nomorKontrak);
+      const response = await getDataDetail(id);
+      console.log("Print data:", response); // Debug log
 
       const doc = await generateContractDocument({
         contractsData: response.contracts,
@@ -87,19 +155,20 @@ export default function RiwayatDokumen() {
       });
 
       const blob = await Packer.toBlob(doc);
-      const filename = `kontrak_${nomorKontrak}_${format(
+      const filename = `${response.document.paket_pekerjaan}_${format(
         new Date(),
         "ddMMyyyy"
       )}.docx`;
       saveAs(blob, filename);
     } catch (error) {
+      console.error("Error in handlePrint:", error);
       setError(
         error instanceof Error ? error.message : "Gagal mencetak dokumen"
       );
     }
   };
 
-  const handleSort = (key) => {
+  const handleSort = (key: string) => {
     setSortConfig((prevConfig) => ({
       key,
       direction:
@@ -109,7 +178,7 @@ export default function RiwayatDokumen() {
     }));
   };
 
-  const SortButton = ({ column }) => (
+  const SortButton = ({ column }: { column: string }) => (
     <Button
       variant="ghost"
       size="sm"
@@ -143,8 +212,8 @@ export default function RiwayatDokumen() {
     // Sorting
     if (sortConfig.key) {
       result.sort((a, b) => {
-        let aVal = a[sortConfig.key];
-        let bVal = b[sortConfig.key];
+        let aVal = a[sortConfig.key as keyof Document];
+        let bVal = b[sortConfig.key as keyof Document];
 
         // Handle nested vendor property
         if (sortConfig.key === "vendor.nama_vendor") {
@@ -154,8 +223,8 @@ export default function RiwayatDokumen() {
 
         // Handle dates
         if (sortConfig.key === "tanggal_kontrak") {
-          aVal = new Date(a.tanggal_kontrak);
-          bVal = new Date(b.tanggal_kontrak);
+          aVal = new Date(a.tanggal_kontrak).getTime();
+          bVal = new Date(b.tanggal_kontrak).getTime();
         }
 
         if (!aVal) return 1;
@@ -319,7 +388,7 @@ export default function RiwayatDokumen() {
                     <TableSkeleton />
                   ) : currentDocuments.length > 0 ? (
                     currentDocuments.map((doc) => (
-                      <TableRow key={doc.nomor_kontrak}>
+                      <TableRow key={doc.id}>
                         <TableCell className="font-medium">
                           {doc.nomor_kontrak}
                         </TableCell>
@@ -339,7 +408,7 @@ export default function RiwayatDokumen() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handlePrint(doc.nomor_kontrak)}
+                            onClick={() => handlePrint(doc.id)}
                             className="hover:bg-gray-100"
                           >
                             <Printer className="h-4 w-4 mr-2" />

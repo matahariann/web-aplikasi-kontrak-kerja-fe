@@ -15,7 +15,7 @@ import {
 import { getOfficialData } from "@/services/official";
 
 const DocumentForm = ({ currentStep, setCurrentStep }) => {
-  const [initialNomorKontrak, setInitialNomorKontrak] = useState<string>("");
+  const [documentId, setDocumentId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
@@ -23,6 +23,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [documentData, setDocumentData] = useState<DocumentData>({
+    id: 0,
     nomor_kontrak: "",
     tanggal_kontrak: "",
     paket_pekerjaan: "",
@@ -67,7 +68,9 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
 
     // Validasi
     const requiredFields = Object.keys(documentData) as (keyof DocumentData)[];
-    const emptyFields = requiredFields.filter((field) => !documentData[field]);
+    const emptyFields = requiredFields.filter(
+      (field) => field !== "id" && !documentData[field]
+    );
 
     if (emptyFields.length > 0) {
       setError(`Mohon lengkapi semua input`);
@@ -93,9 +96,8 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
       };
 
       let response;
-      if (isEditMode) {
-        // Gunakan nomor kontrak awal untuk endpoint update
-        response = await updateDocument(token, initialNomorKontrak, data);
+      if (isEditMode && documentId) {
+        response = await updateDocument(token, documentId, data);
       } else {
         response = await addDocument(token, data);
       }
@@ -108,7 +110,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
       // Update document data dan nomor kontrak awal dengan response
       if (response.data.document) {
         setDocumentData(response.data.document);
-        setInitialNomorKontrak(response.data.document.nomor_kontrak);
+        setDocumentId(response.data.document.id);
       }
 
       setTimeout(() => {
@@ -137,11 +139,11 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
 
         if (document) {
           setDocumentData(document);
-          setInitialNomorKontrak(document.nomor_kontrak); // Simpan nomor kontrak awal
+          setDocumentId(document.id);
           setIsSaved(true);
         } else if (session.temp_data?.document) {
           setDocumentData(session.temp_data.document);
-          setInitialNomorKontrak(session.temp_data.document.nomor_kontrak);
+          setDocumentId(session.temp_data.document.id);
         }
       } catch (error) {
         console.error("Error fetching document data:", error);

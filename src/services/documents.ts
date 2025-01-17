@@ -4,6 +4,7 @@ import { OfficialData } from "./official";
 import axiosInstance from "@/lib/axios";
 
 export interface DocumentData {
+  id: number; // Menambahkan field id
   nomor_kontrak: string;
   tanggal_kontrak: string;
   paket_pekerjaan: string;
@@ -96,12 +97,12 @@ export const addDocument = async (
 
 export const updateDocument = async (
   token: string,
-  nomor_kontrak: string,
+  id: number, // Mengubah parameter dari nomor_kontrak menjadi id
   data: DocumentWithOfficialsData
 ): Promise<DocumentResponse> => {
   try {
     const response = await axios.put<DocumentResponse>(
-      `http://localhost:8000/api/update-document/${nomor_kontrak}`,
+      `http://localhost:8000/api/update-document/${id}`, // Mengubah URL
       data,
       {
         headers: {

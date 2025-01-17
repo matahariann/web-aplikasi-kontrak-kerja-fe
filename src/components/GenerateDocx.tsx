@@ -593,10 +593,10 @@ export const PrintContract: React.FC<PrintContractProps> = ({
       const fullFilename = `${sanitizedFilename}.docx`;
       saveAs(blob, fullFilename);
 
-      // Complete the form session
+      // // Complete the form session
       await completeForm(token);
 
-      // Clear the form session
+      // // Clear the form session
       await clearFormSession(token);
 
       setIsPrintDialogOpen(false);
