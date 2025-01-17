@@ -24,14 +24,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Printer } from "lucide-react";
-import {
-  getImage,
-} from "@/services/employee";
+import { getImage } from "@/services/employee";
 import { VendorData } from "@/services/vendor";
 import { OfficialData } from "@/services/official";
-import { DocumentData, getDocumentData } from "@/services/documents";
+import { DocumentData } from "@/services/documents";
 import { ContractData } from "@/services/contract";
-
 
 interface GenerateDocumentProps {
   vendorData: VendorData;

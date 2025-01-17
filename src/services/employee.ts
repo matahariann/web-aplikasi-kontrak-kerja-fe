@@ -1,4 +1,5 @@
 import axios from "axios";
+import axiosInstance from "@/lib/axios";
 
 export type Employee = {
   nip: string;
@@ -13,99 +14,6 @@ export interface EmployeeResponse {
   data: {
     employee: Employee;
   };
-}
-
-export interface VendorData {
-  nama_vendor: string;
-  alamat_vendor: string;
-  nama_pj: string;
-  jabatan_pj: string;
-  npwp: string;
-  bank_vendor: string;
-  norek_vendor: string;
-  nama_rek_vendor: string;
-  form_session_id?: string;
-}
-
-export interface VendorResponse {
-  message: string;
-  data: VendorData & { id: number };
-  form_session_id: string;
-}
-
-export interface OfficialData {
-  id?: string;
-  nip: string;
-  nama: string;
-  jabatan: string;
-  periode_jabatan: string;
-  surat_keputusan?: string;
-  form_session_id?: string;
-}
-
-export interface OfficialResponse {
-  message: string;
-  data: OfficialData & { id: string };
-  form_session_id: string;
-}
-
-export interface ContractData {
-  nomor_kontrak?: string;
-  jenis_kontrak: string;
-  deskripsi: string;
-  jumlah_orang: number;
-  durasi_kontrak: number;
-  nilai_kontral_awal: number;
-  nilai_kontrak_akhir: number;
-  form_session_id?: string;
-}
-
-export interface ContractResponse {
-  message: string;
-  data: ContractData & { id: string };
-}
-
-export interface DocumentData {
-  nomor_kontrak: string;
-  tanggal_kontrak: string;
-  paket_pekerjaan: string;
-  tahun_anggaran: string;
-  nomor_pp: string;
-  tanggal_pp: string;
-  nomor_hps: string;
-  tanggal_hps: string;
-  tanggal_mulai: string;
-  tanggal_selesai: string;
-  nomor_pph1: string;
-  tanggal_pph1: string;
-  nomor_pph2: string;
-  tanggal_pph2: string;
-  nomor_ukn: string;
-  tanggal_ukn: string;
-  tanggal_undangan_ukn: string;
-  nomor_ba_ekn: string;
-  nomor_pppb: string;
-  tanggal_pppb: string;
-  nomor_lppb: string;
-  tanggal_lppb: string;
-  nomor_ba_stp: string;
-  nomor_ba_pem: string;
-  nomor_dipa: string;
-  tanggal_dipa: string;
-  kode_kegiatan: string;
-  form_session_id?: string;
-}
-
-export interface DocumentResponse {
-  message: string;
-  data: {
-    document: DocumentData;
-  };
-}
-
-export interface DocumentWithOfficialsData {
-  officials: OfficialData[];
-  document: DocumentData;
 }
 
 export interface ImageData {
@@ -133,6 +41,34 @@ export const getEmployee = async (token: string): Promise<Employee> => {
       );
     }
     throw error;
+  }
+};
+
+export const getData = async () => {
+  try {
+    const response = await axiosInstance.get("/get-data");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching documents:", error);
+    if (error.response?.data?.error) {
+      throw new Error(error.response.data.error);
+    }
+    throw new Error("Gagal mengambil data dokumen");
+  }
+};
+
+export const getDataDetail = async (nomorKontrak: string) => {
+  try {
+    const response = await axiosInstance.get(
+      `/get-data-detail/${nomorKontrak}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching document detail:", error);
+    if (error.response?.data?.error) {
+      throw new Error(error.response.data.error);
+    }
+    throw new Error("Gagal mengambil detail dokumen");
   }
 };
 

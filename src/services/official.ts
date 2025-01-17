@@ -97,7 +97,7 @@ export const getOfficialData = async () => {
 
 export const getPeriodes = async (token: string) => {
   try {
-    const response = await axios.get(`http://localhost:8000/api/getPeriodes`, {
+    const response = await axios.get(`http://localhost:8000/api/get-periode`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -116,7 +116,7 @@ export const getPeriodes = async (token: string) => {
 export const getOfficialsByPeriode = async (token: string, periode: string) => {
   try {
     const response = await axios.get(
-      `http://localhost:8000/api/getOfficialsByPeriode/${periode}`,
+      `http://localhost:8000/api/get-official-by-periode/${periode}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

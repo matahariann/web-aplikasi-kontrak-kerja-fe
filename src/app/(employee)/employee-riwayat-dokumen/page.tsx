@@ -30,12 +30,13 @@ import {
   ChevronsRight,
   AlertCircle,
   FileClock,
+  ArrowUpDown,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { generateContractDocument } from "@/components/GenerateDocx";
-import { getDocumentData } from "@/services/documents";
+import { getData, getDataDetail } from "@/services/employee";
 import { Packer } from "docx";
 import { saveAs } from "file-saver";
 
@@ -47,53 +48,49 @@ export default function RiwayatDokumen() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [filterYear, setFilterYear] = useState("all");
+  const [years, setYears] = useState([]);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Token tidak ditemukan");
-      setIsLoading(false);
-      return;
-    }
-
-    fetch("http://localhost:8000/api/documents", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error("Gagal mengambil data dokumen");
-        return response.json();
-      })
-      .then((data) => {
-        setDocuments(data);
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setIsLoading(false);
-      });
+    fetchDocuments();
   }, []);
+
+  const fetchDocuments = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getData();
+      setDocuments(data);
+
+      // Extract unique years
+      const uniqueYears = [...new Set(data.map((doc) => doc.tahun_anggaran))]
+        .sort()
+        .reverse();
+      setYears(uniqueYears);
+
+      setIsLoading(false);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Gagal mengambil data");
+      setIsLoading(false);
+    }
+  };
 
   const handlePrint = async (nomorKontrak) => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Token tidak ditemukan");
-      }
+      setError("");
+      const response = await getDataDetail(nomorKontrak);
 
-      const documentData = await getDocumentData(token, nomorKontrak);
-
-      // Generate document with all contracts
       const doc = await generateContractDocument({
-        contractsData: documentData.contracts,
-        documentData: documentData,
-        vendorData: documentData.vendor,
-        officialData: documentData.officials,
+        contractsData: response.contracts,
+        documentData: response.document,
+        vendorData: response.vendor,
+        officialData: response.officials,
       });
 
       const blob = await Packer.toBlob(doc);
-      const filename = `kontrak_${documentData.nomor_kontrak}.docx`;
+      const filename = `kontrak_${nomorKontrak}_${format(
+        new Date(),
+        "ddMMyyyy"
+      )}.docx`;
       saveAs(blob, filename);
     } catch (error) {
       setError(
@@ -103,47 +100,111 @@ export default function RiwayatDokumen() {
   };
 
   const handleSort = (key) => {
-    let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
+    setSortConfig((prevConfig) => ({
+      key,
+      direction:
+        prevConfig.key === key && prevConfig.direction === "asc"
+          ? "desc"
+          : "asc",
+    }));
   };
 
-  const sortedDocuments = [...documents].sort((a, b) => {
-    if (!sortConfig.key) return 0;
-
-    const aValue = a[sortConfig.key];
-    const bValue = b[sortConfig.key];
-
-    if (sortConfig.direction === "asc") {
-      return aValue > bValue ? 1 : -1;
-    } else {
-      return aValue < bValue ? 1 : -1;
-    }
-  });
-
-  const filteredDocuments = sortedDocuments.filter(
-    (doc) =>
-      doc.nomor_kontrak?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.paket_pekerjaan?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.vendor?.nama_vendor?.toLowerCase().includes(searchTerm.toLowerCase())
+  const SortButton = ({ column }) => (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="ml-2 hover:bg-gray-100"
+      onClick={() => handleSort(column)}
+    >
+      <ArrowUpDown className="h-4 w-4" />
+    </Button>
   );
 
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredDocuments.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentDocuments = filteredDocuments.slice(startIndex, endIndex);
+  // Filter and sort documents
+  const filteredAndSortedDocuments = React.useMemo(() => {
+    let result = [...documents];
 
+    // Year filter
+    if (filterYear !== "all") {
+      result = result.filter((doc) => doc.tahun_anggaran === filterYear);
+    }
+
+    // Search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      result = result.filter(
+        (doc) =>
+          doc.nomor_kontrak?.toLowerCase().includes(searchLower) ||
+          doc.paket_pekerjaan?.toLowerCase().includes(searchLower) ||
+          doc.vendor?.nama_vendor?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Sorting
+    if (sortConfig.key) {
+      result.sort((a, b) => {
+        let aVal = a[sortConfig.key];
+        let bVal = b[sortConfig.key];
+
+        // Handle nested vendor property
+        if (sortConfig.key === "vendor.nama_vendor") {
+          aVal = a.vendor?.nama_vendor;
+          bVal = b.vendor?.nama_vendor;
+        }
+
+        // Handle dates
+        if (sortConfig.key === "tanggal_kontrak") {
+          aVal = new Date(a.tanggal_kontrak);
+          bVal = new Date(b.tanggal_kontrak);
+        }
+
+        if (!aVal) return 1;
+        if (!bVal) return -1;
+
+        const comparison = aVal > bVal ? 1 : -1;
+        return sortConfig.direction === "asc" ? comparison : -comparison;
+      });
+    }
+
+    return result;
+  }, [documents, searchTerm, sortConfig, filterYear]);
+
+  // Pagination
+  const totalDocuments = filteredAndSortedDocuments.length;
+  const totalPages = Math.ceil(totalDocuments / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalDocuments);
+  const currentDocuments = filteredAndSortedDocuments.slice(
+    startIndex,
+    endIndex
+  );
+
+  // Loading skeleton
   const TableSkeleton = () => (
-    <div className="space-y-3">
-      {[...Array(5)].map((_, i) => (
-        <div key={i} className="flex space-x-4">
-          <Skeleton className="h-12 w-full" />
-        </div>
+    <>
+      {[...Array(itemsPerPage)].map((_, index) => (
+        <TableRow key={index}>
+          <TableCell>
+            <Skeleton className="h-6 w-32" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-6 w-48" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-6 w-40" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-6 w-32" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-6 w-24" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-8 w-20" />
+          </TableCell>
+        </TableRow>
       ))}
-    </div>
+    </>
   );
 
   return (
@@ -157,46 +218,66 @@ export default function RiwayatDokumen() {
             </h1>
           </div>
           <Badge variant="outline" className="text-sm">
-            Total: {documents.length} dokumen
+            Total: {totalDocuments} dokumen
           </Badge>
         </header>
 
         <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl">
-              Daftar dokumen kontrak yang telah dibuat
-            </CardTitle>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl">Daftar Dokumen Kontrak</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-              <div className="relative w-full md:w-72">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-                <Input
-                  placeholder="Cari dokumen atau vendor..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="flex items-center gap-2">
+              <div className="w-full md:w-auto flex flex-col md:flex-row gap-4">
+                <div className="relative w-full md:w-72">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+                  <Input
+                    placeholder="Cari dokumen atau vendor..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                  />
+                </div>
                 <Select
-                  value={itemsPerPage.toString()}
+                  value={filterYear}
                   onValueChange={(value) => {
-                    setItemsPerPage(Number(value));
+                    setFilterYear(value);
                     setCurrentPage(1);
                   }}
                 >
-                  <SelectTrigger className="w-36">
-                    <SelectValue />
+                  <SelectTrigger className="w-full md:w-40">
+                    <SelectValue placeholder="Tahun" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="5">5 per halaman</SelectItem>
-                    <SelectItem value="10">10 per halaman</SelectItem>
-                    <SelectItem value="20">20 per halaman</SelectItem>
-                    <SelectItem value="50">50 per halaman</SelectItem>
+                    <SelectItem value="all">Semua Tahun</SelectItem>
+                    {years.map((year) => (
+                      <SelectItem key={year} value={year}>
+                        {year}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
+              <Select
+                value={itemsPerPage.toString()}
+                onValueChange={(value) => {
+                  setItemsPerPage(Number(value));
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-36">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5 per halaman</SelectItem>
+                  <SelectItem value="10">10 per halaman</SelectItem>
+                  <SelectItem value="20">20 per halaman</SelectItem>
+                  <SelectItem value="50">50 per halaman</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {error && (
@@ -206,66 +287,39 @@ export default function RiwayatDokumen() {
               </Alert>
             )}
 
-            <div className="overflow-x-auto rounded-md border">
+            <div className="border rounded-lg">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-gray-50">
-                    <TableHead
-                      className="cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort("nomor_kontrak")}
-                    >
-                      No. Kontrak{" "}
-                      {sortConfig.key === "nomor_kontrak" &&
-                        (sortConfig.direction === "asc" ? "↑" : "↓")}
+                  <TableRow>
+                    <TableHead>
+                      No. Kontrak
+                      <SortButton column="nomor_kontrak" />
                     </TableHead>
-                    <TableHead
-                      className="cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort("paket_pekerjaan")}
-                    >
-                      Paket Pekerjaan{" "}
-                      {sortConfig.key === "paket_pekerjaan" &&
-                        (sortConfig.direction === "asc" ? "↑" : "↓")}
+                    <TableHead>
+                      Paket Pekerjaan
+                      <SortButton column="paket_pekerjaan" />
                     </TableHead>
-                    <TableHead
-                      className="cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort("vendor.nama_vendor")}
-                    >
-                      Vendor{" "}
-                      {sortConfig.key === "vendor.nama_vendor" &&
-                        (sortConfig.direction === "asc" ? "↑" : "↓")}
+                    <TableHead>
+                      Vendor
+                      <SortButton column="vendor.nama_vendor" />
                     </TableHead>
-                    <TableHead
-                      className="cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort("tanggal_kontrak")}
-                    >
-                      Tanggal Kontrak{" "}
-                      {sortConfig.key === "tanggal_kontrak" &&
-                        (sortConfig.direction === "asc" ? "↑" : "↓")}
+                    <TableHead>
+                      Tanggal Kontrak
+                      <SortButton column="tanggal_kontrak" />
                     </TableHead>
-                    <TableHead
-                      className="cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort("tahun_anggaran")}
-                    >
-                      Tahun Anggaran{" "}
-                      {sortConfig.key === "tahun_anggaran" &&
-                        (sortConfig.direction === "asc" ? "↑" : "↓")}
+                    <TableHead>
+                      Tahun Anggaran
+                      <SortButton column="tahun_anggaran" />
                     </TableHead>
-                    <TableHead>Aksi</TableHead>
+                    <TableHead className="text-right">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={6}>
-                        <TableSkeleton />
-                      </TableCell>
-                    </TableRow>
+                    <TableSkeleton />
                   ) : currentDocuments.length > 0 ? (
                     currentDocuments.map((doc) => (
-                      <TableRow
-                        key={doc.nomor_kontrak}
-                        className="hover:bg-gray-50"
-                      >
+                      <TableRow key={doc.nomor_kontrak}>
                         <TableCell className="font-medium">
                           {doc.nomor_kontrak}
                         </TableCell>
@@ -281,27 +335,28 @@ export default function RiwayatDokumen() {
                           )}
                         </TableCell>
                         <TableCell>{doc.tahun_anggaran}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handlePrint(doc.nomor_kontrak)}
-                              className="flex items-center gap-2 hover:bg-gray-100"
-                            >
-                              <Printer className="h-4 w-4" />
-                              Cetak
-                            </Button>
-                          </div>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePrint(doc.nomor_kontrak)}
+                            className="hover:bg-gray-100"
+                          >
+                            <Printer className="h-4 w-4 mr-2" />
+                            Cetak
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-4">
+                      <TableCell
+                        colSpan={6}
+                        className="h-24 text-center text-muted-foreground"
+                      >
                         {documents.length === 0
-                          ? "Belum ada dokumen"
-                          : "Tidak ada dokumen yang sesuai dengan pencarian"}
+                          ? "Belum ada dokumen yang tersedia"
+                          : "Tidak ada dokumen yang sesuai dengan kriteria pencarian"}
                       </TableCell>
                     </TableRow>
                   )}
@@ -309,13 +364,11 @@ export default function RiwayatDokumen() {
               </Table>
             </div>
 
-            {/* Pagination Controls */}
             <div className="flex items-center justify-between mt-4">
-              <div className="text-sm text-gray-500">
-                Menampilkan {startIndex + 1}-
-                {Math.min(endIndex, filteredDocuments.length)} dari{" "}
-                {filteredDocuments.length} dokumen
-              </div>
+              <p className="text-sm text-gray-500">
+                Menampilkan {startIndex + 1}-{endIndex} dari {totalDocuments}{" "}
+                dokumen
+              </p>
               <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
@@ -334,7 +387,7 @@ export default function RiwayatDokumen() {
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <span className="text-sm">
-                  Halaman {currentPage} dari {totalPages}
+                  Halaman {currentPage} dari {totalPages || 1}
                 </span>
                 <Button
                   variant="outline"
