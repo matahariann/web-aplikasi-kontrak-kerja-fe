@@ -1,3 +1,4 @@
+import axiosInstance from "@/lib/axios";
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,159 +15,44 @@ import {
 import {
   addOfficial,
   updateOfficial,
+  getOfficialData,
   getPeriodes,
   getOfficialsByPeriode,
   OfficialData,
-  checkDocument,
-  updateDocumentOfficial,
-} from "@/services/employee";
-
-const STORAGE_KEYS = {
-  OFFICIALS_DATA: "officialsData",
-  IS_OFFICIALS_SAVED: "isOfficialsSaved",
-  SAVED_OFFICIALS_IDS: "savedOfficialsIds",
-  IS_OFFICIALS_EDIT_MODE: "isOfficialsEditMode",
-  SELECTED_PERIOD: "selectedPeriod",
-};
+} from "@/services/official";
 
 const INITIAL_OFFICIALS = [
   {
+    id: "",
     nip: "",
     nama: "",
     jabatan: "Pejabat Pembuat Komitmen Sekretariat Ditjen Aplikasi Informatika",
     surat_keputusan: "",
+    periode_jabatan: "",
   },
   {
+    id: "",
     nip: "",
     nama: "",
     jabatan:
       "Pejabat Pengadaan Barang/Jasa Sekretariat Ditjen Aplikasi Informatika",
-    surat_keputusan: "", // Ini akan diabaikan di form
+    surat_keputusan: "",
+    periode_jabatan: "",
   },
 ];
 
 const OfficialsForm = ({ currentStep, setCurrentStep }) => {
-  const [inputDisabled, setInputDisabled] = useState(true);
   const [periodes, setPeriodes] = useState<string[]>([]);
-  const [formSessionId, setFormSessionId] = useState<string | null>(() => {
-    return localStorage.getItem("form_session_id");
-  });
-  const [selectedPeriode, setSelectedPeriode] = useState<string>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.SELECTED_PERIOD);
-    return saved || "";
-  });
+  const [selectedPeriode, setSelectedPeriode] = useState<string>("");
   const [isFromDatabase, setIsFromDatabase] = useState(false);
-  const [isOfficialsEditMode, setIsOfficialsEditMode] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.IS_OFFICIALS_EDIT_MODE);
-    return saved ? JSON.parse(saved) : false;
-  });
-  const [officialsError, setOfficialsError] = useState<string | null>(null);
-  const [officialsAlertType, setOfficialsAlertType] = useState<
-    "save" | "delete" | "edit" | null
-  >(null);
-  const [officialsShowSuccessAlert, setOfficialsShowSuccessAlert] =
-    useState(false);
-  const [isOfficialsSubmitted, setIsOfficialsSubmitted] = useState(false);
-  const [isOfficialsSaved, setIsOfficialsSaved] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.IS_OFFICIALS_SAVED);
-    return saved ? JSON.parse(saved) : false;
-  });
-  const [savedOfficialsIds, setSavedOfficialsIds] = useState<string[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.SAVED_OFFICIALS_IDS);
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [officialsData, setOfficialsData] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.OFFICIALS_DATA);
-    return saved ? JSON.parse(saved) : INITIAL_OFFICIALS;
-  });
-
-  useEffect(() => {
-    const fetchPeriodes = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-
-        const response = await getPeriodes(token);
-        setPeriodes(response.data);
-
-        const storedPeriode = localStorage.getItem(
-          STORAGE_KEYS.SELECTED_PERIOD
-        );
-        if (
-          storedPeriode &&
-          !response.data.includes(storedPeriode) &&
-          storedPeriode !== "new"
-        ) {
-          localStorage.removeItem(STORAGE_KEYS.SELECTED_PERIOD);
-          setSelectedPeriode("");
-        }
-      } catch (error) {
-        console.error("Failed to fetch periodes:", error);
-      }
-    };
-
-    fetchPeriodes();
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.OFFICIALS_DATA,
-      JSON.stringify(officialsData)
-    );
-  }, [officialsData]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.IS_OFFICIALS_SAVED,
-      JSON.stringify(isOfficialsSaved)
-    );
-  }, [isOfficialsSaved]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.SAVED_OFFICIALS_IDS,
-      JSON.stringify(savedOfficialsIds)
-    );
-  }, [savedOfficialsIds]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.IS_OFFICIALS_EDIT_MODE,
-      JSON.stringify(isOfficialsEditMode)
-    );
-  }, [isOfficialsEditMode]);
-
-  useEffect(() => {
-    const savedIds = localStorage.getItem(STORAGE_KEYS.SAVED_OFFICIALS_IDS);
-    if (savedIds) {
-      setSavedOfficialsIds(JSON.parse(savedIds));
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SELECTED_PERIOD, selectedPeriode);
-  }, [selectedPeriode]);
-
-  useEffect(() => {
-    const sessionId = localStorage.getItem("form_session_id");
-    if (!sessionId) {
-      setOfficialsError("Mohon isi form vendor terlebih dahulu");
-      setCurrentStep(1); // Kembali ke form vendor
-    } else {
-      setFormSessionId(sessionId);
-    }
-  }, []);
-
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      const storedPeriode = localStorage.getItem(STORAGE_KEYS.SELECTED_PERIOD);
-      if (storedPeriode && storedPeriode !== "new") {
-        await handlePeriodeChange(storedPeriode);
-      }
-    };
-
-    fetchInitialData();
-  }, []);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [alertType, setAlertType] = useState<"save" | "edit" | null>(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [officialsData, setOfficialsData] = useState(INITIAL_OFFICIALS);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const handlePeriodeChange = async (periode: string) => {
     try {
@@ -174,37 +60,83 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
       if (!token) return;
 
       setSelectedPeriode(periode);
-      localStorage.setItem(STORAGE_KEYS.SELECTED_PERIOD, periode);
 
       if (periode === "new") {
-        setOfficialsData(
-          INITIAL_OFFICIALS.map((official) => ({
-            ...official,
-            periode_jabatan: "",
-          }))
-        );
+        // Logic untuk data baru tetap sama
+        const newOfficialsData = INITIAL_OFFICIALS.map((official) => ({
+          ...official,
+          periode_jabatan: "",
+        }));
+        setOfficialsData(newOfficialsData);
         setIsFromDatabase(false);
-        setIsOfficialsSaved(false);
-        setIsOfficialsEditMode(false);
-        setSavedOfficialsIds([]);
+        setIsSaved(false);
+        setIsEditMode(false);
+
+        if (sessionId) {
+          await axiosInstance.put(`/update-session/${sessionId}`, {
+            temp_data: {
+              official: newOfficialsData,
+              selected_periode: "new",
+            },
+          });
+        }
         return;
       }
 
+      // Ambil data dari database untuk periode yang dipilih
       const response = await getOfficialsByPeriode(token, periode);
-      setOfficialsData(response.data);
-      setSavedOfficialsIds(response.data.map((official) => official.id));
-      setIsFromDatabase(true);
-      setIsOfficialsSaved(false); // Set ke false agar tombol tetap "Simpan"
-      setIsOfficialsEditMode(false);
+
+      // Simpan data periode sebelumnya sebelum mengupdate
+      const previousPeriode = selectedPeriode;
+      const previousData = officialsData;
+
+      try {
+        // Update form session untuk data yang baru dipilih
+        for (const official of response.data) {
+          try {
+            console.log("Updating official session:", {
+              officialId: official.id,
+              sessionId: sessionId,
+            });
+
+            await axiosInstance.put(`/update-official-session/${official.id}`, {
+              form_session_id: sessionId,
+            });
+          } catch (error) {
+            console.error("Failed to update official session:", error);
+            // Revert changes
+            setOfficialsData(previousData);
+            setSelectedPeriode(previousPeriode);
+            throw error;
+          }
+        }
+
+        // Jika semua updates berhasil, update state
+        setOfficialsData(response.data);
+        setIsFromDatabase(true);
+        setIsSaved(false);
+        setIsEditMode(false);
+
+        // Update session temp data
+        if (sessionId) {
+          await axiosInstance.put(`/update-session/${sessionId}`, {
+            temp_data: {
+              official: response.data,
+              selected_periode: periode,
+            },
+          });
+        }
+      } catch (error) {
+        setError("Gagal mengupdate data pejabat");
+        console.error("Error updating officials:", error);
+      }
     } catch (error) {
       console.error("Failed to fetch officials:", error);
-      setOfficialsError(
-        "Gagal mengambil data pejabat untuk periode yang dipilih"
-      );
+      setError("Gagal mengambil data pejabat untuk periode yang dipilih");
     }
   };
 
-  const handleOfficialsInputChange = (
+  const handleInputChange = (
     index: number,
     field: keyof OfficialData,
     value: string
@@ -217,21 +149,14 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
     setOfficialsData(newOfficialsData);
   };
 
-  const handleOfficialsSubmit = async (
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
+  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    setOfficialsError(null);
-    setIsOfficialsSubmitted(true);
+    setError(null);
+    setIsSubmitted(true);
 
-    if (!formSessionId) {
-      setOfficialsError("Form session tidak ditemukan");
-      return;
-    }
-
+    // Validasi
     const hasEmptyFields = officialsData.some((official) => {
-      const basicFieldsEmpty =
-        !official.nip || !official.nama || !official.periode_jabatan;
+      const basicFieldsEmpty = !official.nip || !official.nama;
       const isPPK = official.jabatan.includes("Pejabat Pembuat Komitmen");
       const skEmpty = isPPK && !official.surat_keputusan;
 
@@ -239,117 +164,145 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
     });
 
     if (hasEmptyFields) {
-      setOfficialsError("Mohon lengkapi semua input");
+      setError("Mohon lengkapi semua input");
       return;
     }
 
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        throw new Error("Anda belum login. Silakan login terlebih dahulu.");
+        throw new Error("Token tidak ditemukan");
       }
 
-      const savedIds = [];
-      for (let i = 0; i < officialsData.length; i++) {
-        const official = officialsData[i];
-        const officialId =
-          isFromDatabase || isOfficialsEditMode ? savedOfficialsIds[i] : null;
-
-        let response;
-        if (isFromDatabase || isOfficialsEditMode) {
-          response = await updateOfficial(token, officialId, {
-            ...official,
-            form_session_id: formSessionId,
+      if (isFromDatabase) {
+        // Untuk setiap official dari database, update form_session_id
+        // dan hapus data lama jika ada
+        for (const official of officialsData) {
+          if (!official.id) {
+            throw new Error("ID official tidak ditemukan untuk update");
+          }
+          await axiosInstance.put(`/update-official-session/${official.id}`, {
+            form_session_id: sessionId,
+            current_session_id: sessionId, // tambahkan current session untuk tracking
           });
+        }
+      } else {
+        // Logic untuk save/update officials seperti sebelumnya
+        if (isEditMode) {
+          // Update existing officials
+          for (const official of officialsData) {
+            if (!official.id) {
+              throw new Error("ID official tidak ditemukan untuk update");
+            }
+            await updateOfficial(token, official.id, {
+              ...official,
+              periode_jabatan:
+                selectedPeriode === "new"
+                  ? officialsData[0].periode_jabatan
+                  : selectedPeriode,
+            });
+          }
         } else {
-          response = await addOfficial(token, {
-            ...official,
-            form_session_id: formSessionId,
-          });
-        }
-        savedIds.push(response.data.id);
-      }
-      setSavedOfficialsIds(savedIds);
-
-      // Cek apakah document sudah ada sebelum mencoba update relasi
-      const documentCheck = await checkDocument(token, formSessionId);
-      if (documentCheck.exists) {
-        try {
-          await updateDocumentOfficial(token, formSessionId, savedIds);
-        } catch (error) {
-          console.error("Error updating document-official relation:", error);
-          setOfficialsError("Gagal memperbarui relasi dengan dokumen");
-          return;
+          // Save new officials
+          for (const official of officialsData) {
+            await addOfficial(token, {
+              ...official,
+              periode_jabatan:
+                selectedPeriode === "new"
+                  ? officialsData[0].periode_jabatan
+                  : selectedPeriode,
+            });
+          }
         }
       }
 
-      // Update states
-      setIsOfficialsSaved(true);
-      setIsOfficialsEditMode(false);
-      setInputDisabled(true);
-      setOfficialsShowSuccessAlert(true);
-      setOfficialsAlertType(isOfficialsEditMode ? "edit" : "save");
-      setIsOfficialsSubmitted(false);
+      // Update state setelah berhasil save/update
+      setIsSaved(true);
+      setIsEditMode(false);
+      setShowSuccessAlert(true);
+      setAlertType(isEditMode ? "edit" : "save");
 
-      // Update localStorage
-      localStorage.setItem(
-        STORAGE_KEYS.OFFICIALS_DATA,
-        JSON.stringify(officialsData)
-      );
-      localStorage.setItem(
-        STORAGE_KEYS.IS_OFFICIALS_SAVED,
-        JSON.stringify(true)
-      );
-      localStorage.setItem(
-        STORAGE_KEYS.IS_OFFICIALS_EDIT_MODE,
-        JSON.stringify(false)
-      );
-      localStorage.setItem(
-        STORAGE_KEYS.SAVED_OFFICIALS_IDS,
-        JSON.stringify(savedIds)
-      );
+      // Refresh data setelah save/update
+      const response = await getOfficialData();
+      if (response.data.officials) {
+        setOfficialsData(response.data.officials);
+      }
 
       setTimeout(() => {
-        setOfficialsShowSuccessAlert(false);
-        setOfficialsAlertType(null);
+        setShowSuccessAlert(false);
+        setAlertType(null);
       }, 3000);
     } catch (error) {
-      setOfficialsShowSuccessAlert(false);
+      setShowSuccessAlert(false);
       if (error instanceof Error) {
-        setOfficialsError(error.message);
+        setError(error.message);
       } else {
-        setOfficialsError("Terjadi kesalahan saat menyimpan data");
+        setError("Terjadi kesalahan");
       }
     }
   };
 
   const handleEditMode = () => {
-    setIsOfficialsEditMode(true);
-    setIsOfficialsSaved(false);
-    // Pastikan data yang tersimpan di localStorage tetap ada saat mode edit
-    const savedData = localStorage.getItem(STORAGE_KEYS.OFFICIALS_DATA);
-    if (savedData) {
-      setOfficialsData(JSON.parse(savedData));
-    }
-    const savedIds = localStorage.getItem(STORAGE_KEYS.SAVED_OFFICIALS_IDS);
-    if (savedIds) {
-      setSavedOfficialsIds(JSON.parse(savedIds));
-    }
+    setIsEditMode(true);
+    setIsSaved(false);
   };
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        // Fetch periodes dan urutkan
+        const periodesResponse = await getPeriodes(token);
+        const sortedPeriodes = periodesResponse.data.sort((a, b) => {
+          // Mengasumsikan format periode adalah angka tahun (e.g. "2024", "2023")
+          // Urutkan secara descending (terbaru ke terlama)
+          return parseInt(b) - parseInt(a);
+        });
+        setPeriodes(sortedPeriodes);
+
+        // Rest of the code remains the same...
+        const officialsResponse = await getOfficialData();
+        const { officials, session } = officialsResponse.data;
+
+        setSessionId(session.id);
+
+        if (officials && officials.length > 0) {
+          setOfficialsData(officials);
+          setIsSaved(true);
+          if (officials[0]?.periode_jabatan) {
+            setSelectedPeriode(officials[0].periode_jabatan);
+          }
+        } else if (session.temp_data?.official) {
+          setOfficialsData(session.temp_data.official);
+          if (session.temp_data.official[0]?.periode_jabatan) {
+            const periode = session.temp_data.official[0].periode_jabatan;
+            const isExistingPeriode = sortedPeriodes.includes(periode); // Gunakan sortedPeriodes
+            setSelectedPeriode(isExistingPeriode ? periode : "new");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+      }
+    };
+
+    fetchInitialData();
+  }, []);
 
   return (
     <>
-      {officialsError && (
+      {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-4 text-sm">
-          {officialsError}
+          {error}
         </div>
       )}
 
-      {officialsShowSuccessAlert && (
+      {showSuccessAlert && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4 text-sm">
-          {officialsAlertType === "save"
+          {alertType === "save"
             ? "Data pejabat berhasil disimpan!"
-            : officialsAlertType === "edit"
+            : alertType === "edit"
             ? "Data pejabat berhasil diperbarui!"
             : ""}
         </div>
@@ -370,7 +323,7 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
                 <Select
                   onValueChange={handlePeriodeChange}
                   value={selectedPeriode}
-                  disabled={isOfficialsSaved && !isOfficialsEditMode}
+                  disabled={isSaved && !isEditMode}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Pilih periode atau tambah baru" />
@@ -390,28 +343,45 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
                   <Input
                     placeholder="cth. 2024"
                     value={officialsData[0]?.periode_jabatan || ""}
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const newPeriode = e.target.value;
-                      setOfficialsData((prev) =>
-                        prev.map((official) => ({
+                      const newOfficialsData = officialsData.map(
+                        (official) => ({
                           ...official,
                           periode_jabatan: newPeriode,
-                        }))
+                        })
                       );
+                      setOfficialsData(newOfficialsData);
+
+                      // Update temp_data in session
+                      if (sessionId) {
+                        try {
+                          await axiosInstance.put(
+                            `/update-session/${sessionId}`,
+                            {
+                              temp_data: {
+                                official: newOfficialsData,
+                                selected_periode: "new",
+                              },
+                            }
+                          );
+                        } catch (error) {
+                          console.error("Failed to update session:", error);
+                        }
+                      }
                     }}
-                    disabled={isOfficialsSaved && !isOfficialsEditMode}
+                    disabled={isSaved && !isEditMode}
                     className={
-                      isOfficialsSubmitted && !officialsData[0]?.periode_jabatan
+                      isSubmitted && !officialsData[0]?.periode_jabatan
                         ? "border-red-300"
                         : ""
                     }
                   />
-                  {isOfficialsSubmitted &&
-                    !officialsData[0]?.periode_jabatan && (
-                      <p className="text-red-500 text-sm mt-1">
-                        Periode jabatan tidak boleh kosong
-                      </p>
-                    )}
+                  {isSubmitted && !officialsData[0]?.periode_jabatan && (
+                    <p className="text-red-500 text-sm mt-1">
+                      Periode jabatan tidak boleh kosong
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -428,19 +398,14 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
                     id={`nip_${index}`}
                     value={official.nip}
                     onChange={(e) =>
-                      handleOfficialsInputChange(index, "nip", e.target.value)
+                      handleInputChange(index, "nip", e.target.value)
                     }
                     className={
-                      isOfficialsSubmitted && !official.nip
-                        ? "border-red-300"
-                        : ""
+                      isSubmitted && !official.nip ? "border-red-300" : ""
                     }
-                    disabled={
-                      isFromDatabase ||
-                      (isOfficialsSaved && !isOfficialsEditMode)
-                    }
+                    disabled={isFromDatabase || (isSaved && !isEditMode)}
                   />
-                  {isOfficialsSubmitted && !official.nip && (
+                  {isSubmitted && !official.nip && (
                     <p className="text-red-500 text-sm mt-1">
                       NIP tidak boleh kosong
                     </p>
@@ -454,19 +419,14 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
                     id={`nama_${index}`}
                     value={official.nama}
                     onChange={(e) =>
-                      handleOfficialsInputChange(index, "nama", e.target.value)
+                      handleInputChange(index, "nama", e.target.value)
                     }
                     className={
-                      isOfficialsSubmitted && !official.nama
-                        ? "border-red-300"
-                        : ""
+                      isSubmitted && !official.nama ? "border-red-300" : ""
                     }
-                    disabled={
-                      isFromDatabase ||
-                      (isOfficialsSaved && !isOfficialsEditMode)
-                    }
+                    disabled={isFromDatabase || (isSaved && !isEditMode)}
                   />
-                  {isOfficialsSubmitted && !official.nama && (
+                  {isSubmitted && !official.nama && (
                     <p className="text-red-500 text-sm mt-1">
                       Nama tidak boleh kosong
                     </p>
@@ -482,23 +442,20 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
                       id={`surat_keputusan_${index}`}
                       value={official.surat_keputusan}
                       onChange={(e) =>
-                        handleOfficialsInputChange(
+                        handleInputChange(
                           index,
                           "surat_keputusan",
                           e.target.value
                         )
                       }
                       className={
-                        isOfficialsSubmitted && !official.surat_keputusan
+                        isSubmitted && !official.surat_keputusan
                           ? "border-red-300"
                           : ""
                       }
-                      disabled={
-                        isFromDatabase ||
-                        (isOfficialsSaved && !isOfficialsEditMode)
-                      }
+                      disabled={isFromDatabase || (isSaved && !isEditMode)}
                     />
-                    {isOfficialsSubmitted && !official.surat_keputusan && (
+                    {isSubmitted && !official.surat_keputusan && (
                       <p className="text-red-500 text-sm mt-1">
                         Surat Keputusan tidak boleh kosong untuk Pejabat Pembuat
                         Komitmen
@@ -513,23 +470,23 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
           <div className="flex justify-between mt-6">
             <Button
               onClick={
-                isOfficialsEditMode
-                  ? handleOfficialsSubmit
-                  : !isOfficialsSaved
-                  ? handleOfficialsSubmit
+                isEditMode
+                  ? handleSubmit
+                  : !isSaved
+                  ? handleSubmit
                   : handleEditMode
               }
-              variant={isOfficialsEditMode ? "secondary" : "default"}
+              variant={isEditMode ? "secondary" : "default"}
             >
-              {isOfficialsEditMode ? (
+              {isEditMode ? (
                 <>
                   <Save className="w-4 h-4 mr-2" />
                   Simpan Perubahan
                 </>
-              ) : !isOfficialsSaved ? (
+              ) : !isSaved ? (
                 <>
                   <Save className="w-4 h-4 mr-2" />
-                  Simpan
+                  {isFromDatabase ? "Gunakan Data" : "Simpan"}
                 </>
               ) : (
                 <>
@@ -545,7 +502,7 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
               </Button>
               <Button
                 onClick={() => setCurrentStep(3)}
-                disabled={!isOfficialsSaved || isOfficialsEditMode}
+                disabled={!isSaved || isEditMode}
                 style={{ userSelect: "none" }}
               >
                 Berikutnya

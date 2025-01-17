@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -12,15 +14,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Save, ArrowLeft, Pencil, Plus, Minus } from "lucide-react";
 import {
+  ContractData,
+  getContractData,
   addContract,
   updateContract,
-  deleteContract,
-  ContractData,
-  DocumentData,
-  VendorData,
-  OfficialData,
-} from "@/services/employee";
+} from "@/services/contract";
 import { PrintContract } from "@/components/GenerateDocx";
+import { getVendorData, VendorData } from "@/services/vendor";
+import { getOfficialData, OfficialData } from "@/services/official";
+import { DocumentData, getDocumentData } from "@/services/documents";
 
 enum ContractType {
   KONSULTAN = "Konsultan",
@@ -36,15 +38,7 @@ const MAX_PRICE = {
   [ContractType.JASA_LAINNYA]: 200000000, // 200 juta
 };
 
-const STORAGE_KEYS = {
-  CONTRACTS_DATA: "contractsData",
-  IS_CONTRACTS_SAVED: "isContractsSaved",
-  SAVED_CONTRACTS_IDS: "savedContractsIds",
-  IS_CONTRACTS_EDIT_MODE: "isContractsEditMode",
-  CONTRACT_TYPE: "contractType",
-};
-
-const INITIAL_CONTRACT = {
+const INITIAL_CONTRACT: Omit<ContractData, "jenis_kontrak"> = {
   deskripsi: "",
   jumlah_orang: 0,
   durasi_kontrak: 0,
@@ -62,97 +56,21 @@ export const formatCurrency = (value: number): string => {
 };
 
 const ContractsForm = ({ currentStep, setCurrentStep }) => {
-  const [contractsError, setContractsError] = useState<string | null>(null);
-  const [formSessionId, setFormSessionId] = useState<string | null>(() => {
-    return localStorage.getItem("form_session_id");
-  });
-  const [contractType, setContractType] = useState<ContractType>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.CONTRACT_TYPE);
-    return saved ? JSON.parse(saved) : ContractType.KONSULTAN;
-  });
-  const [isContractsEditMode, setIsContractsEditMode] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.IS_CONTRACTS_EDIT_MODE);
-    return saved ? JSON.parse(saved) : false;
-  });
-  const [contractsAlertType, setContractsAlertType] = useState<
-    "save" | "delete" | "edit" | null
-  >(null);
-  const [contractsShowSuccessAlert, setContractsShowSuccessAlert] =
-    useState(false);
-  const [isContractsSubmitted, setIsContractsSubmitted] = useState(false);
-  const [isContractsSaved, setIsContractsSaved] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.IS_CONTRACTS_SAVED);
-    return saved ? JSON.parse(saved) : false;
-  });
-  const [savedContractsIds, setSavedContractsIds] = useState<string[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.SAVED_CONTRACTS_IDS);
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [officialData] = useState<OfficialData[]>(() => {
-    const saved = localStorage.getItem("officialsData");
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [vendorData] = useState<VendorData>(() => {
-    const saved = localStorage.getItem("vendorData");
-    return saved ? JSON.parse(saved) : null;
-  });
-  const [documentData] = useState<DocumentData>(() => {
-    const saved = localStorage.getItem("documentData");
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [error, setError] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [alertType, setAlertType] = useState<"save" | "edit" | null>(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [contractType, setContractType] = useState<ContractType>(
+    ContractType.KONSULTAN
+  );
   const [contractsData, setContractsData] = useState<
     Omit<ContractData, "jenis_kontrak">[]
-  >(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.CONTRACTS_DATA);
-    return saved ? JSON.parse(saved) : [INITIAL_CONTRACT];
-  });
-
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.CONTRACTS_DATA,
-      JSON.stringify(contractsData)
-    );
-  }, [contractsData]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.CONTRACT_TYPE,
-      JSON.stringify(contractType)
-    );
-  }, [contractType]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.IS_CONTRACTS_SAVED,
-      JSON.stringify(isContractsSaved)
-    );
-  }, [isContractsSaved]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.SAVED_CONTRACTS_IDS,
-      JSON.stringify(savedContractsIds)
-    );
-  }, [savedContractsIds]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.IS_CONTRACTS_EDIT_MODE,
-      JSON.stringify(isContractsEditMode)
-    );
-  }, [isContractsEditMode]);
-
-  useEffect(() => {
-    const sessionId = localStorage.getItem("form_session_id");
-    if (!sessionId) {
-      setContractsError(
-        "Mohon isi form vendor, pejabat, dan dokumen terlebih dahulu"
-      );
-      setCurrentStep(3); // Kembali ke form document
-    } else {
-      setFormSessionId(sessionId);
-    }
-  }, []);
+  >([INITIAL_CONTRACT]);
+  const [documentData, setDocumentData] = useState<DocumentData | null>(null);
+  const [vendorData, setVendorData] = useState<VendorData | null>(null);
+  const [officialData, setOfficialData] = useState<OfficialData[]>([]);
 
   const validateContractValue = (value: number): string | null => {
     const maxValue = MAX_PRICE[contractType];
@@ -165,7 +83,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
   };
 
   const handleContractTypeChange = (value: ContractType) => {
-    // Validate all existing contracts with new contract type
+    // Validate all contracts with new type
     for (const contract of contractsData) {
       const initialValueError = validateContractValue(
         contract.nilai_kontral_awal
@@ -175,27 +93,27 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
       );
 
       if (initialValueError || finalValueError) {
-        setContractsError(initialValueError || finalValueError);
+        setError(initialValueError || finalValueError);
         return;
       }
     }
 
     setContractType(value);
-    setContractsError(null);
+    setError(null);
   };
 
   const addNewContract = () => {
     setContractsData([...contractsData, { ...INITIAL_CONTRACT }]);
   };
 
-  // const removeContract = (index: number) => {
-  //   if (contractsData.length > 1) {
-  //     const newContractsData = contractsData.filter((_, i) => i !== index);
-  //     setContractsData(newContractsData);
-  //   }
-  // };
+  const removeContract = (index: number) => {
+    if (contractsData.length > 1) {
+      const newContractsData = contractsData.filter((_, i) => i !== index);
+      setContractsData(newContractsData);
+    }
+  };
 
-  const handleContractInputChange = (
+  const handleInputChange = (
     index: number,
     field: keyof Omit<ContractData, "jenis_kontrak">,
     value: string | number
@@ -206,7 +124,6 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
       [field]: value,
     };
 
-    // Validate contract values when changing values
     if (field === "nilai_kontral_awal" || field === "nilai_kontrak_akhir") {
       const initialValueError = validateContractValue(
         newContractsData[index].nilai_kontral_awal
@@ -216,67 +133,42 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
       );
 
       if (initialValueError || finalValueError) {
-        setContractsError(initialValueError || finalValueError);
+        setError(initialValueError || finalValueError);
         return;
       }
     }
 
     setContractsData(newContractsData);
-    setContractsError(null);
+    setError(null);
   };
 
-  const handleContractsSubmit = async (
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
+  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    setContractsError(null);
-    setIsContractsSubmitted(true);
-
-    // Periksa token terlebih dahulu
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setContractsError("Anda belum login. Silakan login terlebih dahulu.");
-      return;
-    }
-
-    // Periksa form_session_id
-    const formSessionId = localStorage.getItem("form_session_id");
-    if (!formSessionId) {
-      setContractsError("Form session tidak ditemukan");
-      return;
-    }
+    setError(null);
+    setIsSubmitted(true);
 
     try {
-      // Validasi form data
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Token tidak ditemukan");
+      }
+
+      // Validate required fields and numeric values
       const hasEmptyFields = contractsData.some(
         (contract) =>
           !contract.deskripsi ||
-          !contract.jumlah_orang ||
-          !contract.durasi_kontrak ||
-          !contract.nilai_kontral_awal ||
-          !contract.nilai_kontrak_akhir
-      );
-
-      if (!contractType || hasEmptyFields) {
-        setContractsError("Mohon lengkapi semua input");
-        return;
-      }
-
-      // Validasi nilai numerik
-      const hasInvalidNumbers = contractsData.some(
-        (contract) =>
           contract.jumlah_orang <= 0 ||
           contract.durasi_kontrak <= 0 ||
           contract.nilai_kontral_awal <= 0 ||
           contract.nilai_kontrak_akhir <= 0
       );
 
-      if (hasInvalidNumbers) {
-        setContractsError("Nilai numerik harus lebih besar dari 0");
+      if (hasEmptyFields) {
+        setError("Mohon lengkapi semua input dengan nilai yang valid");
         return;
       }
 
-      // Validasi maksimal harga kontrak
+      // Validate contract values
       for (const contract of contractsData) {
         const initialValueError = validateContractValue(
           contract.nilai_kontral_awal
@@ -286,214 +178,113 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
         );
 
         if (initialValueError || finalValueError) {
-          setContractsError(initialValueError || finalValueError);
+          setError(initialValueError || finalValueError);
           return;
         }
       }
 
-      let newSavedIds: string[] = [];
+      // Save all contracts
+      for (const contract of contractsData) {
+        const contractData = {
+          ...contract,
+          jenis_kontrak: contractType,
+        };
 
-      if (isContractsEditMode) {
-        // Handle edit mode
-        for (let i = 0; i < contractsData.length; i++) {
-          const contract = contractsData[i];
-          const formattedContract = {
-            ...contract,
-            jenis_kontrak: contractType,
-            jumlah_orang: Number(contract.jumlah_orang),
-            durasi_kontrak: Number(contract.durasi_kontrak),
-            nilai_kontral_awal: Number(contract.nilai_kontral_awal),
-            nilai_kontrak_akhir: Number(contract.nilai_kontrak_akhir),
-            form_session_id: formSessionId,
-          };
-
-          try {
-            if (i < savedContractsIds.length) {
-              const oldId = savedContractsIds[i];
-              const response = await updateContract(
-                token,
-                oldId,
-                formattedContract
-              );
-              if (response?.data?.id) {
-                newSavedIds.push(response.data.id);
-              }
-            } else {
-              const response = await addContract(token, formattedContract);
-              if (response?.data?.id) {
-                newSavedIds.push(response.data.id);
-              }
-            }
-          } catch (error) {
-            console.error(`Error processing contract ${i}:`, error);
-            throw error;
-          }
-        }
-      } else {
-        // Handle add mode
-        for (const contract of contractsData) {
-          try {
-            const formattedContract = {
-              ...contract,
-              jenis_kontrak: contractType,
-              jumlah_orang: Number(contract.jumlah_orang),
-              durasi_kontrak: Number(contract.durasi_kontrak),
-              nilai_kontral_awal: Number(contract.nilai_kontral_awal),
-              nilai_kontrak_akhir: Number(contract.nilai_kontrak_akhir),
-              form_session_id: formSessionId,
-            };
-
-            const response = await addContract(token, formattedContract);
-            if (response?.data?.id) {
-              newSavedIds.push(response.data.id);
-            } else {
-              throw new Error("Gagal mendapatkan ID kontrak baru");
-            }
-          } catch (error) {
-            console.error("Error adding contract:", error);
-            throw error;
-          }
+        if (isEditMode && contract.id) {
+          await updateContract(token, contract.id, contractData);
+        } else {
+          await addContract(token, contractData);
         }
       }
 
-      // Update state setelah berhasil menyimpan
-      setSavedContractsIds(newSavedIds);
-      setIsContractsSaved(true);
-      setContractsShowSuccessAlert(true);
-      setContractsAlertType(isContractsEditMode ? "edit" : "save");
-      setIsContractsSubmitted(false);
-      setIsContractsEditMode(false);
-
-      // Update localStorage
-      localStorage.setItem(
-        STORAGE_KEYS.SAVED_CONTRACTS_IDS,
-        JSON.stringify(newSavedIds)
-      );
-      localStorage.setItem(
-        STORAGE_KEYS.CONTRACTS_DATA,
-        JSON.stringify(contractsData)
-      );
-      localStorage.setItem(
-        STORAGE_KEYS.IS_CONTRACTS_SAVED,
-        JSON.stringify(true)
-      );
-      localStorage.setItem(
-        STORAGE_KEYS.IS_CONTRACTS_EDIT_MODE,
-        JSON.stringify(false)
-      );
+      setIsSaved(true);
+      setIsEditMode(false);
+      setShowSuccessAlert(true);
+      setAlertType(isEditMode ? "edit" : "save");
 
       setTimeout(() => {
-        setContractsShowSuccessAlert(false);
-        setContractsAlertType(null);
+        setShowSuccessAlert(false);
+        setAlertType(null);
       }, 3000);
     } catch (error) {
-      console.error("Submit error:", error);
-      setContractsShowSuccessAlert(false);
-      setIsContractsSubmitted(false);
-      setContractsError(
-        error instanceof Error
-          ? error.message
-          : "Terjadi kesalahan saat menyimpan data"
-      );
+      setShowSuccessAlert(false);
+      setError(error instanceof Error ? error.message : "Terjadi kesalahan");
     }
-  };
-
-  const handleError = (error: any) => {
-    console.error("Submit error:", error);
-    setContractsShowSuccessAlert(false);
-    setIsContractsSubmitted(false);
-    setContractsError(
-      error instanceof Error
-        ? error.message
-        : "Terjadi kesalahan saat menyimpan data"
-    );
   };
 
   const handleEditMode = () => {
-    setIsContractsEditMode(true);
-    setIsContractsSaved(false);
-    const savedIds = localStorage.getItem(STORAGE_KEYS.SAVED_CONTRACTS_IDS);
-    if (savedIds) {
-      setSavedContractsIds(JSON.parse(savedIds));
-    }
+    setIsEditMode(true);
+    setIsSaved(false);
   };
 
-  const removeContract = async (index: number) => {
-    if (contractsData.length > 1) {
+  useEffect(() => {
+    const fetchInitialData = async () => {
       try {
-        // Jika dalam mode edit dan kontrak sudah tersimpan sebelumnya, hapus dari database
-        if (isContractsEditMode && index < savedContractsIds.length) {
-          const token = localStorage.getItem("token");
-          if (!token) {
-            throw new Error("Anda belum login. Silakan login terlebih dahulu.");
-          }
-
-          const contractId = savedContractsIds[index];
-
-          // Panggil API delete
-          await deleteContract(token, contractId);
-
-          // Update savedContractsIds
-          const newSavedIds = savedContractsIds.filter((_, i) => i !== index);
-          setSavedContractsIds(newSavedIds);
-
-          // Update localStorage
-          localStorage.setItem(
-            STORAGE_KEYS.SAVED_CONTRACTS_IDS,
-            JSON.stringify(newSavedIds)
-          );
+        // Fetch document data
+        const docResponse = await getDocumentData();
+        if (docResponse.data.document) {
+          setDocumentData(docResponse.data.document);
+        } else if (docResponse.data.session?.temp_data?.document) {
+          // Use temp data if available
+          setDocumentData(docResponse.data.session.temp_data.document);
         }
-
-        // Hapus dari state UI
-        const newContractsData = contractsData.filter((_, i) => i !== index);
-        setContractsData(newContractsData);
-
-        // Update localStorage untuk contracts data
-        localStorage.setItem(
-          STORAGE_KEYS.CONTRACTS_DATA,
-          JSON.stringify(newContractsData)
-        );
-
-        // Tampilkan pesan sukses
-        setContractsShowSuccessAlert(true);
-        setContractsAlertType("delete");
-        setTimeout(() => {
-          setContractsShowSuccessAlert(false);
-          setContractsAlertType(null);
-        }, 3000);
+  
+        // Fetch vendor data
+        const vendorResponse = await getVendorData();
+        if (vendorResponse.data.vendor) {
+          setVendorData(vendorResponse.data.vendor);
+        } else if (vendorResponse.data.session?.temp_data?.vendor) {
+          setVendorData(vendorResponse.data.session.temp_data.vendor);
+        }
+  
+        // Fetch official data
+        const officialResponse = await getOfficialData();
+        if (officialResponse.data.officials) {
+          setOfficialData(officialResponse.data.officials);
+        } else if (officialResponse.data.session?.temp_data?.officials) {
+          setOfficialData(officialResponse.data.session.temp_data.officials);
+        }
+  
+        // Fetch existing contract data
+        const contractResponse = await getContractData();
+        if (contractResponse.data.contract) {
+          setContractsData([contractResponse.data.contract]);
+          setContractType(contractResponse.data.contract.jenis_kontrak as ContractType);
+          setIsSaved(true);
+        } else if (contractResponse.data.session?.temp_data?.contract) {
+          setContractsData([contractResponse.data.session.temp_data.contract]);
+          if (contractResponse.data.session.temp_data.contract.jenis_kontrak) {
+            setContractType(contractResponse.data.session.temp_data.contract.jenis_kontrak as ContractType);
+          }
+        }
+  
       } catch (error) {
-        console.error("Error deleting contract:", error);
-        setContractsError(
-          error instanceof Error
-            ? error.message
-            : "Terjadi kesalahan saat menghapus kontrak"
-        );
+        console.error("Error fetching initial data:", error);
+        // Set specific error message based on what failed
+        if (error instanceof Error) {
+          setError(`Gagal mengambil data: ${error.message}`);
+        } else {
+          setError("Gagal mengambil data");
+        }
       }
-    }
-  };
-
-  // const clearAllLocalStorage = () => {
-  //   Object.values(STORAGE_KEYS).forEach((key) => {
-  //     localStorage.removeItem(key);
-  //   });
-  // };
-
+    };
+  
+    fetchInitialData();
+  }, []);
   return (
     <>
-      {contractsError && (
+      {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-4 text-sm">
-          {contractsError}
+          {error}
         </div>
       )}
 
-      {contractsShowSuccessAlert && (
+      {showSuccessAlert && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4 text-sm">
-          {contractsAlertType === "save"
+          {alertType === "save"
             ? "Data kontrak berhasil disimpan!"
-            : contractsAlertType === "edit"
+            : alertType === "edit"
             ? "Data kontrak berhasil diperbarui!"
-            : contractsAlertType === "delete"
-            ? "Data kontrak berhasil dihapus!"
             : ""}
         </div>
       )}
@@ -502,7 +293,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
             <span>Data Kontrak</span>
-            {(!isContractsSaved || isContractsEditMode) && (
+            {(!isSaved || isEditMode) && (
               <Button onClick={addNewContract} variant="outline" size="sm">
                 <Plus className="w-4 h-4 mr-2" />
                 Tambah Kontrak
@@ -518,7 +309,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
               <Select
                 value={contractType}
                 onValueChange={handleContractTypeChange}
-                disabled={isContractsSaved && !isContractsEditMode}
+                disabled={isSaved && !isEditMode}
               >
                 <SelectTrigger className="w-full max-w-xs">
                   <SelectValue placeholder="Pilih jenis kontrak" />
@@ -538,10 +329,11 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
             </div>
           </div>
         </CardHeader>
+
         <CardContent className="space-y-4">
           {contractsData.map((contract, index) => (
             <div key={index} className="border p-4 rounded-lg relative">
-              {index !== 0 && (!isContractsSaved || isContractsEditMode) && (
+              {index !== 0 && (!isSaved || isEditMode) && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -551,6 +343,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                   <Minus className="w-4 h-4" />
                 </Button>
               )}
+
               <h3 className="font-medium mb-4">
                 Keterangan Kontrak {index + 1}
               </h3>
@@ -562,32 +355,27 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                   id={`deskripsi_${index}`}
                   value={contract.deskripsi}
                   onChange={(e) =>
-                    handleContractInputChange(
-                      index,
-                      "deskripsi",
-                      e.target.value
-                    )
+                    handleInputChange(index, "deskripsi", e.target.value)
                   }
                   className={`w-full min-h-[120px] p-2 border border-gray-200 rounded-md resize-y ${
-                    isContractsSubmitted && !contract.deskripsi
-                      ? "border-red-300"
-                      : ""
+                    isSubmitted && !contract.deskripsi ? "border-red-300" : ""
                   }`}
                   placeholder="Masukkan deskripsi lengkap kontrak..."
-                  disabled={isContractsSaved && !isContractsEditMode}
+                  disabled={isSaved && !isEditMode}
                   style={{
                     resize: "vertical",
                     minHeight: "120px",
                     maxHeight: "400px",
                   }}
                 />
-                {isContractsSubmitted && !contract.deskripsi && (
+                {isSubmitted && !contract.deskripsi && (
                   <p className="text-red-500 text-sm mt-1">
                     Deskripsi tidak boleh kosong
                   </p>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-4">
+
+              <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
                   <Label htmlFor={`jumlah_orang_${index}`}>
                     Jumlah Orang <span className="text-red-500">*</span>
@@ -598,25 +386,26 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                     min="1"
                     value={contract.jumlah_orang}
                     onChange={(e) =>
-                      handleContractInputChange(
+                      handleInputChange(
                         index,
                         "jumlah_orang",
                         parseInt(e.target.value)
                       )
                     }
                     className={
-                      isContractsSubmitted && !contract.jumlah_orang
+                      isSubmitted && !contract.jumlah_orang
                         ? "border-red-300"
                         : ""
                     }
-                    disabled={isContractsSaved && !isContractsEditMode}
+                    disabled={isSaved && !isEditMode}
                   />
-                  {isContractsSubmitted && !contract.jumlah_orang && (
+                  {isSubmitted && contract.jumlah_orang <= 0 && (
                     <p className="text-red-500 text-sm mt-1">
-                      Jumlah orang harus diberi nilai
+                      Jumlah orang harus lebih dari 0
                     </p>
                   )}
                 </div>
+
                 <div>
                   <Label htmlFor={`durasi_kontrak_${index}`}>
                     Durasi Kontrak (bulan){" "}
@@ -628,25 +417,26 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                     min="1"
                     value={contract.durasi_kontrak}
                     onChange={(e) =>
-                      handleContractInputChange(
+                      handleInputChange(
                         index,
                         "durasi_kontrak",
                         parseInt(e.target.value)
                       )
                     }
                     className={
-                      isContractsSubmitted && !contract.durasi_kontrak
+                      isSubmitted && !contract.durasi_kontrak
                         ? "border-red-300"
                         : ""
                     }
-                    disabled={isContractsSaved && !isContractsEditMode}
+                    disabled={isSaved && !isEditMode}
                   />
-                  {isContractsSubmitted && !contract.durasi_kontrak && (
+                  {isSubmitted && contract.durasi_kontrak <= 0 && (
                     <p className="text-red-500 text-sm mt-1">
-                      Durasi kontrak harus diberi nilai
+                      Durasi kontrak harus lebih dari 0
                     </p>
                   )}
                 </div>
+
                 <div>
                   <Label htmlFor={`nilai_kontral_awal_${index}`}>
                     Harga Sebelum Negosiasi{" "}
@@ -658,30 +448,26 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                     min="0"
                     value={contract.nilai_kontral_awal}
                     onChange={(e) =>
-                      handleContractInputChange(
+                      handleInputChange(
                         index,
                         "nilai_kontral_awal",
                         parseFloat(e.target.value)
                       )
                     }
                     className={
-                      isContractsSubmitted && !contract.nilai_kontral_awal
+                      isSubmitted && !contract.nilai_kontral_awal
                         ? "border-red-300"
                         : ""
                     }
-                    disabled={isContractsSaved && !isContractsEditMode}
+                    disabled={isSaved && !isEditMode}
                   />
                   {contract.nilai_kontral_awal > 0 && (
                     <p className="text-sm text-gray-500 mt-1">
                       {formatCurrency(contract.nilai_kontral_awal)}
                     </p>
                   )}
-                  {isContractsSubmitted && !contract.nilai_kontral_awal && (
-                    <p className="text-red-500 text-sm mt-1">
-                      Harga Sebelum Negosiasi harus diberi nilai
-                    </p>
-                  )}
                 </div>
+
                 <div>
                   <Label htmlFor={`nilai_kontrak_akhir_${index}`}>
                     Harga Setelah Negosiasi{" "}
@@ -693,44 +479,36 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                     min="0"
                     value={contract.nilai_kontrak_akhir}
                     onChange={(e) =>
-                      handleContractInputChange(
+                      handleInputChange(
                         index,
                         "nilai_kontrak_akhir",
                         parseFloat(e.target.value)
                       )
                     }
                     className={
-                      isContractsSubmitted && !contract.nilai_kontrak_akhir
+                      isSubmitted && !contract.nilai_kontrak_akhir
                         ? "border-red-300"
                         : ""
                     }
-                    disabled={isContractsSaved && !isContractsEditMode}
+                    disabled={isSaved && !isEditMode}
                   />
-                  {contract.nilai_kontral_awal > 0 && (
+                  {contract.nilai_kontrak_akhir > 0 && (
                     <p className="text-sm text-gray-500 mt-1">
                       {formatCurrency(contract.nilai_kontrak_akhir)}
-                    </p>
-                  )}
-                  {isContractsSubmitted && !contract.nilai_kontrak_akhir && (
-                    <p className="text-red-500 text-sm mt-1">
-                      Harga Setelah Negosiasi harus diberi nilai
                     </p>
                   )}
                 </div>
               </div>
             </div>
           ))}
+
           <div className="flex justify-between mt-6">
             <div className="flex space-x-4">
               <Button
-                onClick={
-                  isContractsSaved && !isContractsEditMode
-                    ? handleEditMode
-                    : handleContractsSubmit
-                }
-                variant={isContractsEditMode ? "secondary" : "default"}
+                onClick={isSaved && !isEditMode ? handleEditMode : handleSubmit}
+                variant={isEditMode ? "secondary" : "default"}
               >
-                {isContractsSaved && !isContractsEditMode ? (
+                {isSaved && !isEditMode ? (
                   <>
                     <Pencil className="w-4 h-4 mr-2" />
                     Edit
@@ -738,22 +516,26 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                 ) : (
                   <>
                     <Save className="w-4 h-4 mr-2" />
-                    {isContractsEditMode ? "Simpan Perubahan" : "Simpan"}
+                    {isEditMode ? "Simpan Perubahan" : "Simpan"}
                   </>
                 )}
               </Button>
-              <PrintContract
-                contractsData={contractsData.map((contract) => ({
-                  ...contract,
-                  jenis_kontrak: contractType,
-                }))}
-                documentData={documentData}  // Pastikan documentData memiliki nomor_kontrak
-                vendorData={vendorData}
-                officialData={officialData}
-                isContractsSaved={isContractsSaved}
-                isContractsEditMode={isContractsEditMode}
-                onError={setContractsError}
-              />
+
+              {/* Tambahkan PrintContract component */}
+              {documentData && vendorData && officialData.length > 0 && (
+                <PrintContract
+                  contractsData={contractsData.map((contract) => ({
+                    ...contract,
+                    jenis_kontrak: contractType,
+                  }))}
+                  documentData={documentData}
+                  vendorData={vendorData}
+                  officialData={officialData}
+                  isContractsSaved={isSaved}
+                  isContractsEditMode={isEditMode}
+                  onError={setError}
+                />
+              )}
             </div>
             <div className="flex space-x-4">
               <Button onClick={() => setCurrentStep(3)}>
