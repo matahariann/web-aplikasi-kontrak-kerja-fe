@@ -155,10 +155,7 @@ export default function RiwayatDokumen() {
       });
 
       const blob = await Packer.toBlob(doc);
-      const filename = `${response.document.paket_pekerjaan}_${format(
-        new Date(),
-        "ddMMyyyy"
-      )}.docx`;
+      const filename = `${response.document.paket_pekerjaan}.docx`;
       saveAs(blob, filename);
     } catch (error) {
       console.error("Error in handlePrint:", error);
