@@ -38,6 +38,13 @@ export interface Document {
   vendor?: {
     id: number;
     nama_vendor: string;
+    alamat_vendor: string;
+    nama_pj: string;
+    jabatan_pj: string;
+    npwp: string;
+    bank_vendor: string;
+    norek_vendor: string;
+    nama_rek_vendor: string;
   };
   officials?: Array<{
     id: number;

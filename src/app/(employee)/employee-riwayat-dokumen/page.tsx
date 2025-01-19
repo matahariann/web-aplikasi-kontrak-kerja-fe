@@ -75,41 +75,6 @@ export default function RiwayatDokumen() {
     fetchDocuments();
   }, []);
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       setIsLoading(true);
-  //       const data = await getData();
-  //       console.log("Fetched data:", data); // Debug log
-
-  //       if (Array.isArray(data)) {
-  //         setDocuments(data);
-  //         const uniqueYears = [
-  //           ...new Set(data.map((doc) => doc.tahun_anggaran)),
-  //         ]
-  //           .sort()
-  //           .reverse();
-  //         setYears(uniqueYears);
-  //       } else {
-  //         console.log("Received non-array data:", data); // Debug log
-  //         setDocuments([]);
-  //         setYears([]);
-  //       }
-  //     } catch (error) {
-  //       console.error("Fetch error:", error); // Debug log
-  //       setError(
-  //         error instanceof Error ? error.message : "Gagal mengambil data"
-  //       );
-  //       setDocuments([]);
-  //       setYears([]);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, []);
-
   const fetchDocuments = async () => {
     try {
       setIsLoading(true);
