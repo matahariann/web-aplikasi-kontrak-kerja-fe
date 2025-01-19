@@ -1,4 +1,4 @@
-import React, { Children, useState } from "react";
+import React, { useState } from "react";
 import {
   Document,
   Paragraph,
@@ -14,10 +14,6 @@ import {
   WidthType,
   LineRuleType,
   VerticalAlign,
-  // HorizontalPositionRelativeFrom,
-  // VerticalPositionRelativeFrom,
-  // TextWrappingType,
-  // TextWrappingSide,
 } from "docx";
 import { saveAs } from "file-saver";
 import {
@@ -43,7 +39,6 @@ import {
   completeForm,
   clearFormSession,
 } from "@/services/contract";
-import { after } from "node:test";
 
 interface GenerateDocumentProps {
   vendorData: VendorData;
@@ -192,9 +187,287 @@ export const generateContractDocument = async ({
     return lines;
   };
 
-  function convertInchesToTwip(inches) {
-    return inches * 1440;
-  }
+  const generateTabelKontrakAwal = (contractsData) => {
+    const tableRows = [];
+
+    // Header Row
+    tableRows.push(
+      new TableRow({
+        children: [
+          new TableCell({
+            children: [
+              new Paragraph({
+                spacing: { after: 200, before: 200 },
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({
+                    text: "No.",
+                    font: "Arial",
+                    size: 12 * 2,
+                    bold: true,
+                  }),
+                ],
+              }),
+            ],
+            width: { size: 500, type: WidthType.DXA },
+            verticalAlign: VerticalAlign.CENTER,
+            shading: { fill: "CCCCCC" },
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({
+                spacing: { after: 200, before: 200 },
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({
+                    text: "Deskripsi",
+                    font: "Arial",
+                    size: 12 * 2,
+                    bold: true,
+                  }),
+                ],
+              }),
+            ],
+            width: { size: 3500, type: WidthType.DXA },
+            verticalAlign: VerticalAlign.CENTER,
+            shading: { fill: "CCCCCC" },
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({
+                spacing: { after: 200, before: 200 },
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({
+                    text: "Qty",
+                    font: "Arial",
+                    size: 12 * 2,
+                    bold: true,
+                  }),
+                ],
+              }),
+            ],
+            columnSpan: 2,
+            width: { size: 1000, type: WidthType.DXA },
+            verticalAlign: VerticalAlign.CENTER,
+            shading: { fill: "CCCCCC" },
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({
+                spacing: { after: 200, before: 200 },
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({
+                    text: "Harga",
+                    font: "Arial",
+                    size: 12 * 2,
+                    bold: true,
+                  }),
+                ],
+              }),
+            ],
+            width: { size: 2500, type: WidthType.DXA },
+            verticalAlign: VerticalAlign.CENTER,
+            shading: { fill: "CCCCCC" },
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({
+                spacing: { after: 200, before: 200 },
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({
+                    text: "Jumlah",
+                    font: "Arial",
+                    size: 12 * 2,
+                    bold: true,
+                  }),
+                ],
+              }),
+            ],
+            width: { size: 2500, type: WidthType.DXA },
+            verticalAlign: VerticalAlign.CENTER,
+            shading: { fill: "CCCCCC" },
+          }),
+        ],
+        tableHeader: true,
+      })
+    );
+
+    // Title Row
+    tableRows.push(
+      new TableRow({
+        children: [
+          new TableCell({
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({
+                    text: "1",
+                    font: "Arial",
+                    size: 12 * 2,
+                  }),
+                ],
+              }),
+            ],
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.JUSTIFIED,
+                children: [
+                  new TextRun({
+                    text: `${documentData.paket_pekerjaan}, detail sbb :`,
+                    font: "Arial",
+                    size: 12 * 2,
+                  }),
+                ],
+              }),
+            ],
+            columnSpan: 5,
+          }),
+        ],
+      })
+    );
+
+    let grandTotal = 0;
+
+    // Contract Rows
+    contractsData.forEach((contract) => {
+      // Calculate jumlah for each contract
+      const jumlah =
+        contract.nilai_kontral_awal *
+        contract.jumlah_orang *
+        contract.durasi_kontrak;
+      grandTotal += jumlah;
+
+      tableRows.push(
+        new TableRow({
+          children: [
+            new TableCell({
+              children: [new Paragraph("")],
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.JUSTIFIED,
+                  children: [
+                    new TextRun({
+                      text: contract.deskripsi,
+                      font: "Arial",
+                      size: 12 * 2,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  children: [
+                    new TextRun({
+                      text: `${contract.jumlah_orang} org`,
+                      font: "Arial",
+                      size: 12 * 2,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  children: [
+                    new TextRun({
+                      text: `${contract.durasi_kontrak} bln`,
+                      font: "Arial",
+                      size: 12 * 2,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  children: [
+                    new TextRun({
+                      text: formatCurrency(contract.nilai_kontral_awal),
+                      font: "Arial",
+                      size: 12 * 2,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  spacing: {
+                    line: 360,
+                    lineRule: LineRuleType.AUTO,
+                  },
+                  children: [
+                    new TextRun({
+                      text: formatCurrency(jumlah),
+                      font: "Arial",
+                      size: 12 * 2,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        })
+      );
+    });
+
+    // Total Row
+    tableRows.push(
+      new TableRow({
+        children: [
+          new TableCell({
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({
+                    text: "Total",
+                    font: "Arial",
+                    size: 12 * 2,
+                    bold: true,
+                  }),
+                ],
+              }),
+            ],
+            columnSpan: 5,
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: formatCurrency(grandTotal),
+                    font: "Arial",
+                    size: 12 * 2,
+                    bold: true,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      })
+    );
+
+    return tableRows;
+  };
 
   try {
     // Ambil data gambar
@@ -423,6 +696,14 @@ export const generateContractDocument = async ({
             },
           },
         }),
+        new Paragraph({
+          spacing: { before: 100 },
+          children: [
+            new TextRun({
+              text: "",
+            }),
+          ],
+        }),
       ],
     });
 
@@ -468,7 +749,9 @@ export const generateContractDocument = async ({
       children: [
         new Paragraph({
           alignment: AlignmentType.CENTER,
-          spacing: { after: 400 },
+          spacing: {
+            after: 400,
+          },
           children: [
             new TextRun({
               text: "SURAT PERINTAH KERJA",
@@ -638,7 +921,11 @@ export const generateContractDocument = async ({
                   },
                   children: [
                     new Paragraph({
-                      spacing: { before: 200 },
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      alignment: AlignmentType.JUSTIFIED,
                       children: [
                         new TextRun({
                           text: "Nomor",
@@ -662,7 +949,10 @@ export const generateContractDocument = async ({
                   },
                   children: [
                     new Paragraph({
-                      spacing: { before: 200 },
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
                       alignment: AlignmentType.CENTER,
                       children: [
                         new TextRun({
@@ -687,12 +977,16 @@ export const generateContractDocument = async ({
                   },
                   children: [
                     new Paragraph({
-                      spacing: { before: 200 },
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      alignment: AlignmentType.JUSTIFIED,
                       children: [
                         new TextRun({
                           text: `${
                             documentData.nomor_kontrak
-                          }        Jakarta, ${formatDate(
+                          }\tJakarta, ${formatDate(
                             documentData.tanggal_kontrak
                           )}`,
                           size: 11 * 2,
@@ -715,6 +1009,11 @@ export const generateContractDocument = async ({
                   },
                   children: [
                     new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      alignment: AlignmentType.JUSTIFIED,
                       children: [
                         new TextRun({
                           text: "Sifat",
@@ -735,6 +1034,10 @@ export const generateContractDocument = async ({
                   children: [
                     new Paragraph({
                       alignment: AlignmentType.CENTER,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
                       children: [
                         new TextRun({
                           text: ":",
@@ -754,6 +1057,11 @@ export const generateContractDocument = async ({
                   },
                   children: [
                     new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      alignment: AlignmentType.JUSTIFIED,
                       children: [
                         new TextRun({
                           text: "Biasa",
@@ -777,6 +1085,11 @@ export const generateContractDocument = async ({
                   },
                   children: [
                     new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      alignment: AlignmentType.JUSTIFIED,
                       children: [
                         new TextRun({
                           text: "Lampiran",
@@ -797,6 +1110,10 @@ export const generateContractDocument = async ({
                   children: [
                     new Paragraph({
                       alignment: AlignmentType.CENTER,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
                       children: [
                         new TextRun({
                           text: ":",
@@ -816,6 +1133,11 @@ export const generateContractDocument = async ({
                   },
                   children: [
                     new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      alignment: AlignmentType.JUSTIFIED,
                       children: [
                         new TextRun({
                           text: "-",
@@ -839,6 +1161,11 @@ export const generateContractDocument = async ({
                   },
                   children: [
                     new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      alignment: AlignmentType.JUSTIFIED,
                       children: [
                         new TextRun({
                           text: "Hal",
@@ -859,6 +1186,10 @@ export const generateContractDocument = async ({
                   children: [
                     new Paragraph({
                       alignment: AlignmentType.CENTER,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
                       children: [
                         new TextRun({
                           text: ":",
@@ -878,6 +1209,11 @@ export const generateContractDocument = async ({
                   },
                   children: [
                     new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
                       children: [
                         new TextRun({
                           text: "Pelaksanaan Pekerjaan",
@@ -894,6 +1230,10 @@ export const generateContractDocument = async ({
         }),
         new Paragraph({
           alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
           children: [
             new TextRun({
               text: "Yth.",
@@ -904,6 +1244,10 @@ export const generateContractDocument = async ({
           ],
         }),
         new Paragraph({
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
           alignment: AlignmentType.JUSTIFIED,
           children: [
             new TextRun({
@@ -915,6 +1259,10 @@ export const generateContractDocument = async ({
         }),
         new Paragraph({
           alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
           children: [
             new TextRun({
               text: `Sekretariat${
@@ -927,6 +1275,10 @@ export const generateContractDocument = async ({
         }),
         new Paragraph({
           alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
           children: [
             new TextRun({
               text: "Kementrian Komunikasi dan informatika",
@@ -937,6 +1289,10 @@ export const generateContractDocument = async ({
         }),
         new Paragraph({
           alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
           children: [
             new TextRun({
               text: "di Jakarta",
@@ -948,7 +1304,7 @@ export const generateContractDocument = async ({
         new Paragraph({
           alignment: AlignmentType.JUSTIFIED,
           spacing: {
-            line: 360, // 240 adalah single space, jadi 360 untuk 1.5 spacing
+            line: 360,
             lineRule: LineRuleType.AUTO,
           },
           children: [
@@ -1028,7 +1384,11 @@ export const generateContractDocument = async ({
                   },
                   children: [
                     new Paragraph({
-                      spacing: { before: 200 },
+                      spacing: {
+                        before: 400,
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
                       alignment: AlignmentType.CENTER,
                       children: [
                         new TextRun({
@@ -1043,7 +1403,7 @@ export const generateContractDocument = async ({
                           break: 5,
                         }),
                         new TextRun({
-                          text: `${officialData[0].nip}`,
+                          text: `NIP. ${officialData[0].nip}`,
                           size: 12 * 2,
                           font: "Arial",
                           break: 1,
@@ -1075,7 +1435,10 @@ export const generateContractDocument = async ({
       },
       children: [
         new Paragraph({
-          spacing: { before: 200 },
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
           alignment: AlignmentType.CENTER,
           children: [
             new TextRun({
@@ -1088,6 +1451,10 @@ export const generateContractDocument = async ({
         }),
         new Paragraph({
           alignment: AlignmentType.CENTER,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
           children: [
             new TextRun({
               text: `NOMOR: ${documentData.nomor_hps}`,
@@ -1099,6 +1466,10 @@ export const generateContractDocument = async ({
         }),
         new Paragraph({
           alignment: AlignmentType.CENTER,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
           children: [
             new TextRun({
               text: `${documentData.paket_pekerjaan.toUpperCase()}`,
@@ -1110,8 +1481,12 @@ export const generateContractDocument = async ({
           ],
         }),
         new Paragraph({
-          spacing: { after: 200 },
           alignment: AlignmentType.CENTER,
+          spacing: {
+            after: 400,
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
           children: [
             new TextRun({
               text: `Pelaksanaan pekerjaan: ${formatDate(
@@ -1124,349 +1499,112 @@ export const generateContractDocument = async ({
           ],
         }),
         new Table({
+          width: { size: 9750, type: WidthType.DXA },
+          rows: generateTabelKontrakAwal(contractsData),
+        }),
+        new Paragraph({
+          alignment: AlignmentType.LEFT,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "* Harga sudah termasuk pajak-pajak yang berlaku",
+              font: "Arial",
+              size: 12 * 2,
+              bold: true,
+            }),
+          ],
+        }),
+        new Table({
           width: {
             size: 9750,
             type: WidthType.DXA,
           },
+          borders: {
+            top: { style: BorderStyle.NONE, size: 0 },
+            bottom: { style: BorderStyle.NONE, size: 0 },
+            left: { style: BorderStyle.NONE, size: 0 },
+            right: { style: BorderStyle.NONE, size: 0 },
+            insideHorizontal: { style: BorderStyle.NONE, size: 0 },
+            insideVertical: { style: BorderStyle.NONE, size: 0 },
+          },
           rows: [
-            // Header Row dengan subkolom Qty
             new TableRow({
               children: [
                 new TableCell({
-                  children: [
-                    new Paragraph({
-                      spacing: { after: 100, before: 100 },
-                      alignment: AlignmentType.CENTER,
-                      children: [
-                        new TextRun({
-                          text: "No.",
-                          font: "Arial",
-                          size: 11 * 2,
-                          bold: true,
-                        }),
-                      ],
-                    }),
-                  ],
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
                   width: {
-                    size: 500,
+                    size: 4500,
                     type: WidthType.DXA,
                   },
-                  verticalAlign: VerticalAlign.CENTER,
-                  shading: {
-                    fill: "CCCCCC",
-                  },
-                }),
-                new TableCell({
                   children: [
                     new Paragraph({
-                      spacing: { after: 100, before: 100 },
-                      alignment: AlignmentType.CENTER,
+                      spacing: { before: 200 },
                       children: [
                         new TextRun({
-                          text: "Deskripsi",
+                          text: "",
+                          size: 12 * 2,
                           font: "Arial",
-                          size: 11 * 2,
-                          bold: true,
                         }),
                       ],
                     }),
                   ],
+                }),
+                new TableCell({
                   width: {
-                    size: 3500,
+                    size: 5250,
                     type: WidthType.DXA,
                   },
-                  verticalAlign: VerticalAlign.CENTER,
-                  shading: {
-                    fill: "CCCCCC",
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
                   },
-                }),
-                new TableCell({
                   children: [
                     new Paragraph({
-                      spacing: { after: 100, before: 100 },
+                      spacing: {
+                        before: 400,
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
                       alignment: AlignmentType.CENTER,
                       children: [
                         new TextRun({
-                          text: "Qty",
+                          text: `Jakarta, ${formatDate(
+                            documentData.tanggal_hps
+                          )}`,
+                          size: 12 * 2,
                           font: "Arial",
-                          size: 11 * 2,
-                          bold: true,
                         }),
-                      ],
-                    }),
-                  ],
-                  columnSpan: 2,
-                  width: {
-                    size: 1000,
-                    type: WidthType.DXA,
-                  },
-                  verticalAlign: VerticalAlign.CENTER,
-                  shading: {
-                    fill: "CCCCCC",
-                  },
-                }),
-                new TableCell({
-                  children: [
-                    new Paragraph({
-                      spacing: { after: 100, before: 100 },
-                      alignment: AlignmentType.CENTER,
-                      children: [
                         new TextRun({
-                          text: "Harga",
+                          text: `${officialData[0].jabatan}`,
+                          size: 12 * 2,
                           font: "Arial",
-                          size: 11 * 2,
-                          bold: true,
+                          break: 1,
                         }),
-                      ],
-                    }),
-                  ],
-                  width: {
-                    size: 2500,
-                    type: WidthType.DXA,
-                  },
-                  verticalAlign: VerticalAlign.CENTER,
-                  shading: {
-                    fill: "CCCCCC",
-                  },
-                }),
-                new TableCell({
-                  children: [
-                    new Paragraph({
-                      spacing: { after: 100, before: 100 },
-                      alignment: AlignmentType.CENTER,
-                      children: [
                         new TextRun({
-                          text: "Jumlah",
+                          text: `${officialData[0].nama}`,
+                          size: 12 * 2,
                           font: "Arial",
-                          size: 11 * 2,
-                          bold: true,
+                          break: 5,
                         }),
-                      ],
-                    }),
-                  ],
-                  width: {
-                    size: 2500,
-                    type: WidthType.DXA,
-                  },
-                  verticalAlign: VerticalAlign.CENTER,
-                  shading: {
-                    fill: "CCCCCC",
-                  },
-                }),
-              ],
-              tableHeader: true,
-            }),
-            // Row 1
-            new TableRow({
-              children: [
-                new TableCell({
-                  children: [
-                    new Paragraph({
-                      alignment: AlignmentType.CENTER,
-                      children: [
                         new TextRun({
-                          text: "1",
+                          text: `NIP. ${officialData[0].nip}`,
+                          size: 12 * 2,
                           font: "Arial",
-                          size: 11 * 2,
+                          break: 1,
                         }),
                       ],
                     }),
                   ],
-                }),
-                new TableCell({
-                  children: [
-                    new Paragraph({
-                      alignment: AlignmentType.LEFT,
-                      children: [
-                        new TextRun({
-                          text: "Penyusunan Dokumen Analisa Jabatan & Informasi Faktor Jabatan Fungsional Penata Kelola Informatika SPBE, detail sbb :",
-                          font: "Arial",
-                          size: 11 * 2,
-                        }),
-                      ],
-                    }),
-                  ],
-                }),
-                new TableCell({
-                  children: [new Paragraph("")],
-                  columnSpan: 2,
-                }),
-                new TableCell({
-                  children: [new Paragraph("")],
-                }),
-                new TableCell({
-                  children: [new Paragraph("")],
-                }),
-              ],
-            }),
-            // Row for Tenaga Ahli Utama
-            new TableRow({
-              children: [
-                new TableCell({
-                  children: [new Paragraph("")],
-                }),
-                new TableCell({
-                  children: [
-                    new Paragraph({
-                      alignment: AlignmentType.LEFT,
-                      children: [
-                        new TextRun({
-                          text: "- Tenaga Ahli Utama",
-                          font: "Arial",
-                          size: 11 * 2,
-                        }),
-                      ],
-                    }),
-                    new Paragraph({
-                      alignment: AlignmentType.LEFT,
-                      children: [
-                        new TextRun({
-                          text: "Kualifikasi:",
-                          font: "Arial",
-                          size: 11 * 2,
-                        }),
-                      ],
-                    }),
-                    new Paragraph({
-                      alignment: AlignmentType.LEFT,
-                      children: [
-                        new TextRun({
-                          text: "S2 Psikologi/Manajemen/Hukum, Minimal 5 Tahun pengalaman kerja Pengalaman Bidang Manajemen",
-                          font: "Arial",
-                          size: 11 * 2,
-                        }),
-                      ],
-                    }),
-                  ],
-                }),
-                new TableCell({
-                  children: [
-                    new Paragraph({
-                      alignment: AlignmentType.CENTER,
-                      children: [
-                        new TextRun({
-                          text: "1 org",
-                          font: "Arial",
-                          size: 11 * 2,
-                        }),
-                      ],
-                    }),
-                  ],
-                }),
-                new TableCell({
-                  children: [
-                    new Paragraph({
-                      alignment: AlignmentType.CENTER,
-                      children: [
-                        new TextRun({
-                          text: "2 bln",
-                          font: "Arial",
-                          size: 11 * 2,
-                        }),
-                      ],
-                    }),
-                  ],
-                }),
-                new TableCell({
-                  children: [
-                    new Paragraph({
-                      alignment: AlignmentType.CENTER,
-                      children: [
-                        new TextRun({
-                          text: "Rp 16.500.000",
-                          font: "Arial",
-                          size: 11 * 2,
-                        }),
-                      ],
-                    }),
-                  ],
-                }),
-                new TableCell({
-                  children: [
-                    new Paragraph({
-                      alignment: AlignmentType.CENTER,
-                      children: [
-                        new TextRun({
-                          text: "Rp 33.000.000",
-                          font: "Arial",
-                          size: 11 * 2,
-                        }),
-                      ],
-                    }),
-                  ],
-                }),
-              ],
-            }),
-            // Row for Konsultan
-            new TableRow({
-              children: [
-                new TableCell({
-                  children: [new Paragraph("")],
-                }),
-                new TableCell({
-                  children: [
-                    new Paragraph(
-                      "Konsultan Manajemen Strategi dan Organisasi"
-                    ),
-                    new Paragraph("Kualifikasi:"),
-                    new Paragraph(
-                      "Pendidikan S1 Bidang Ekonomi/Bidang manajemen/Administrasi Negara/sejenis"
-                    ),
-                    new Paragraph(
-                      "Pengalaman min. 2 tahun di bidang manajemen strategi atau organisasi"
-                    ),
-                  ],
-                }),
-                new TableCell({
-                  children: [new Paragraph("2")],
-                }),
-                new TableCell({
-                  children: [new Paragraph("2")],
-                }),
-                new TableCell({
-                  children: [new Paragraph("Rp 11.500.000")],
-                }),
-                new TableCell({
-                  children: [new Paragraph("Rp 46.000.000")],
-                }),
-              ],
-            }),
-            // Row for Administrasi
-            new TableRow({
-              children: [
-                new TableCell({
-                  children: [new Paragraph("")],
-                }),
-                new TableCell({
-                  children: [
-                    new Paragraph("-Administrasi/Fasilitator"),
-                    new Paragraph("Kualifikasi:"),
-                    new Paragraph("- Pendidikan S1 Bidang semua jurusan"),
-                  ],
-                }),
-                new TableCell({
-                  children: [new Paragraph("2")],
-                }),
-                new TableCell({
-                  children: [new Paragraph("2")],
-                }),
-                new TableCell({
-                  children: [new Paragraph("Rp 5.000.000")],
-                }),
-                new TableCell({
-                  children: [new Paragraph("Rp 20.000.000")],
-                }),
-              ],
-            }),
-            // Total Row dengan merged cells
-            new TableRow({
-              children: [
-                new TableCell({
-                  children: [new Paragraph("Total")],
-                  columnSpan: 5,
-                }),
-                new TableCell({
-                  children: [new Paragraph("Rp 99.000.000,00")],
                 }),
               ],
             }),
@@ -1475,276 +1613,1850 @@ export const generateContractDocument = async ({
       ],
     };
 
-    // const halaman3 = {
-    //   properties: {
-    //     page: {
-    //       margin: {
-    //         top: 1440,
-    //         right: 1080,
-    //         bottom: 1440,
-    //         left: 1080,
-    //       },
-    //     },
-    //   },
-    //   headers: {
-    //     default: documentHeader,
-    //   },
-    //   children: [
-    //     new Table({
-    //       width: {
-    //         size: 9750,
-    //         type: WidthType.DXA,
-    //       },
-    //       rows: [
-    //         new TableRow({
-    //           children: [
-    //             new TableCell({
-    //               borders: {
-    //                 top: { style: BorderStyle.NONE, size: 0 },
-    //                 bottom: { style: BorderStyle.NONE, size: 0 },
-    //                 left: { style: BorderStyle.NONE, size: 0 },
-    //                 right: { style: BorderStyle.NONE, size: 0 },
-    //               },
-    //               width: {
-    //                 size: 1000,
-    //                 type: WidthType.DXA,
-    //               },
-    //               children: [
-    //                 new Paragraph({
-    //                   spacing: { before: 200 },
-    //                   children: [
-    //                     new TextRun({
-    //                       text: "Nomor",
-    //                       size: 11 * 2,
-    //                       font: "Arial",
-    //                     }),
-    //                   ],
-    //                 }),
-    //               ],
-    //             }),
-    //             new TableCell({
-    //               borders: {
-    //                 top: { style: BorderStyle.NONE, size: 0 },
-    //                 bottom: { style: BorderStyle.NONE, size: 0 },
-    //                 left: { style: BorderStyle.NONE, size: 0 },
-    //                 right: { style: BorderStyle.NONE, size: 0 },
-    //               },
-    //               width: {
-    //                 size: 500,
-    //                 type: WidthType.DXA,
-    //               },
-    //               children: [
-    //                 new Paragraph({
-    //                   spacing: { before: 200 },
-    //                   alignment: AlignmentType.CENTER,
-    //                   children: [
-    //                     new TextRun({
-    //                       text: ":",
-    //                       size: 11 * 2,
-    //                       font: "Arial",
-    //                     }),
-    //                   ],
-    //                 }),
-    //               ],
-    //             }),
-    //             new TableCell({
-    //               width: {
-    //                 size: 8250,
-    //                 type: WidthType.DXA,
-    //               },
-    //               borders: {
-    //                 top: { style: BorderStyle.NONE, size: 0 },
-    //                 bottom: { style: BorderStyle.NONE, size: 0 },
-    //                 left: { style: BorderStyle.NONE, size: 0 },
-    //                 right: { style: BorderStyle.NONE, size: 0 },
-    //               },
-    //               children: [
-    //                 new Paragraph({
-    //                   spacing: { before: 200 },
-    //                   children: [
-    //                     new TextRun({
-    //                       text: `${
-    //                         documentData.nomor_kontrak
-    //                       }        Jakarta, ${formatDate(
-    //                         documentData.tanggal_kontrak
-    //                       )}`,
-    //                       size: 11 * 2,
-    //                       font: "Arial",
-    //                     }),
-    //                   ],
-    //                 }),
-    //               ],
-    //             }),
-    //           ],
-    //         }),
-    //       ],
-    //     }),
-    //     new Paragraph({
-    //       alignment: AlignmentType.JUSTIFIED,
-    //       children: [
-    //         new TextRun({
-    //           text: "Yth.",
-    //           font: "Arial",
-    //           size: 12 * 2,
-    //           break: 1,
-    //         }),
-    //       ],
-    //     }),
-    //     new Paragraph({
-    //       alignment: AlignmentType.JUSTIFIED,
-    //       children: [
-    //         new TextRun({
-    //           text: `Sdr. ${officialData[1].jabatan.split("Sekretariat")[0]},`,
-    //           font: "Arial",
-    //           size: 12 * 2,
-    //         }),
-    //       ],
-    //     }),
-    //     new Paragraph({
-    //       alignment: AlignmentType.JUSTIFIED,
-    //       children: [
-    //         new TextRun({
-    //           text: `Sekretariat${
-    //             officialData[1].jabatan.split("Sekretariat")[1]
-    //           }`,
-    //           font: "Arial",
-    //           size: 12 * 2,
-    //         }),
-    //       ],
-    //     }),
-    //     new Paragraph({
-    //       alignment: AlignmentType.JUSTIFIED,
-    //       children: [
-    //         new TextRun({
-    //           text: "Kementrian Komunikasi dan informatika",
-    //           font: "Arial",
-    //           size: 12 * 2,
-    //         }),
-    //       ],
-    //     }),
-    //     new Paragraph({
-    //       alignment: AlignmentType.JUSTIFIED,
-    //       children: [
-    //         new TextRun({
-    //           text: "di Jakarta",
-    //           font: "Arial",
-    //           size: 12 * 2,
-    //         }),
-    //       ],
-    //     }),
-    //     new Paragraph({
-    //       alignment: AlignmentType.JUSTIFIED,
-    //       spacing: {
-    //         line: 360, // 240 adalah single space, jadi 360 untuk 1.5 spacing
-    //         lineRule: LineRuleType.AUTO,
-    //       },
-    //       children: [
-    //         new TextRun({
-    //           text: `\tSehubungan dengan akan dilaksanakan ${documentData.paket_pekerjaan}, Tahun Anggaran ${documentData.tahun_anggaran}, dengan ini diharapkan agar Saudara segera melaksanakan proses pengadaan pekerjaan dimaksud sesuai dengan ketentuan Peraturan Presiden RI No. 54 Tahun 2010 tentang Pengadaan Barang/Jasa Pemerintah, yang terakhir diubah dengan Peraturan Presiden RI No.16 Tahun 2018, serta peraturan perundang-undangan yang berlaku.`,
-    //           font: "Arial",
-    //           size: 12 * 2,
-    //           break: 1,
-    //         }),
-    //       ],
-    //     }),
-    //     new Paragraph({
-    //       alignment: AlignmentType.JUSTIFIED,
-    //       spacing: {
-    //         line: 360,
-    //         lineRule: LineRuleType.AUTO,
-    //         after: 200,
-    //       },
-    //       children: [
-    //         new TextRun({
-    //           text: "\tDemikian hal ini kami sampaikan, atas perhatian dan kerjasama Saudara diucapkan terima kasih.",
-    //           font: "Arial",
-    //           size: 12 * 2,
-    //         }),
-    //       ],
-    //     }),
-    //     new Table({
-    //       width: {
-    //         size: 9750,
-    //         type: WidthType.DXA,
-    //       },
-    //       borders: {
-    //         top: { style: BorderStyle.NONE, size: 0 },
-    //         bottom: { style: BorderStyle.NONE, size: 0 },
-    //         left: { style: BorderStyle.NONE, size: 0 },
-    //         right: { style: BorderStyle.NONE, size: 0 },
-    //         insideHorizontal: { style: BorderStyle.NONE, size: 0 },
-    //         insideVertical: { style: BorderStyle.NONE, size: 0 },
-    //       },
-    //       rows: [
-    //         new TableRow({
-    //           children: [
-    //             new TableCell({
-    //               borders: {
-    //                 top: { style: BorderStyle.NONE, size: 0 },
-    //                 bottom: { style: BorderStyle.NONE, size: 0 },
-    //                 left: { style: BorderStyle.NONE, size: 0 },
-    //                 right: { style: BorderStyle.NONE, size: 0 },
-    //               },
-    //               width: {
-    //                 size: 4500,
-    //                 type: WidthType.DXA,
-    //               },
-    //               children: [
-    //                 new Paragraph({
-    //                   spacing: { before: 200 },
-    //                   children: [
-    //                     new TextRun({
-    //                       text: "",
-    //                       size: 12 * 2,
-    //                       font: "Arial",
-    //                     }),
-    //                   ],
-    //                 }),
-    //               ],
-    //             }),
-    //             new TableCell({
-    //               width: {
-    //                 size: 5250,
-    //                 type: WidthType.DXA,
-    //               },
-    //               borders: {
-    //                 top: { style: BorderStyle.NONE, size: 0 },
-    //                 bottom: { style: BorderStyle.NONE, size: 0 },
-    //                 left: { style: BorderStyle.NONE, size: 0 },
-    //                 right: { style: BorderStyle.NONE, size: 0 },
-    //               },
-    //               children: [
-    //                 new Paragraph({
-    //                   spacing: { before: 200 },
-    //                   alignment: AlignmentType.CENTER,
-    //                   children: [
-    //                     new TextRun({
-    //                       text: `${officialData[0].jabatan}`,
-    //                       size: 12 * 2,
-    //                       font: "Arial",
-    //                     }),
-    //                     new TextRun({
-    //                       text: `${officialData[0].nama}`,
-    //                       size: 12 * 2,
-    //                       font: "Arial",
-    //                       break: 5,
-    //                     }),
-    //                     new TextRun({
-    //                       text: `${officialData[0].nip}`,
-    //                       size: 12 * 2,
-    //                       font: "Arial",
-    //                       break: 1,
-    //                     }),
-    //                   ],
-    //                 }),
-    //               ],
-    //             }),
-    //           ],
-    //         }),
-    //       ],
-    //     }),
-    //   ],
-    // };
+    const halaman3 = {
+      properties: {
+        page: {
+          margin: {
+            top: 1440,
+            right: 1080,
+            bottom: 1440,
+            left: 1080,
+          },
+        },
+      },
+      headers: {
+        default: documentHeader,
+      },
+      children: [
+        new Table({
+          width: {
+            size: 9750,
+            type: WidthType.DXA,
+          },
+          borders: {
+            top: { style: BorderStyle.NONE, size: 0 },
+            bottom: { style: BorderStyle.NONE, size: 0 },
+            left: { style: BorderStyle.NONE, size: 0 },
+            right: { style: BorderStyle.NONE, size: 0 },
+            insideHorizontal: { style: BorderStyle.NONE, size: 0 },
+            insideVertical: { style: BorderStyle.NONE, size: 0 },
+          },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  width: {
+                    size: 1000,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Nomor",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  width: {
+                    size: 500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 8250,
+                    type: WidthType.DXA,
+                  },
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: `${
+                            documentData.nomor_pph1
+                          }        Jakarta, ${formatDate(
+                            documentData.tanggal_pph1
+                          )}`,
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Sifat",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Biasa",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Lampiran",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "-",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Hal",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Permintaan Penawaran Harga",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "Yth.",
+              font: "Arial",
+              size: 12 * 2,
+              break: 1,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "Sdr. Pimpinan",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: `${vendorData.nama_vendor}`,
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: `${vendorData.alamat_vendor}`,
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: `\tDalam rangka ${documentData.paket_pekerjaan}, Tahun Anggaran ${documentData.tahun_anggaran}. Dengan ini kami minta kesediaan saudara untuk mengajukan penawaran harga, dengan spesifikasi sebagai berikut:`,
+              font: "Arial",
+              size: 12 * 2,
+              break: 1,
+            }),
+          ],
+        }),
+        new Table({
+          width: { size: 9750, type: WidthType.DXA },
+          rows: generateTabelKontrakAwal(contractsData),
+        }),
+        new Paragraph({
+          alignment: AlignmentType.LEFT,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "* Harga sudah termasuk pajak-pajak yang berlaku",
+              font: "Arial",
+              size: 12 * 2,
+              bold: true,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "\tPenawaran harga disampaikan kepada Pejabat Pengadaan Barang/Jasa Sekretariat Ditjen. Aplikasi Informatika Lantai III Kantor Kementerian Komunikasi dan Informatika Jl. Medan Merdeka Barat No.9 Jakarta Pusat 10110, dengan ketentuan sebagai berikut:",
+              font: "Arial",
+              size: 12 * 2,
+              break: 1,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          numbering: {
+            reference: "pph-numbering",
+            level: 0,
+          },
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "Surat penawaran harga dibuat rangkap 2 (dua), asli bermaterai Rp.10.000,",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          numbering: {
+            reference: "pph-numbering",
+            level: 0,
+          },
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "Surat penawaran harga selambat-lambatnya sudah kami terima 7 (tujuh) hari kalender terhitung sejak tanggal surat permintaan ini.",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          numbering: {
+            reference: "pph-numbering",
+            level: 0,
+          },
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "Apabila surat penawaran harga Saudara kami terima/setuju, maka Surat Perintah Kerja akan segera kami lakukan kepada Saudara.",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          numbering: {
+            reference: "pph-numbering",
+            level: 0,
+          },
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "Surat penawaran dilampiri Fotocopy: Akte pendirian perusahaan, SIUP, NPWP, Rekening Koran/Referensi Bank",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "Demikian disampaikan, atas perhatian Saudara diucapkan terima kasih.",
+              font: "Arial",
+              size: 12 * 2,
+              break: 1,
+            }),
+          ],
+        }),
+        new Table({
+          width: {
+            size: 9750,
+            type: WidthType.DXA,
+          },
+          borders: {
+            top: { style: BorderStyle.NONE, size: 0 },
+            bottom: { style: BorderStyle.NONE, size: 0 },
+            left: { style: BorderStyle.NONE, size: 0 },
+            right: { style: BorderStyle.NONE, size: 0 },
+            insideHorizontal: { style: BorderStyle.NONE, size: 0 },
+            insideVertical: { style: BorderStyle.NONE, size: 0 },
+          },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  width: {
+                    size: 4500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 200 },
+                      children: [
+                        new TextRun({
+                          text: "",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 5250,
+                    type: WidthType.DXA,
+                  },
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: {
+                        before: 400,
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: `${officialData[1].jabatan}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                        new TextRun({
+                          text: `${officialData[1].nama}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                          break: 5,
+                        }),
+                        new TextRun({
+                          text: `NIP. ${officialData[1].nip}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                          break: 1,
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+      ],
+    };
+
+    const halaman4 = {
+      properties: {
+        page: {
+          margin: {
+            top: 1440,
+            right: 1080,
+            bottom: 1440,
+            left: 1080,
+          },
+        },
+      },
+      headers: {
+        default: documentHeader,
+      },
+      children: [
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "PAKTA INTEGRITAS",
+              font: "Arial",
+              size: 16 * 2,
+              bold: true,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: `\tSaya yang bertanda tangan dibawah ini, dalam rangka ${documentData.paket_pekerjaan}, Tahun Anggaran ${documentData.tahun_anggaran}, dengan ini menyatakan bahwa saya:`,
+              font: "Arial",
+              size: 12 * 2,
+              break: 1,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          numbering: {
+            reference: "pakta-numbering",
+            level: 0,
+          },
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "Tidak akan melakukan praktek KKN;",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          numbering: {
+            reference: "pakta-numbering",
+            level: 0,
+          },
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "Akan melaporkan kepada pihak yang berwajib/berwenang apabila mengetahui ada indikasi KKN di dalam proses pengadaan ini;",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          numbering: {
+            reference: "pakta-numbering",
+            level: 0,
+          },
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "Dalam proses pengadaan ini, berjanji akan melaksanakan tugas secara bersih, transparan, dan professional dalam arti akan mengerahkan segala kemampuan dan sumber daya secara optimal untuk memberikan hasil kerja terbaik mulai dari penyiapan penawaran, pelaksanaan, dan penyelesaian pekerjaan/kegiatan ini;",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          numbering: {
+            reference: "pakta-numbering",
+            level: 0,
+          },
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "Dalam proses pengadaan ini, berjanji akan melaksanakan tugas secara bersih, transparan, dan professional dalam arti akan mengerahkan segala kemampuan dan sumber daya secara optimal untuk memberikan hasil kerja terbaik mulai dari penyiapan penawaran, pelaksanaan, dan penyelesaian pekerjaan/kegiatan ini;",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: `Jakarta, ${formatDate(documentData.tanggal_pph1)}`,
+              font: "Arial",
+              size: 12 * 2,
+              break: 1,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Table({
+          width: {
+            size: 9750,
+            type: WidthType.DXA,
+          },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: {
+                    size: 500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 400, after: 400 },
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: "1",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 4500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 400, after: 400 },
+                      children: [
+                        new TextRun({
+                          text: "Pejabat Pembuat Komitmen",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 3500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 400, after: 400 },
+                      children: [
+                        new TextRun({
+                          text: `${officialData[0].nama}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 1250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 400, after: 400 },
+                      children: [
+                        new TextRun({
+                          text: "",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: {
+                    size: 500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 400, after: 400 },
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: "2",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 4500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 400, after: 400 },
+                      children: [
+                        new TextRun({
+                          text: "Pejabat Pengadaan",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 3500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 400, after: 400 },
+                      children: [
+                        new TextRun({
+                          text: `${officialData[1].nama}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 1250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 400, after: 400 },
+                      children: [
+                        new TextRun({
+                          text: "",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: {
+                    size: 500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 400, after: 400 },
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: "3",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 4500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 400, after: 400 },
+                      children: [
+                        new TextRun({
+                          text: `${vendorData.nama_vendor}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 3500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 400, after: 400 },
+                      children: [
+                        new TextRun({
+                          text: `${vendorData.nama_pj}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 1250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 400, after: 400 },
+                      children: [
+                        new TextRun({
+                          text: "",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+      ],
+    };
+
+    const halaman5 = {
+      properties: {
+        page: {
+          margin: {
+            top: 1440,
+            right: 1080,
+            bottom: 1440,
+            left: 1080,
+          },
+        },
+      },
+      headers: {
+        default: documentHeader,
+      },
+      children: [
+        new Table({
+          width: {
+            size: 9750,
+            type: WidthType.DXA,
+          },
+          borders: {
+            top: { style: BorderStyle.NONE, size: 0 },
+            bottom: { style: BorderStyle.NONE, size: 0 },
+            left: { style: BorderStyle.NONE, size: 0 },
+            right: { style: BorderStyle.NONE, size: 0 },
+            insideHorizontal: { style: BorderStyle.NONE, size: 0 },
+            insideVertical: { style: BorderStyle.NONE, size: 0 },
+          },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  width: {
+                    size: 1000,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Nomor",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  width: {
+                    size: 500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 8250,
+                    type: WidthType.DXA,
+                  },
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: `${
+                            documentData.nomor_ukn
+                          }        Jakarta, ${formatDate(
+                            documentData.tanggal_ukn
+                          )}`,
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Sifat",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Biasa",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Lampiran",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "-",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Hal",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Undangan Klarifikasi dan Negosiasi",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "Yth.",
+              font: "Arial",
+              size: 12 * 2,
+              break: 1,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "Sdr. Pimpinan",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: `${vendorData.nama_vendor}`,
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: `${vendorData.alamat_vendor}`,
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: `\tBersama ini diharapkan kehadiran Saudara dalam rapat Evaluasi, Klarifikasi dan Negosiasi Harga atas penawaran yang telah disampaikan kepada kami ${documentData.paket_pekerjaan}, Tahun Anggaran ${documentData.tahun_anggaran}, pada:`,
+              font: "Arial",
+              size: 12 * 2,
+              break: 1,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Table({
+          width: {
+            size: 9750,
+            type: WidthType.DXA,
+          },
+          borders: {
+            top: { style: BorderStyle.NONE, size: 0 },
+            bottom: { style: BorderStyle.NONE, size: 0 },
+            left: { style: BorderStyle.NONE, size: 0 },
+            right: { style: BorderStyle.NONE, size: 0 },
+            insideHorizontal: { style: BorderStyle.NONE, size: 0 },
+            insideVertical: { style: BorderStyle.NONE, size: 0 },
+          },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: {
+                    size: 1500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Hari/Tanggal",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 7750,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: `${new Date(
+                            documentData.tanggal_ukn
+                          ).toLocaleDateString("id-ID", {
+                            weekday: "long",
+                          })}, ${formatDate(documentData.tanggal_ukn)}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: {
+                    size: 1500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Pukul",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 7750,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "10.00 - selesai.",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: {
+                    size: 1500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Tempat",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 7750,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Ruang Rapat Ditjen Aplikasi Informatika Lantai III, Jl. Merdeka Barat No.9 Jakarta Pusat",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: {
+                    size: 1500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Acara",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 7750,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      spacing: {
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Evaluasi, Klarifikasi dan Negosiasi Harga",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+
+        new Paragraph({
+          alignment: AlignmentType.LEFT,
+          spacing: {
+            line: 360,
+            lineRule: LineRuleType.AUTO,
+          },
+          children: [
+            new TextRun({
+              text: "Demikian disampaikan, atas perhatiannya diucapkan terimakasih",
+              font: "Arial",
+              size: 12 * 2,
+              break: 1,
+            }),
+          ],
+        }),
+        new Table({
+          width: {
+            size: 9750,
+            type: WidthType.DXA,
+          },
+          borders: {
+            top: { style: BorderStyle.NONE, size: 0 },
+            bottom: { style: BorderStyle.NONE, size: 0 },
+            left: { style: BorderStyle.NONE, size: 0 },
+            right: { style: BorderStyle.NONE, size: 0 },
+            insideHorizontal: { style: BorderStyle.NONE, size: 0 },
+            insideVertical: { style: BorderStyle.NONE, size: 0 },
+          },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  width: {
+                    size: 4500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 200 },
+                      children: [
+                        new TextRun({
+                          text: "",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 5250,
+                    type: WidthType.DXA,
+                  },
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: {
+                        before: 400,
+                        line: 360,
+                        lineRule: LineRuleType.AUTO,
+                      },
+                      children: [
+                        new TextRun({
+                          text: `${officialData[1].jabatan}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                        new TextRun({
+                          text: `${officialData[1].nama}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                          break: 4,
+                        }),
+                        new TextRun({
+                          text: `NIP. ${officialData[1].nip}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                          break: 1,
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+      ],
+    };
 
     const contentPage = {
       properties: {
@@ -1769,7 +3481,59 @@ export const generateContractDocument = async ({
     };
 
     const doc = new Document({
-      sections: [coverPage, halaman1, halaman2, contentPage],
+      numbering: {
+        config: [
+          {
+            reference: "pph-numbering", // Numbering pertama
+            levels: [
+              {
+                level: 0,
+                format: "decimal",
+                text: "%1.",
+                alignment: AlignmentType.START,
+                style: {
+                  paragraph: {
+                    indent: { left: 360, hanging: 360 },
+                  },
+                  run: {
+                    font: "Arial",
+                    size: 24,
+                  },
+                },
+              },
+            ],
+          },
+          {
+            reference: "pakta-numbering", // Numbering kedua
+            levels: [
+              {
+                level: 0,
+                format: "decimal",
+                text: "%1.",
+                alignment: AlignmentType.START,
+                style: {
+                  paragraph: {
+                    indent: { left: 360, hanging: 360 },
+                  },
+                  run: {
+                    font: "Arial",
+                    size: 24,
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      sections: [
+        coverPage,
+        halaman1,
+        halaman2,
+        halaman3,
+        halaman4,
+        halaman5,
+        contentPage,
+      ],
     });
 
     return doc;
