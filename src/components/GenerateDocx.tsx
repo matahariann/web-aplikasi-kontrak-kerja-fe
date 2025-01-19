@@ -159,6 +159,46 @@ export const generateContractDocument = async ({
     });
   };
 
+  const numberToWords = (num: number): string => {
+    const units = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam', 'Tujuh', 'Delapan', 'Sembilan', 'Sepuluh',
+                  'Sebelas', 'Dua Belas', 'Tiga Belas', 'Empat Belas', 'Lima Belas', 'Enam Belas',
+                  'Tujuh Belas', 'Delapan Belas', 'Sembilan Belas'];
+    const tens = ['', '', 'Dua Puluh', 'Tiga Puluh', 'Empat Puluh', 'Lima Puluh',
+                  'Enam Puluh', 'Tujuh Puluh', 'Delapan Puluh', 'Sembilan Puluh'];
+  
+    if (num === 0) return 'Nol';
+  
+    if (num < 20) return units[num];
+  
+    if (num < 100) {
+      const digit = num % 10;
+      const tenDigit = Math.floor(num / 10);
+      return digit ? `${tens[tenDigit]} ${units[digit]}` : tens[tenDigit];
+    }
+  
+    if (num < 1000) {
+      const hundred = Math.floor(num / 100);
+      const remainder = num % 100;
+      const hundredText = hundred === 1 ? 'Seratus' : `${units[hundred]} Ratus`;
+      return remainder ? `${hundredText} ${numberToWords(remainder)}` : hundredText;
+    }
+  
+    return 'Angka terlalu besar';
+  };
+  
+  const calculateDaysBetween = (startDate: string, endDate: string) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    // Menghitung selisih dalam milidetik
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    
+    // Mengkonversi milidetik ke hari
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays;
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -166,7 +206,7 @@ export const generateContractDocument = async ({
     }).format(amount);
   };
 
-  const numberToWords = (num: number): string => {
+  const currencyToWords = (num: number): string => {
     const digits = [
       "",
       "Satu",
@@ -5133,7 +5173,7 @@ export const generateContractDocument = async ({
                 calculateContractAwal(contractsData).grandTotal
               )} dilakukan klarifikasi dan negosiasi harga, disepakati sebesar ${formatCurrency(
                 calculateContractAkhir(contractsData).grandTotal
-              )} (${numberToWords(
+              )} (${currencyToWords(
                 calculateContractAkhir(contractsData).grandTotal
               )})`,
               font: "Arial",
@@ -5279,7 +5319,7 @@ export const generateContractDocument = async ({
           alignment: AlignmentType.JUSTIFIED,
           children: [
             new TextRun({
-              text: "Pada hari ini Jumat tanggal Sembilan bulan Agustus tahun Dua Ribu Dua Puluh Empat, yang bertandatangan dibawah ini:",
+              text: "Pada hari ini BELOM ADA, yang bertandatangan dibawah ini:",
               font: "Arial",
               size: 12 * 2,
               break: 1,
@@ -5492,9 +5532,11 @@ export const generateContractDocument = async ({
           },
           children: [
             new TextRun({
-              text: `PIHAK KEDUA berhak menerima pembayaran ${documentData.paket_pekerjaan}, sebesar ${formatCurrency(
+              text: `PIHAK KEDUA berhak menerima pembayaran ${
+                documentData.paket_pekerjaan
+              }, sebesar ${formatCurrency(
                 calculateContractAkhir(contractsData).grandTotal
-              )} (${numberToWords(
+              )} (${currencyToWords(
                 calculateContractAkhir(contractsData).grandTotal
               )}) sudah termasuk pajak-pajak.`,
               font: "Arial",
@@ -5635,7 +5677,7 @@ export const generateContractDocument = async ({
       ],
     };
 
-    const contentPage = {
+    const halaman10 = {
       properties: {
         page: {
           margin: {
@@ -5650,10 +5692,1436 @@ export const generateContractDocument = async ({
         default: documentHeader,
       },
       children: [
-        vendorSection,
-        contractsSection,
-        documentSection,
-        officialsSection,
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+
+          children: [
+            new TextRun({
+              text: "BERITA ACARA SERAH PEMBAYARAN",
+              font: "Arial",
+              size: 12 * 2,
+              underline: {
+                type: "single",
+                color: "000000",
+              },
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [
+            new TextRun({
+              text: `Nomor: ${documentData.nomor_ba_pem}`,
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          children: [
+            new TextRun({
+              text: `Pada hari ini ${new Date(
+                documentData.tanggal_undangan_ukn
+              ).toLocaleDateString("id-ID", {
+                weekday: "long",
+              })} tanggal ${getDateAsWord(
+                documentData.tanggal_undangan_ukn
+              )} bulan ${getMonthAsWord(
+                documentData.tanggal_undangan_ukn
+              )} tahun ${getYearAsWords(
+                documentData.tanggal_undangan_ukn
+              )}, yang bertandatangan dibawah ini:`,
+              font: "Arial",
+              size: 12 * 2,
+              break: 1,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          children: [
+            new TextRun({
+              text: "",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Table({
+          width: {
+            size: 9750,
+            type: WidthType.DXA,
+          },
+          borders: {
+            top: { style: BorderStyle.NONE, size: 0 },
+            bottom: { style: BorderStyle.NONE, size: 0 },
+            left: { style: BorderStyle.NONE, size: 0 },
+            right: { style: BorderStyle.NONE, size: 0 },
+            insideHorizontal: { style: BorderStyle.NONE, size: 0 },
+            insideVertical: { style: BorderStyle.NONE, size: 0 },
+          },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: {
+                    size: 500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      children: [
+                        new TextRun({
+                          text: "I.",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 3000,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: `${officialData[0].nama}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 6250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: `Pejabat Pembuat Komitmen, Sekretariat Ditjen. Aplikasi Informatika yang diangkat berdasarkan Surat Keputusan Menteri Komunikasi dan Informatika ${officialData[0].surat_keputusan} tentang Penetapan Kuasa Pengguna Anggaran Pejabat Pembuat Komitmen, Pejabat Penandatangan Surat Perintah Membayar, Bendahara Penerimaan dan Bendahara Pengeluaran di Lingkungan Kementerian Komunikasi dan Informatika, yang selanjutnya dalam Berita Acara ini disebut PIHAK PERTAMA`,
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: {
+                    size: 500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      children: [
+                        new TextRun({
+                          text: "II.",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 3000,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: `${vendorData.nama_pj}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 6250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: `${vendorData.jabatan_pj}, berkedudukan di Jakarta dalam hal ini bertindak untuk dan atas nama ${vendorData.nama_vendor}, yang selanjutnya dalam Berita Acara ini disebut PIHAK KEDUA`,
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          children: [
+            new TextRun({
+              text: "",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          children: [
+            new TextRun({
+              text: `Berdasarkan Berita Acara Serah Terima ${documentData.paket_pekerjaan}, Nomor: ${documentData.nomor_ba_stp}, Tanggal BELOM ADA, maka PIHAK KEDUA berhak menerima pembayaran dari PIHAK PERTAMA, sebagai berikut:`,
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          children: [
+            new TextRun({
+              text: "",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Table({
+          width: {
+            size: 9750,
+            type: WidthType.DXA,
+          },
+          borders: {
+            top: { style: BorderStyle.NONE, size: 0 },
+            bottom: { style: BorderStyle.NONE, size: 0 },
+            left: { style: BorderStyle.NONE, size: 0 },
+            right: { style: BorderStyle.NONE, size: 0 },
+            insideHorizontal: { style: BorderStyle.NONE, size: 0 },
+            insideVertical: { style: BorderStyle.NONE, size: 0 },
+          },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: {
+                    size: 3500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "Nilai pembayaran sebesar",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                  columnSpan: 2,
+                }),
+                new TableCell({
+                  width: {
+                    size: 500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 5250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: `${formatCurrency(
+                calculateContractAkhir(contractsData).grandTotal
+              )} (${currencyToWords(
+                calculateContractAwal(contractsData).grandTotal
+              )})`,
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: {
+                    size: 500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "a. ",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 2000,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "Untuk pembayaran",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 6750,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: `${documentData.paket_pekerjaan} sesuai Surat Perintah Kerja Nomor: ${documentData.paket_pekerjaan}, tanggal ${formatDate(documentData.tanggal_kontrak)}.`,
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          children: [
+            new TextRun({
+              text: "",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          children: [
+            new TextRun({
+              text: "Demikian Berita Acara Pembayaran ini dibuat untuk dipergunakan seperlunya.",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Table({
+          width: {
+            size: 9750,
+            type: WidthType.DXA,
+          },
+          borders: {
+            top: { style: BorderStyle.NONE, size: 0 },
+            bottom: { style: BorderStyle.NONE, size: 0 },
+            left: { style: BorderStyle.NONE, size: 0 },
+            right: { style: BorderStyle.NONE, size: 0 },
+            insideHorizontal: { style: BorderStyle.NONE, size: 0 },
+            insideVertical: { style: BorderStyle.NONE, size: 0 },
+          },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  width: {
+                    size: 4875,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: {
+                        before: 400,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "PIHAK KEDUA(II)",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                        new TextRun({
+                          text: `${vendorData.jabatan_pj}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                          break: 1,
+                        }),
+                        new TextRun({
+                          text: `${vendorData.nama_vendor}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                          break: 1,
+                        }),
+                        new TextRun({
+                          text: `${vendorData.nama_pj}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                          break: 6,
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 4875,
+                    type: WidthType.DXA,
+                  },
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0 },
+                    bottom: { style: BorderStyle.NONE, size: 0 },
+                    left: { style: BorderStyle.NONE, size: 0 },
+                    right: { style: BorderStyle.NONE, size: 0 },
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: {
+                        before: 400,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "PIHAK PERTAMA(I)",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                        new TextRun({
+                          text: `${officialData[0].jabatan}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                          break: 1,
+                        }),
+                        new TextRun({
+                          text: `${officialData[0].nama}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                          break: 6,
+                        }),
+                        new TextRun({
+                          text: `NIP. ${officialData[0].nip}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                          break: 1,
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+      ],
+    };
+
+    const halaman11 = {
+      properties: {
+        page: {
+          margin: {
+            top: 1440,
+            right: 1080,
+            bottom: 1440,
+            left: 1080,
+          },
+        },
+      },
+      headers: {
+        default: documentHeader,
+      },
+      children: [
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [
+            new TextRun({
+              text: "RINGAKSAN KONTRAK",
+              font: "Arial",
+              size: 14 * 2,
+              bold: true,
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          children: [
+            new TextRun({
+              text: "",
+              font: "Arial",
+              size: 12 * 2,
+            }),
+          ],
+        }),
+        new Table({
+          width: {
+            size: 9750,
+            type: WidthType.DXA,
+          },
+          borders: {
+            top: { style: BorderStyle.NONE, size: 0 },
+            bottom: { style: BorderStyle.NONE, size: 0 },
+            left: { style: BorderStyle.NONE, size: 0 },
+            right: { style: BorderStyle.NONE, size: 0 },
+            insideHorizontal: { style: BorderStyle.NONE, size: 0 },
+            insideVertical: { style: BorderStyle.NONE, size: 0 },
+          },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: {
+                    size: 500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "1.",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 3500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "Nomor dan tanggal DIPA",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 5250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: `${documentData.nomor_dipa} Tanggal ${formatDate(documentData.tanggal_dipa)}`,
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "2.",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "Kode Kegiatan/Output/Akun",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 5250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: `${documentData.kode_kegiatan}`,
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "3.",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "Nomor dan tanggal SPK/Kontrak",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 5250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: `${documentData.nomor_kontrak} Tanggal ${formatDate(documentData.tanggal_kontrak)}`,
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "4.",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "Nama Kontraktor/perusahaan",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 5250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: `${vendorData.nama_vendor}`,
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "5.",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "Alamat perusahaan",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 5250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: `${vendorData.alamat_vendor}`,
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "6.",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "Nilai SPK/Kontrak",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 5250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: `${formatCurrency(
+                            calculateContractAkhir(contractsData).grandTotal
+                          )} (${currencyToWords(
+                            calculateContractAkhir(contractsData).grandTotal
+                          )})`,
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "7.",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "Uraian dan volume pekerjaan",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 5250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: `${documentData.paket_pekerjaan}`,
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "8.",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "Cara pembayaran",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 5250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: `Langsung 100% ke`,
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                        new TextRun({
+                          text: `${vendorData.nama_vendor}, ${vendorData.bank_vendor}, No. Rekening ${vendorData.norek_vendor} a.n. ${vendorData.nama_vendor}`,
+                          size: 11 * 2,
+                          font: "Arial",
+                          bold: true,
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "9.",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "Jangka waktu pelaksanaan",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 5250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: `${calculateDaysBetween(documentData.tanggal_mulai, documentData.tanggal_selesai)} (${numberToWords(calculateDaysBetween(documentData.tanggal_mulai, documentData.tanggal_selesai))})hari`,
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "10.",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "Tanggal penyelesaian pekerjaan",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 5250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: `${formatDate(documentData.tanggal_selesai)}`,
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "11.",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "Jangka waktu pemeliharaan",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 5250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "-",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "12.",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "Ketentuan sanksi",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: ":",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 5250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      children: [
+                        new TextRun({
+                          text: "Denda 1‰ perhari maksimum 5% dari nilai SPK. Apabila telah mencapai angka 5%, Pihak Pertama berhak membatalkan SPK",
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          children: [
+            new TextRun({
+              text: "",
+              font: "Arial",
+              size: 12 * 2,
+              break: 2,
+            }),
+          ],
+        }),
+        new Table({
+          width: {
+            size: 9750,
+            type: WidthType.DXA,
+          },
+          borders: {
+            top: { style: BorderStyle.NONE, size: 0 },
+            bottom: { style: BorderStyle.NONE, size: 0 },
+            left: { style: BorderStyle.NONE, size: 0 },
+            right: { style: BorderStyle.NONE, size: 0 },
+            insideHorizontal: { style: BorderStyle.NONE, size: 0 },
+            insideVertical: { style: BorderStyle.NONE, size: 0 },
+          },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: {
+                    size: 4500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      children: [
+                        new TextRun({
+                          text: "",
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 5250,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: `Jakarta, ${formatDate(documentData.tanggal_kontrak)}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                        new TextRun({
+                          text: `${officialData[0].jabatan}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                          break: 2,
+                        }),
+                        new TextRun({
+                          text: `${officialData[0].nama}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                          break: 5,
+                        }),
+                        new TextRun({
+                          text: `NIP. ${officialData[0].nip}`,
+                          size: 12 * 2,
+                          font: "Arial",
+                          break: 1,
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
       ],
     };
 
@@ -5833,7 +7301,9 @@ export const generateContractDocument = async ({
         halaman7,
         halaman8,
         halaman9,
-        contentPage,
+        halaman10,
+        halaman11,
+        // contentPage,
       ],
     });
 
