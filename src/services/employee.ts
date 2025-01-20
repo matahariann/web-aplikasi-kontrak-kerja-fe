@@ -58,6 +58,7 @@ export interface Document {
     document_id: number;
     jenis_kontrak: string;
     deskripsi: string;
+    nilai_perkiraan_sendiri: number;
     nilai_kontral_awal: number;
     nilai_kontrak_akhir: number;
   }>;
@@ -91,6 +92,7 @@ export interface DocumentDetailResponse {
       deskripsi: string;
       jumlah_orang: number;
       durasi_kontrak: number;
+      nilai_perkiraan_sendiri: number;
       nilai_kontral_awal: number;
       nilai_kontrak_akhir: number;
     }>;

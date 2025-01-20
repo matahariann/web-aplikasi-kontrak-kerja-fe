@@ -43,6 +43,7 @@ const INITIAL_CONTRACT: Omit<ContractData, "jenis_kontrak"> = {
   deskripsi: "",
   jumlah_orang: 0,
   durasi_kontrak: 0,
+  nilai_perkiraan_sendiri: 0,
   nilai_kontral_awal: 0,
   nilai_kontrak_akhir: 0,
 };
@@ -75,10 +76,72 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
   const [showDownloadSuccessAlert, setShowDownloadSuccessAlert] =
     useState(false);
 
-  const validateContractValue = (value: number): string | null => {
+    const TotalValues = ({ contracts }) => {
+      const { estimatedTotal, initialTotal, finalTotal } =
+        calculateTotalValues(contracts);
+      return (
+        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+          <h4 className="font-medium mb-2">Total Nilai Kontrak</h4>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <p className="text-sm text-gray-600">Total Nilai Perkiraan:</p>
+              <p className="font-medium">{formatCurrency(estimatedTotal)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Total Nilai Awal:</p>
+              <p className="font-medium">{formatCurrency(initialTotal)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Total Nilai Akhir:</p>
+              <p className="font-medium">{formatCurrency(finalTotal)}</p>
+            </div>
+          </div>
+          <p className="text-sm text-gray-500 mt-2">
+            Batas maksimal total untuk jenis kontrak {contractType}:{" "}
+            {formatCurrency(MAX_PRICE[contractType])}
+          </p>
+        </div>
+      );
+    };
+
+  const calculateTotalValues = (
+    contracts: Omit<ContractData, "jenis_kontrak">[]
+  ) => {
+    return contracts.reduce(
+      (totals, contract) => ({
+        estimatedTotal:
+          totals.estimatedTotal + 
+          (contract.nilai_perkiraan_sendiri * contract.jumlah_orang * contract.durasi_kontrak),
+        initialTotal: 
+          totals.initialTotal + 
+          (contract.nilai_kontral_awal * contract.jumlah_orang * contract.durasi_kontrak),
+        finalTotal: 
+          totals.finalTotal + 
+          (contract.nilai_kontrak_akhir * contract.jumlah_orang * contract.durasi_kontrak),
+      }),
+      { estimatedTotal: 0, initialTotal: 0, finalTotal: 0 }
+    );
+  };
+
+  const validateContractValues = (
+    contracts: Omit<ContractData, "jenis_kontrak">[]
+  ): string | null => {
     const maxValue = MAX_PRICE[contractType];
-    if (value > maxValue) {
-      return `Nilai kontrak untuk ${contractType} tidak boleh melebihi ${formatCurrency(
+    const { estimatedTotal, initialTotal, finalTotal } =
+      calculateTotalValues(contracts);
+
+    if (estimatedTotal > maxValue) {
+      return `Total nilai perkiraan sendiri untuk ${contractType} tidak boleh melebihi ${formatCurrency(
+        maxValue
+      )}`;
+    }
+    if (initialTotal > maxValue) {
+      return `Total nilai kontrak awal untuk ${contractType} tidak boleh melebihi ${formatCurrency(
+        maxValue
+      )}`;
+    }
+    if (finalTotal > maxValue) {
+      return `Total nilai kontrak akhir untuk ${contractType} tidak boleh melebihi ${formatCurrency(
         maxValue
       )}`;
     }
@@ -86,19 +149,10 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
   };
 
   const handleContractTypeChange = (value: ContractType) => {
-    // Validate all contracts with new type
-    for (const contract of contractsData) {
-      const initialValueError = validateContractValue(
-        contract.nilai_kontral_awal
-      );
-      const finalValueError = validateContractValue(
-        contract.nilai_kontrak_akhir
-      );
-
-      if (initialValueError || finalValueError) {
-        setError(initialValueError || finalValueError);
-        return;
-      }
+    const validationError = validateContractValues(contractsData);
+    if (validationError) {
+      setError(validationError);
+      return;
     }
 
     setContractType(value);
@@ -152,16 +206,14 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
       [field]: value,
     };
 
-    if (field === "nilai_kontral_awal" || field === "nilai_kontrak_akhir") {
-      const initialValueError = validateContractValue(
-        newContractsData[index].nilai_kontral_awal
-      );
-      const finalValueError = validateContractValue(
-        newContractsData[index].nilai_kontrak_akhir
-      );
-
-      if (initialValueError || finalValueError) {
-        setError(initialValueError || finalValueError);
+    if (
+      field === "nilai_perkiraan_sendiri" ||
+      field === "nilai_kontral_awal" ||
+      field === "nilai_kontrak_akhir"
+    ) {
+      const validationError = validateContractValues(newContractsData);
+      if (validationError) {
+        setError(validationError);
         return;
       }
     }
@@ -196,19 +248,11 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
         return;
       }
 
-      // Validate contract values
-      for (const contract of contractsData) {
-        const initialValueError = validateContractValue(
-          contract.nilai_kontral_awal
-        );
-        const finalValueError = validateContractValue(
-          contract.nilai_kontrak_akhir
-        );
-
-        if (initialValueError || finalValueError) {
-          setError(initialValueError || finalValueError);
-          return;
-        }
+      // Validate total contract values
+      const validationError = validateContractValues(contractsData);
+      if (validationError) {
+        setError(validationError);
+        return;
       }
 
       const contractsWithType = contractsData.map((contract) => ({
@@ -385,15 +429,12 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-sm text-gray-500 mt-1">
-                Batas maksimal harga untuk jenis kontrak {contractType}:{" "}
-                {formatCurrency(MAX_PRICE[contractType])}
-              </p>
             </div>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-4">
+        <TotalValues contracts={contractsData} />
           {contractsData.map((contract, index) => (
             <div key={index} className="border p-4 rounded-lg relative">
               {index !== 0 && (
@@ -496,6 +537,37 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                   {isSubmitted && contract.durasi_kontrak <= 0 && (
                     <p className="text-red-500 text-sm mt-1">
                       Durasi kontrak harus lebih dari 0
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor={`nilai_perkiraan_sendiri_${index}`}>
+                    Harga Perkiraan Sendiri{" "}
+                    <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id={`nilai_perkiraan_sendiri_${index}`}
+                    type="number"
+                    min="0"
+                    value={contract.nilai_perkiraan_sendiri}
+                    onChange={(e) =>
+                      handleInputChange(
+                        index,
+                        "nilai_perkiraan_sendiri",
+                        parseFloat(e.target.value)
+                      )
+                    }
+                    className={
+                      isSubmitted && !contract.nilai_perkiraan_sendiri
+                        ? "border-red-300"
+                        : ""
+                    }
+                    disabled={isSaved && !isEditMode}
+                  />
+                  {contract.nilai_perkiraan_sendiri > 0 && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      {formatCurrency(contract.nilai_perkiraan_sendiri)}
                     </p>
                   )}
                 </div>

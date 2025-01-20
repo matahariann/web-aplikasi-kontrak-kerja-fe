@@ -36,18 +36,21 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
     tanggal_selesai: "",
     nomor_pph1: "",
     tanggal_pph1: "",
-    nomor_pph2: "",
-    tanggal_pph2: "",
+    // nomor_pph2: "",
+    // tanggal_pph2: "",
     nomor_ukn: "",
     tanggal_ukn: "",
     tanggal_undangan_ukn: "",
     nomor_ba_ekn: "",
+    tanggal_ba_ekn: "",
     nomor_pppb: "",
     tanggal_pppb: "",
     nomor_lppb: "",
     tanggal_lppb: "",
     nomor_ba_stp: "",
+    tanggal_ba_stp: "",
     nomor_ba_pem: "",
+    tanggal_ba_pem: "",
     nomor_dipa: "",
     tanggal_dipa: "",
     kode_kegiatan: "",
@@ -84,7 +87,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
       }
 
       // Prepare data
-      const officialsResponse = await getOfficialData(token);
+      const officialsResponse = await getOfficialData();
       const officials = officialsResponse.data.officials;
 
       const data: DocumentWithOfficialsData = {
@@ -407,7 +410,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
 
             <div>
               <Label htmlFor="nomor_pph1">
-                Nomor Surat Permintaan Penawaran Harga 1{" "}
+                Nomor Surat Permintaan Penawaran Harga{" "}
                 <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -423,14 +426,14 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
               />
               {isSubmitted && !documentData.nomor_pph1 && (
                 <p className="text-red-500 text-sm mt-1">
-                  Nomor Surat Permintaan Penawaran Harga 1 tidak boleh kosong
+                  Nomor Surat Permintaan Penawaran Harga tidak boleh kosong
                 </p>
               )}
             </div>
 
             <div>
               <Label htmlFor="tanggal_pph1">
-                Tanggal Surat Permintaan Penawaran Harga 1{" "}
+                Tanggal Surat Permintaan Penawaran Harga{" "}
                 <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -447,54 +450,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
               />
               {isSubmitted && !documentData.tanggal_pph1 && (
                 <p className="text-red-500 text-sm mt-1">
-                  Tanggal Surat Permintaan Penawaran Harga 1 tidak boleh kosong
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="nomor_pph2">
-                Nomor Surat Permintaan Penawaran Harga 2{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="nomor_pph2"
-                value={documentData.nomor_pph2}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.nomor_pph2
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.nomor_pph2 && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nomor Surat Permintaan Penawaran Harga 2 tidak boleh kosong
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="tanggal_pph2">
-                Tanggal Surat Permintaan Penawaran Harga 2{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="tanggal_pph2"
-                type="date"
-                value={documentData.tanggal_pph2}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.tanggal_pph2
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.tanggal_pph2 && (
-                <p className="text-red-500 text-sm mt-1">
-                  Tanggal Surat Permintaan Penawaran Harga 2 tidak boleh kosong
+                  Tanggal Surat Permintaan Penawaran Harga tidak boleh kosong
                 </p>
               )}
             </div>
@@ -548,7 +504,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
 
             <div>
               <Label htmlFor="tanggal_undangan_ukn">
-                Tanggal Undangan Surat Undangan Klarifikasi dan Negosiasi{" "}
+                Tanggal Undangan Klarifikasi dan Negosiasi{" "}
                 <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -565,12 +521,34 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
               />
               {isSubmitted && !documentData.tanggal_undangan_ukn && (
                 <p className="text-red-500 text-sm mt-1">
-                  Tanggal Undangan Surat Undangan Klarifikasi dan Negosiasi
+                  Tanggal Undangan Klarifikasi dan Negosiasi
                   tidak boleh kosong
                 </p>
               )}
             </div>
 
+            <div>
+              <Label htmlFor="kode_kegiatan">
+                Kode Kegiatan <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="kode_kegiatan"
+                value={documentData.kode_kegiatan}
+                onChange={handleInputChange}
+                className={
+                  isSubmitted && !documentData.kode_kegiatan
+                    ? "border-red-300"
+                    : ""
+                }
+                disabled={isSaved && !isEditMode}
+              />
+              {isSubmitted && !documentData.kode_kegiatan && (
+                <p className="text-red-500 text-sm mt-1">
+                  Kode Kegiatan tidak boleh kosong
+                </p>
+              )}
+            </div>
+            
             <div>
               <Label htmlFor="nomor_ba_ekn">
                 Nomor Surat Berita Acara Evaluasi, Klarifikasi, dan Negosiasi{" "}
@@ -591,6 +569,31 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
                 <p className="text-red-500 text-sm mt-1">
                   Nomor Surat Berita Acara Evaluasi, Klarifikasi, dan Negosiasi
                   tidak boleh kosong
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="tanggal_ba_ekn">
+                Tanggal Surat Berita Acara Evaluasi, Klarifikasi, dan Negosiasi{" "}
+                <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="tanggal_ba_ekn"
+                type="date"
+                value={documentData.tanggal_ba_ekn}
+                onChange={handleInputChange}
+                className={
+                  isSubmitted && !documentData.tanggal_ba_ekn
+                    ? "border-red-300"
+                    : ""
+                }
+                disabled={isSaved && !isEditMode}
+              />
+              {isSubmitted && !documentData.tanggal_ba_ekn && (
+                <p className="text-red-500 text-sm mt-1">
+                  Tanggal Surat Berita Acara Evaluasi, Klarifikasi, dan
+                  Negosiasi tidak boleh kosong
                 </p>
               )}
             </div>
@@ -718,6 +721,31 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
             </div>
 
             <div>
+              <Label htmlFor="tanggal_ba_stp">
+                Tanggal Surat Berita Acara Serah Terima Pekerjaan{" "}
+                <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="tanggal_ba_stp"
+                type="date"
+                value={documentData.tanggal_ba_stp}
+                onChange={handleInputChange}
+                className={
+                  isSubmitted && !documentData.tanggal_ba_stp
+                    ? "border-red-300"
+                    : ""
+                }
+                disabled={isSaved && !isEditMode}
+              />
+              {isSubmitted && !documentData.tanggal_ba_stp && (
+                <p className="text-red-500 text-sm mt-1">
+                  Tanggal Surat Berita Acara Serah Terima Pekerjaan tidak boleh
+                  kosong
+                </p>
+              )}
+            </div>
+
+            <div>
               <Label htmlFor="nomor_ba_pem">
                 Nomor Surat Berita Acara Pembayaran{" "}
                 <span className="text-red-500">*</span>
@@ -736,6 +764,30 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
               {isSubmitted && !documentData.nomor_ba_pem && (
                 <p className="text-red-500 text-sm mt-1">
                   Nomor Surat Berita Acara Pembayaran tidak boleh kosong
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="tanggal_ba_pem">
+                Tanggal Surat Berita Acara Pembayaran{" "}
+                <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="tanggal_ba_pem"
+                type="date"
+                value={documentData.tanggal_ba_pem}
+                onChange={handleInputChange}
+                className={
+                  isSubmitted && !documentData.tanggal_ba_pem
+                    ? "border-red-300"
+                    : ""
+                }
+                disabled={isSaved && !isEditMode}
+              />
+              {isSubmitted && !documentData.tanggal_ba_pem && (
+                <p className="text-red-500 text-sm mt-1">
+                  Tanggal Surat Berita Acara Pembayaran tidak boleh kosong
                 </p>
               )}
             </div>
@@ -784,27 +836,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
                 </p>
               )}
             </div>
-          </div>
-          <div>
-            <Label htmlFor="kode_kegiatan">
-              Kode Kegiatan <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="kode_kegiatan"
-              value={documentData.kode_kegiatan}
-              onChange={handleInputChange}
-              className={
-                isSubmitted && !documentData.kode_kegiatan
-                  ? "border-red-300"
-                  : ""
-              }
-              disabled={isSaved && !isEditMode}
-            />
-            {isSubmitted && !documentData.kode_kegiatan && (
-              <p className="text-red-500 text-sm mt-1">
-                Kode Kegiatan tidak boleh kosong
-              </p>
-            )}
+
           </div>
 
           <div className="flex justify-between mt-6">
