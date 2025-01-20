@@ -10,7 +10,7 @@ export default function Home() {
   const router = useRouter();
   const [greeting, setGreeting] = useState("");
   const [employee, setEmployee] = useState<Employee | null>(null);
-  const docId = "1irDOliYKXNO0wlnVjiYN4N_P6oockBm0";
+  const docId = "1Jtt-g2Mmo-CnRGeMAlLueAxtk7VQxoxQ";
 
   const getData = async (token: string) => {
     try {

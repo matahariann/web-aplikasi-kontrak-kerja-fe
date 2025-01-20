@@ -3765,7 +3765,7 @@ export const generateContractDocument = async ({
                           text: `${officialData[1].nama}`,
                           size: 12 * 2,
                           font: "Arial",
-                          break: 4,
+                          break: 6,
                           underline: {
                             type: "single",
                             color: "000000",

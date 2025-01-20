@@ -4,7 +4,7 @@ import { OfficialData } from "./official";
 import axiosInstance from "@/lib/axios";
 
 export interface DocumentData {
-  id: number; // Menambahkan field id
+  id: number;
   nomor_kontrak: string;
   tanggal_kontrak: string;
   paket_pekerjaan: string;
@@ -17,8 +17,6 @@ export interface DocumentData {
   tanggal_selesai: string;
   nomor_pph1: string;
   tanggal_pph1: string;
-  // nomor_pph2: string;
-  // tanggal_pph2: string;
   nomor_ukn: string;
   tanggal_ukn: string;
   tanggal_undangan_ukn: string;

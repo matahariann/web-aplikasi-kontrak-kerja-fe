@@ -17,6 +17,7 @@ import { getOfficialData } from "@/services/official";
 const DocumentForm = ({ currentStep, setCurrentStep }) => {
   const [documentId, setDocumentId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [dateError, setDateError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [alertType, setAlertType] = useState<"save" | "edit" | null>(null);
@@ -36,8 +37,6 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
     tanggal_selesai: "",
     nomor_pph1: "",
     tanggal_pph1: "",
-    // nomor_pph2: "",
-    // tanggal_pph2: "",
     nomor_ukn: "",
     tanggal_ukn: "",
     tanggal_undangan_ukn: "",
@@ -58,16 +57,44 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setDocumentData((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
+    setDocumentData((prev) => {
+      const newData = {
+        ...prev,
+        [id]: value,
+      };
+
+      // Validate dates when either tanggal_mulai or tanggal_selesai changes
+      if (id === "tanggal_mulai" || id === "tanggal_selesai") {
+        const startDate = id === "tanggal_mulai" ? value : prev.tanggal_mulai;
+        const endDate = id === "tanggal_selesai" ? value : prev.tanggal_selesai;
+
+        if (startDate && endDate && startDate > endDate) {
+          setDateError(
+            "Tanggal mulai tidak boleh lebih besar dari tanggal selesai"
+          );
+        } else {
+          setDateError(null);
+        }
+      }
+
+      return newData;
+    });
   };
 
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setError(null);
     setIsSubmitted(true);
+
+    // Validate dates
+    if (
+      documentData.tanggal_mulai &&
+      documentData.tanggal_selesai &&
+      documentData.tanggal_mulai > documentData.tanggal_selesai
+    ) {
+      setError("Tanggal mulai tidak boleh lebih besar dari tanggal selesai");
+      return;
+    }
 
     // Validasi
     const requiredFields = Object.keys(documentData) as (keyof DocumentData)[];
@@ -110,7 +137,6 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
       setShowSuccessAlert(true);
       setAlertType(isEditMode ? "edit" : "save");
 
-      // Update document data dan nomor kontrak awal dengan response
       if (response.data.document) {
         setDocumentData(response.data.document);
         setDocumentId(response.data.document.id);
@@ -159,9 +185,9 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
 
   return (
     <>
-      {error && (
+      {(error || dateError) && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-4 text-sm">
-          {error}
+          {error || dateError}
         </div>
       )}
 
@@ -371,7 +397,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
                 value={documentData.tanggal_mulai}
                 onChange={handleInputChange}
                 className={
-                  isSubmitted && !documentData.tanggal_mulai
+                  (isSubmitted && !documentData.tanggal_mulai) || dateError
                     ? "border-red-300"
                     : ""
                 }
@@ -395,7 +421,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
                 value={documentData.tanggal_selesai}
                 onChange={handleInputChange}
                 className={
-                  isSubmitted && !documentData.tanggal_selesai
+                  (isSubmitted && !documentData.tanggal_selesai) || dateError
                     ? "border-red-300"
                     : ""
                 }
@@ -521,8 +547,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
               />
               {isSubmitted && !documentData.tanggal_undangan_ukn && (
                 <p className="text-red-500 text-sm mt-1">
-                  Tanggal Undangan Klarifikasi dan Negosiasi
-                  tidak boleh kosong
+                  Tanggal Undangan Klarifikasi dan Negosiasi tidak boleh kosong
                 </p>
               )}
             </div>
@@ -548,7 +573,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
                 </p>
               )}
             </div>
-            
+
             <div>
               <Label htmlFor="nomor_ba_ekn">
                 Nomor Surat Berita Acara Evaluasi, Klarifikasi, dan Negosiasi{" "}
@@ -836,13 +861,13 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
                 </p>
               )}
             </div>
-
           </div>
 
           <div className="flex justify-between mt-6">
             <Button
               onClick={isSaved && !isEditMode ? handleEditMode : handleSubmit}
               variant={isEditMode ? "secondary" : "default"}
+              disabled={!!dateError}
             >
               {isSaved && !isEditMode ? (
                 <>
@@ -863,7 +888,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
               </Button>
               <Button
                 onClick={() => setCurrentStep(currentStep + 1)}
-                disabled={!isSaved || isEditMode}
+                disabled={!isSaved || isEditMode || !!dateError}
                 style={{ userSelect: "none" }}
               >
                 Berikutnya
