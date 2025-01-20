@@ -160,42 +160,73 @@ export const generateContractDocument = async ({
   };
 
   const numberToWords = (num: number): string => {
-    const units = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam', 'Tujuh', 'Delapan', 'Sembilan', 'Sepuluh',
-                  'Sebelas', 'Dua Belas', 'Tiga Belas', 'Empat Belas', 'Lima Belas', 'Enam Belas',
-                  'Tujuh Belas', 'Delapan Belas', 'Sembilan Belas'];
-    const tens = ['', '', 'Dua Puluh', 'Tiga Puluh', 'Empat Puluh', 'Lima Puluh',
-                  'Enam Puluh', 'Tujuh Puluh', 'Delapan Puluh', 'Sembilan Puluh'];
-  
-    if (num === 0) return 'Nol';
-  
+    const units = [
+      "",
+      "Satu",
+      "Dua",
+      "Tiga",
+      "Empat",
+      "Lima",
+      "Enam",
+      "Tujuh",
+      "Delapan",
+      "Sembilan",
+      "Sepuluh",
+      "Sebelas",
+      "Dua Belas",
+      "Tiga Belas",
+      "Empat Belas",
+      "Lima Belas",
+      "Enam Belas",
+      "Tujuh Belas",
+      "Delapan Belas",
+      "Sembilan Belas",
+    ];
+    const tens = [
+      "",
+      "",
+      "Dua Puluh",
+      "Tiga Puluh",
+      "Empat Puluh",
+      "Lima Puluh",
+      "Enam Puluh",
+      "Tujuh Puluh",
+      "Delapan Puluh",
+      "Sembilan Puluh",
+    ];
+
+    if (num === 0) return "Nol";
+
     if (num < 20) return units[num];
-  
+
     if (num < 100) {
       const digit = num % 10;
       const tenDigit = Math.floor(num / 10);
       return digit ? `${tens[tenDigit]} ${units[digit]}` : tens[tenDigit];
     }
-  
+
     if (num < 1000) {
       const hundred = Math.floor(num / 100);
       const remainder = num % 100;
-      const hundredText = hundred === 1 ? 'Seratus' : `${units[hundred]} Ratus`;
-      return remainder ? `${hundredText} ${numberToWords(remainder)}` : hundredText;
+      const hundredText = hundred === 1 ? "Seratus" : `${units[hundred]} Ratus`;
+      return remainder
+        ? `${hundredText} ${numberToWords(remainder)}`
+        : hundredText;
     }
-  
-    return 'Angka terlalu besar';
+
+    return "Angka terlalu besar";
   };
-  
+
   const calculateDaysBetween = (startDate: string, endDate: string) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    
+
     // Menghitung selisih dalam milidetik
     const diffTime = Math.abs(end.getTime() - start.getTime());
-    
+
     // Mengkonversi milidetik ke hari
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     return diffDays;
   };
 
@@ -554,11 +585,13 @@ export const generateContractDocument = async ({
             children: [
               new Paragraph({
                 alignment: AlignmentType.CENTER,
+                indent: { left: 100, right: 100 },
+                spacing: { before: 100, after: 100},
                 children: [
                   new TextRun({
                     text: "1",
                     font: "Arial",
-                    size: 12 * 2,
+                    size: 11 * 2,
                   }),
                 ],
               }),
@@ -568,11 +601,13 @@ export const generateContractDocument = async ({
             children: [
               new Paragraph({
                 alignment: AlignmentType.JUSTIFIED,
+                indent: { left: 100, right: 100 },
+                spacing: { before: 100, after: 100},
                 children: [
                   new TextRun({
                     text: `${documentData.paket_pekerjaan}, detail sbb :`,
                     font: "Arial",
-                    size: 12 * 2,
+                    size: 11 * 2,
                   }),
                 ],
               }),
@@ -595,11 +630,13 @@ export const generateContractDocument = async ({
               children: [
                 new Paragraph({
                   alignment: AlignmentType.JUSTIFIED,
+                  indent: { left: 100, right: 100 },
+                  spacing: { before: 100, after: 100},
                   children: [
                     new TextRun({
                       text: contract.deskripsi,
                       font: "Arial",
-                      size: 12 * 2,
+                      size: 11 * 2,
                     }),
                   ],
                 }),
@@ -609,11 +646,13 @@ export const generateContractDocument = async ({
               children: [
                 new Paragraph({
                   alignment: AlignmentType.CENTER,
+                  indent: { left: 100, right: 100 },
+                  spacing: { before: 100, after: 100},
                   children: [
                     new TextRun({
                       text: `${contract.jumlah_orang} org`,
                       font: "Arial",
-                      size: 12 * 2,
+                      size: 11 * 2,
                     }),
                   ],
                 }),
@@ -623,11 +662,13 @@ export const generateContractDocument = async ({
               children: [
                 new Paragraph({
                   alignment: AlignmentType.CENTER,
+                  indent: { left: 100, right: 100 },
+                  spacing: { before: 100, after: 100},
                   children: [
                     new TextRun({
                       text: `${contract.durasi_kontrak} bln`,
                       font: "Arial",
-                      size: 12 * 2,
+                      size: 11 * 2,
                     }),
                   ],
                 }),
@@ -637,11 +678,13 @@ export const generateContractDocument = async ({
               children: [
                 new Paragraph({
                   alignment: AlignmentType.CENTER,
+                  spacing: { before: 100, after: 100},
+                  indent: { left: 100, right: 100 },
                   children: [
                     new TextRun({
                       text: formatCurrency(contract.nilai_kontral_awal),
                       font: "Arial",
-                      size: 12 * 2,
+                      size: 11 * 2,
                     }),
                   ],
                 }),
@@ -651,15 +694,13 @@ export const generateContractDocument = async ({
               children: [
                 new Paragraph({
                   alignment: AlignmentType.CENTER,
-                  spacing: {
-                    line: 360,
-                    lineRule: LineRuleType.AUTO,
-                  },
+                  indent: { left: 100, right: 100 },
+                  spacing: { before: 100, after: 100},
                   children: [
                     new TextRun({
                       text: formatCurrency(contractTotals[index]),
                       font: "Arial",
-                      size: 12 * 2,
+                      size: 11 * 2,
                     }),
                   ],
                 }),
@@ -678,11 +719,12 @@ export const generateContractDocument = async ({
             children: [
               new Paragraph({
                 alignment: AlignmentType.CENTER,
+                spacing: { before: 100, after: 100},
                 children: [
                   new TextRun({
                     text: "Total",
                     font: "Arial",
-                    size: 12 * 2,
+                    size: 11 * 2,
                     bold: true,
                   }),
                 ],
@@ -693,13 +735,15 @@ export const generateContractDocument = async ({
           new TableCell({
             children: [
               new Paragraph({
+                alignment: AlignmentType.CENTER,
+                spacing: { before: 100, after: 100},
                 children: [
                   new TextRun({
                     text: formatCurrency(
                       calculateContractAwal(contractsData).grandTotal
                     ),
                     font: "Arial",
-                    size: 12 * 2,
+                    size: 11 * 2,
                     bold: true,
                   }),
                 ],
@@ -830,11 +874,13 @@ export const generateContractDocument = async ({
             children: [
               new Paragraph({
                 alignment: AlignmentType.CENTER,
+                indent: { left: 100, right: 100 },
+                spacing: { before: 100, after: 100},
                 children: [
                   new TextRun({
                     text: "1",
                     font: "Arial",
-                    size: 12 * 2,
+                    size: 11 * 2,
                   }),
                 ],
               }),
@@ -844,11 +890,13 @@ export const generateContractDocument = async ({
             children: [
               new Paragraph({
                 alignment: AlignmentType.JUSTIFIED,
+                indent: { left: 100, right: 100 },
+                spacing: { before: 100, after: 100},
                 children: [
                   new TextRun({
                     text: `${documentData.paket_pekerjaan}, detail sbb :`,
                     font: "Arial",
-                    size: 12 * 2,
+                    size: 11 * 2,
                   }),
                 ],
               }),
@@ -871,11 +919,13 @@ export const generateContractDocument = async ({
               children: [
                 new Paragraph({
                   alignment: AlignmentType.JUSTIFIED,
+                  indent: { left: 100, right: 100 },
+                  spacing: { before: 100, after: 100},
                   children: [
                     new TextRun({
                       text: contract.deskripsi,
                       font: "Arial",
-                      size: 12 * 2,
+                      size: 11 * 2,
                     }),
                   ],
                 }),
@@ -885,11 +935,13 @@ export const generateContractDocument = async ({
               children: [
                 new Paragraph({
                   alignment: AlignmentType.CENTER,
+                  indent: { left: 100, right: 100 },
+                  spacing: { before: 100, after: 100},
                   children: [
                     new TextRun({
                       text: `${contract.jumlah_orang} org`,
                       font: "Arial",
-                      size: 12 * 2,
+                      size: 11 * 2,
                     }),
                   ],
                 }),
@@ -899,11 +951,13 @@ export const generateContractDocument = async ({
               children: [
                 new Paragraph({
                   alignment: AlignmentType.CENTER,
+                  indent: { left: 100, right: 100 },
+                  spacing: { before: 100, after: 100},
                   children: [
                     new TextRun({
                       text: `${contract.durasi_kontrak} bln`,
                       font: "Arial",
-                      size: 12 * 2,
+                      size: 11 * 2,
                     }),
                   ],
                 }),
@@ -913,11 +967,13 @@ export const generateContractDocument = async ({
               children: [
                 new Paragraph({
                   alignment: AlignmentType.CENTER,
+                  indent: { left: 100, right: 100 },
+                  spacing: { before: 100, after: 100},
                   children: [
                     new TextRun({
                       text: formatCurrency(contract.nilai_kontrak_akhir),
                       font: "Arial",
-                      size: 12 * 2,
+                      size: 11 * 2,
                     }),
                   ],
                 }),
@@ -927,15 +983,13 @@ export const generateContractDocument = async ({
               children: [
                 new Paragraph({
                   alignment: AlignmentType.CENTER,
-                  spacing: {
-                    line: 360,
-                    lineRule: LineRuleType.AUTO,
-                  },
+                  indent: { left: 100, right: 100 },
+                  spacing: { before: 100, after: 100},
                   children: [
                     new TextRun({
                       text: formatCurrency(contractTotals[index]),
                       font: "Arial",
-                      size: 12 * 2,
+                      size: 11 * 2,
                     }),
                   ],
                 }),
@@ -958,7 +1012,7 @@ export const generateContractDocument = async ({
                   new TextRun({
                     text: "Total",
                     font: "Arial",
-                    size: 12 * 2,
+                    size: 11 * 2,
                     bold: true,
                   }),
                 ],
@@ -969,13 +1023,16 @@ export const generateContractDocument = async ({
           new TableCell({
             children: [
               new Paragraph({
+                alignment: AlignmentType.CENTER,
+                indent: { left: 100, right: 100 },
+                spacing: { before: 100, after: 100},
                 children: [
                   new TextRun({
                     text: formatCurrency(
                       calculateContractAkhir(contractsData).grandTotal
                     ),
                     font: "Arial",
-                    size: 12 * 2,
+                    size: 11 * 2,
                     bold: true,
                   }),
                 ],
@@ -997,106 +1054,6 @@ export const generateContractDocument = async ({
     }
 
     const imageData = await getImage(token, 1);
-    console.log("Image data received:", imageData);
-
-    const vendorSection = new Paragraph({
-      children: [
-        new TextRun({ text: "DATA VENDOR", bold: true, break: 2 }),
-        new TextRun({
-          text: `Nama Vendor: ${vendorData.nama_vendor}`,
-          break: 1,
-        }),
-        new TextRun({ text: `Alamat: ${vendorData.alamat_vendor}`, break: 1 }),
-        new TextRun({ text: `NPWP: ${vendorData.npwp}`, break: 1 }),
-        new TextRun({ text: `Bank: ${vendorData.bank_vendor}`, break: 1 }),
-        new TextRun({
-          text: `No. Rekening: ${vendorData.norek_vendor}`,
-          break: 1,
-        }),
-        new TextRun({
-          text: `Nama Rekening: ${vendorData.nama_rek_vendor}`,
-          break: 1,
-        }),
-      ],
-    });
-
-    const contractsSection = new Paragraph({
-      children: [
-        new TextRun({ text: "DATA KONTRAK", bold: true, break: 2 }),
-        ...contractsData.flatMap((contract, index) => [
-          new TextRun({ text: `Kontrak ${index + 1}`, bold: true, break: 1 }),
-          new TextRun({
-            text: `Jenis Kontrak: ${contract.jenis_kontrak}`,
-            break: 1,
-          }),
-          new TextRun({ text: `Deskripsi: ${contract.deskripsi}`, break: 1 }),
-          new TextRun({
-            text: `Jumlah Orang: ${contract.jumlah_orang}`,
-            break: 1,
-          }),
-          new TextRun({
-            text: `Durasi Kontrak: ${contract.durasi_kontrak} bulan`,
-            break: 1,
-          }),
-          new TextRun({
-            text: `Nilai Kontrak Awal: ${formatCurrency(
-              contract.nilai_kontral_awal
-            )}`,
-            break: 1,
-          }),
-          new TextRun({
-            text: `Nilai Kontrak Akhir: ${formatCurrency(
-              contract.nilai_kontrak_akhir
-            )}`,
-            break: 1,
-          }),
-          new TextRun({ text: "", break: 1 }), // Add spacing between contracts
-        ]),
-      ],
-    });
-
-    const documentSection = new Paragraph({
-      children: [
-        new TextRun({ text: "DATA DOKUMEN", bold: true, break: 2 }),
-        new TextRun({
-          text: `Nomor Kontrak: ${documentData.nomor_kontrak}`,
-          break: 1,
-        }),
-        new TextRun({
-          text: `Tanggal Kontrak: ${formatDate(documentData.tanggal_kontrak)}`,
-          break: 1,
-        }),
-        new TextRun({
-          text: `Paket Pekerjaan: ${documentData.paket_pekerjaan}`,
-          break: 1,
-        }),
-        new TextRun({
-          text: `Tahun Anggaran: ${documentData.tahun_anggaran}`,
-          break: 1,
-        }),
-        new TextRun({
-          text: `Nomor DIPA: ${documentData.nomor_dipa}`,
-          break: 1,
-        }),
-        new TextRun({
-          text: `Tanggal DIPA: ${formatDate(documentData.tanggal_dipa)}`,
-          break: 1,
-        }),
-      ],
-    });
-
-    const officialsSection = new Paragraph({
-      children: [
-        new TextRun({ text: "DATA PEJABAT", bold: true, break: 2 }),
-        ...officialData.map(
-          (official) =>
-            new TextRun({
-              text: `${official.nama} - ${official.jabatan} (${official.nip}) ${official.surat_keputusan}`,
-              break: 1,
-            })
-        ),
-      ],
-    });
 
     const documentHeader = new Header({
       children: [
@@ -1722,12 +1679,6 @@ export const generateContractDocument = async ({
             new TableRow({
               children: [
                 new TableCell({
-                  borders: {
-                    top: { style: BorderStyle.NONE, size: 0 },
-                    bottom: { style: BorderStyle.NONE, size: 0 },
-                    left: { style: BorderStyle.NONE, size: 0 },
-                    right: { style: BorderStyle.NONE, size: 0 },
-                  },
                   width: {
                     size: 4500,
                     type: WidthType.DXA,
@@ -1749,12 +1700,6 @@ export const generateContractDocument = async ({
                   width: {
                     size: 5250,
                     type: WidthType.DXA,
-                  },
-                  borders: {
-                    top: { style: BorderStyle.NONE, size: 0 },
-                    bottom: { style: BorderStyle.NONE, size: 0 },
-                    left: { style: BorderStyle.NONE, size: 0 },
-                    right: { style: BorderStyle.NONE, size: 0 },
                   },
                   children: [
                     new Paragraph({
@@ -3908,7 +3853,6 @@ export const generateContractDocument = async ({
         }),
         new Paragraph({
           alignment: AlignmentType.JUSTIFIED,
-
           indent: { left: 720 },
           children: [
             new TextRun({
@@ -5972,10 +5916,10 @@ export const generateContractDocument = async ({
                       children: [
                         new TextRun({
                           text: `${formatCurrency(
-                calculateContractAkhir(contractsData).grandTotal
-              )} (${currencyToWords(
-                calculateContractAwal(contractsData).grandTotal
-              )})`,
+                            calculateContractAkhir(contractsData).grandTotal
+                          )} (${currencyToWords(
+                            calculateContractAwal(contractsData).grandTotal
+                          )})`,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -6051,7 +5995,13 @@ export const generateContractDocument = async ({
                       alignment: AlignmentType.JUSTIFIED,
                       children: [
                         new TextRun({
-                          text: `${documentData.paket_pekerjaan} sesuai Surat Perintah Kerja Nomor: ${documentData.paket_pekerjaan}, tanggal ${formatDate(documentData.tanggal_kontrak)}.`,
+                          text: `${
+                            documentData.paket_pekerjaan
+                          } sesuai Surat Perintah Kerja Nomor: ${
+                            documentData.paket_pekerjaan
+                          }, tanggal ${formatDate(
+                            documentData.tanggal_kontrak
+                          )}.`,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -6312,7 +6262,9 @@ export const generateContractDocument = async ({
                       alignment: AlignmentType.JUSTIFIED,
                       children: [
                         new TextRun({
-                          text: `${documentData.nomor_dipa} Tanggal ${formatDate(documentData.tanggal_dipa)}`,
+                          text: `${
+                            documentData.nomor_dipa
+                          } Tanggal ${formatDate(documentData.tanggal_dipa)}`,
                           size: 11 * 2,
                           font: "Arial",
                         }),
@@ -6440,7 +6392,11 @@ export const generateContractDocument = async ({
                       alignment: AlignmentType.JUSTIFIED,
                       children: [
                         new TextRun({
-                          text: `${documentData.nomor_kontrak} Tanggal ${formatDate(documentData.tanggal_kontrak)}`,
+                          text: `${
+                            documentData.nomor_kontrak
+                          } Tanggal ${formatDate(
+                            documentData.tanggal_kontrak
+                          )}`,
                           size: 11 * 2,
                           font: "Arial",
                         }),
@@ -6834,7 +6790,15 @@ export const generateContractDocument = async ({
                       alignment: AlignmentType.JUSTIFIED,
                       children: [
                         new TextRun({
-                          text: `${calculateDaysBetween(documentData.tanggal_mulai, documentData.tanggal_selesai)} (${numberToWords(calculateDaysBetween(documentData.tanggal_mulai, documentData.tanggal_selesai))})hari`,
+                          text: `${calculateDaysBetween(
+                            documentData.tanggal_mulai,
+                            documentData.tanggal_selesai
+                          )} (${numberToWords(
+                            calculateDaysBetween(
+                              documentData.tanggal_mulai,
+                              documentData.tanggal_selesai
+                            )
+                          )}) hari`,
                           size: 11 * 2,
                           font: "Arial",
                         }),
@@ -7092,7 +7056,9 @@ export const generateContractDocument = async ({
                       alignment: AlignmentType.CENTER,
                       children: [
                         new TextRun({
-                          text: `Jakarta, ${formatDate(documentData.tanggal_kontrak)}`,
+                          text: `Jakarta, ${formatDate(
+                            documentData.tanggal_kontrak
+                          )}`,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -7113,6 +7079,428 @@ export const generateContractDocument = async ({
                           size: 12 * 2,
                           font: "Arial",
                           break: 1,
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+      ],
+    };
+
+    const halaman12 = {
+      properties: {
+        page: {
+          margin: {
+            top: 1440,
+            right: 1080,
+            bottom: 1440,
+            left: 1080,
+          },
+        },
+      },
+      headers: {
+        default: documentHeader,
+      },
+      children: [
+        new Table({
+          width: {
+            size: 100,
+            type: WidthType.PERCENTAGE,
+          },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  verticalAlign: VerticalAlign.CENTER,
+                  rowSpan: 2,
+                  width: {
+                    size: 30,
+                    type: WidthType.PERCENTAGE,
+                  },
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 100, after: 100 },
+                      indent: { left: 100, right: 100 },
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: "SURAT PERINTAH KERJA\n(SPK)",
+                          bold: true,
+                          size: 12 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  verticalAlign: VerticalAlign.CENTER,
+                  width: {
+                    size: 70,
+                    type: WidthType.PERCENTAGE,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      spacing: { before: 100, after: 100 },
+                      indent: { left: 100, right: 100 },
+                      children: [
+                        new TextRun({
+                          text: "SATUAN KERJA: SETDITJEN APLIKASI INFORMATIKA",
+                          size: 10 * 2,
+                          font: "Arial MT",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  rowSpan: 2,
+                  verticalAlign: VerticalAlign.CENTER,
+                  width: {
+                    size: 70,
+                    type: WidthType.PERCENTAGE,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      spacing: { before: 100 },
+                      indent: {
+                        left: 100,
+                        right: 100,
+                      },
+                      children: [
+                        new TextRun({
+                          text: `NOMOR SPK\t: ${documentData.nomor_kontrak}`,
+                          size: 10 * 2,
+                          font: "Arial MT",
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      spacing: { after: 100 },
+                      indent: {
+                        left: 100,
+                        right: 100,
+                      },
+                      children: [
+                        new TextRun({
+                          text: `TANGGAL\t: ${formatDate(documentData.tanggal_kontrak)}`,
+                          size: 10 * 2,
+                          font: "Arial MT",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: {
+                    size: 30,
+                    type: WidthType.PERCENTAGE,
+                  },
+                  verticalAlign: VerticalAlign.CENTER,
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 100, after: 100 },
+                      indent: { left: 100, right: 100, },
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: "Halaman 1 dari 7",
+                          size: 10 * 2,
+                          font: "Arial MT",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  verticalAlign: VerticalAlign.CENTER,
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: { before: 100 },
+                      indent: { left: 100, right: 100 },
+                      children: [
+                        new TextRun({
+                          text: "PAKET PEKERJAAN:",
+                          size: 10 * 2,
+                          font: "Arial MT",
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: { after: 100 },
+                      indent: { left: 100, right: 100 },
+                      children: [
+                        new TextRun({
+                          text: `${documentData.paket_pekerjaan}`,
+                          size: 10 * 2,
+                          font: "Arial MT",
+                          break: 1,
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  verticalAlign: VerticalAlign.CENTER,
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      indent: { left: 100, right: 100 },
+                      children: [
+                        new TextRun({
+                          text: "SPK ini mulai berlaku efektif terhitung sejak tanggal diterbitkannya SPK dan penyelesaian keseluruhan pekerjaan sebagaimana diatur dalam SPK ini.",
+                          size: 10 * 2,
+                          font: "Arial MT",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  verticalAlign: VerticalAlign.CENTER,
+                  columnSpan: 2,
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 100, after: 100 },
+                      indent: {
+                        left: 360,
+                        right: 360,
+                      },
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: `SUMBER DANA: DIPA Direktorat Jenderal Aplikasi Informatika ${documentData.nomor_dipa} Tahun Anggaran ${documentData.tahun_anggaran} dalam Rangka ${documentData.paket_pekerjaan}`,
+                          size: 10 * 2,
+                          font: "Arial MT",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  verticalAlign: VerticalAlign.CENTER,
+                  columnSpan: 2,
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: { before: 100, after: 100 },
+                      indent: {
+                        left: 360,
+                        right: 360,
+                      },
+                      children: [
+                        new TextRun({
+                          text: `WAKTU PELAKSANAAN PEKERJAAN: ${calculateDaysBetween(
+                            documentData.tanggal_mulai,
+                            documentData.tanggal_selesai
+                          )} (${numberToWords(
+                            calculateDaysBetween(
+                              documentData.tanggal_mulai,
+                              documentData.tanggal_selesai
+                            )
+                          )}) Hari Kalender`,
+                          size: 10 * 2,
+                          font: "Arial MT",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  verticalAlign: VerticalAlign.CENTER,
+                  columnSpan: 2,
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: "",
+                          size: 10 * 2,
+                          font: "Arial MT",
+                        }),
+                      ],
+                    }),
+                    new Table({
+                      alignment: AlignmentType.CENTER,
+                      width: { size: 9000, type: WidthType.DXA },
+                      rows: generateTabelKontrakAkhir(contractsData),
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: "",
+                          size: 10 * 2,
+                          font: "Arial MT",
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.JUSTIFIED,
+                      indent: {
+                        left: 360,
+                        right: 360,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "INSTRUKSI KEPADA PENYEDIA: Penagihan hanya dapat dilakukan setelah penyelesaian pekerjaan yang diperintahkan dalam SPK ini dan dibuktikan dengan Berita Acara Serah Terima. Jika pekerjaan tidak dapat diselesaikan dalam jangka waktu pelaksanaan pekerjaan karena kesalahan atau kelalaian penyedia maka penyedia berkewajiban untuk membayar denda kepada PPK sebesar 1/1000 (satu per seribu) dari nilai SPK atau nilai bagian SPK untuk setiap hari keterlambatan.",
+                          size: 10 * 2,
+                          font: "Arial MT",
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: "",
+                          size: 10 * 2,
+                          font: "Arial MT",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: {
+                    size: 50,
+                    type: WidthType.PERCENTAGE,
+                  },
+                  verticalAlign: VerticalAlign.CENTER,
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      indent: {
+                        left: 360,
+                        right: 360,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Untuk dan atas nama Setditjen Aplikasi Informatika",
+                          size: 10 * 2,
+                          font: "Arial MT",
+                        }),
+                        new TextRun({
+                          text: `${officialData[0].jabatan}`,
+                          size: 10 * 2,
+                          font: "Arial MT",
+                          break: 1,
+                        }),
+                        new TextRun({
+                          text: `${officialData[0].nama}`,
+                          size: 12 * 2,
+                          font: "Arial MT",
+                          break: 6,
+                          bold: true,
+                          underline: {
+                            type: "single",
+                            color: "000000",
+                          },
+                        }),
+                        new TextRun({
+                          text: `NIP. ${officialData[0].nip}`,
+                          size: 10 * 2,
+                          font: "Arial MT",
+                          break: 1,
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: "",
+                          size: 10 * 2,
+                          font: "Arial MT",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 50,
+                    type: WidthType.PERCENTAGE,
+                  },
+                  verticalAlign: VerticalAlign.CENTER,
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      indent: {
+                        left: 360,
+                        right: 360,
+                      },
+                      children: [
+                        new TextRun({
+                          text: "Untuk dan atas nama penyedia",
+                          size: 10 * 2,
+                          font: "Arial MT",
+                        }),
+                        new TextRun({
+                          text: `${vendorData.jabatan_pj}`,
+                          size: 10 * 2,
+                          font: "Arial MT",
+                          break: 1,
+                        }),
+                        new TextRun({
+                          text: "",
+                          size: 12 * 2,
+                          font: "Arial MT",
+                          break: 6,
+                        }),
+                        new TextRun({
+                          text: "(materai 10.000)",
+                          size: 8 * 2,
+                          font: "Arial MT",
+                          break: 1,
+                        }),
+                        new TextRun({
+                          text: `${vendorData.nama_pj}`,
+                          size: 12 * 2,
+                          font: "Arial MT",
+                          break: 1,
+                          bold: true,
+                          underline: {
+                            type: "single",
+                            color: "000000",
+                          },
                         }),
                       ],
                     }),
@@ -7303,7 +7691,7 @@ export const generateContractDocument = async ({
         halaman9,
         halaman10,
         halaman11,
-        // contentPage,
+        halaman12,
       ],
     });
 
