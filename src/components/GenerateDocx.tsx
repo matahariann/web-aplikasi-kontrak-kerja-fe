@@ -1006,7 +1006,7 @@ export const generateContractDocument = async ({
                   indent: { left: 100, right: 100 },
                   children: [
                     new TextRun({
-                      text: formatCurrency(contract.nilai_kontral_awal),
+                      text: "",
                       font: "Arial",
                       size: 11 * 2,
                     }),
@@ -1022,7 +1022,7 @@ export const generateContractDocument = async ({
                   spacing: { before: 100, after: 100 },
                   children: [
                     new TextRun({
-                      text: formatCurrency(contractTotals[index]),
+                      text: "",
                       font: "Arial",
                       size: 11 * 2,
                     }),
@@ -1063,9 +1063,7 @@ export const generateContractDocument = async ({
                 spacing: { before: 100, after: 100 },
                 children: [
                   new TextRun({
-                    text: formatCurrency(
-                      calculateContractAwal(contractsData).grandTotal
-                    ),
+                    text: "",
                     font: "Arial",
                     size: 11 * 2,
                     bold: true,
@@ -2881,6 +2879,7 @@ export const generateContractDocument = async ({
                       children: [
                         new Paragraph({
                           spacing: { before: 400, after: 400 },
+                          indent: { left: 100, right: 100 },
                           children: [
                             new TextRun({
                               text: "Pejabat Pembuat Komitmen",
@@ -2899,6 +2898,7 @@ export const generateContractDocument = async ({
                       children: [
                         new Paragraph({
                           spacing: { before: 400, after: 400 },
+                          indent: { left: 100, right: 100 },
                           children: [
                             new TextRun({
                               text: `${officialData[0].nama}`,
@@ -2958,6 +2958,7 @@ export const generateContractDocument = async ({
                       children: [
                         new Paragraph({
                           spacing: { before: 400, after: 400 },
+                          indent: { left: 100, right: 100 },
                           children: [
                             new TextRun({
                               text: "Pejabat Pengadaan",
@@ -2976,6 +2977,7 @@ export const generateContractDocument = async ({
                       children: [
                         new Paragraph({
                           spacing: { before: 400, after: 400 },
+                          indent: { left: 100, right: 100 },
                           children: [
                             new TextRun({
                               text: `${officialData[1].nama}`,
@@ -3035,6 +3037,7 @@ export const generateContractDocument = async ({
                       children: [
                         new Paragraph({
                           spacing: { before: 400, after: 400 },
+                          indent: { left: 100, right: 100 },
                           children: [
                             new TextRun({
                               text: `${vendor.nama_vendor}`,
@@ -3053,6 +3056,7 @@ export const generateContractDocument = async ({
                       children: [
                         new Paragraph({
                           spacing: { before: 400, after: 400 },
+                          indent: { left: 100, right: 100 },
                           children: [
                             new TextRun({
                               text: `${vendor.nama_pj}`,
@@ -3524,7 +3528,7 @@ export const generateContractDocument = async ({
                             documentData.tanggal_undangan_ukn
                           ).toLocaleDateString("id-ID", {
                             weekday: "long",
-                          })}, ${formatDate(
+                          })} / ${formatDate(
                             documentData.tanggal_undangan_ukn
                           )}`,
                           size: 12 * 2,
