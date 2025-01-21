@@ -2,6 +2,7 @@ import axios from "axios";
 import axiosInstance from "@/lib/axios";
 
 export interface VendorData {
+  id?: string;
   nama_vendor: string;
   alamat_vendor: string;
   nama_pj: string;
@@ -15,7 +16,7 @@ export interface VendorData {
 interface VendorResponse {
   message: string;
   data: {
-    vendor: VendorData & { id?: number };
+    vendors: VendorData[];  // Ubah ke array
     session: {
       id: string;
       current_step: string;
@@ -44,12 +45,12 @@ export const getVendorData = async () => {
 
 export const addVendor = async (
   token: string,
-  vendorData: VendorData
+  data: VendorData   // Terima single VendorData
 ): Promise<VendorResponse> => {
   try {
     const response = await axios.post<VendorResponse>(
       `http://localhost:8000/api/add-vendor`,
-      vendorData,
+      { vendors: data },  // Format data yang dikirim
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -57,10 +58,10 @@ export const addVendor = async (
         },
       }
     );
-
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
+      console.error("Error response:", error.response?.data);  // Tambah log error
       throw new Error(
         error.response?.data?.message || "Gagal menyimpan data vendor"
       );
@@ -71,12 +72,14 @@ export const addVendor = async (
 
 export const updateVendor = async (
   token: string,
-  vendorData: VendorData
+  vendors: VendorData[]
 ): Promise<VendorResponse> => {
   try {
+    console.log("Data yang akan diupdate:", vendors); // untuk debugging
+
     const response = await axios.put<VendorResponse>(
       `http://localhost:8000/api/update-vendor`,
-      vendorData,
+      { vendors: vendors }, // Pastikan data dikirim dalam bentuk array
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -87,8 +90,33 @@ export const updateVendor = async (
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
+      console.error("Response Error:", error.response?.data);
       throw new Error(
         error.response?.data?.message || "Gagal memperbarui data vendor"
+      );
+    }
+    throw error;
+  }
+};
+
+export const deleteVendor = async (
+  token: string,
+  id: string
+): Promise<{ message: string; data: { deleted_id: string } }> => {
+  try {
+    const response = await axios.delete(
+      `http://localhost:8000/api/delete-vendor/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Gagal menghapus data vendor"
       );
     }
     throw error;

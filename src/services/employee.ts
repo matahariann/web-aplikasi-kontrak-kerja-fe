@@ -77,7 +77,7 @@ export interface DocumentDetailResponse {
       norek_vendor: string;
       nama_rek_vendor: string;
     };
-    officials: Array<{
+add .    officials: Array<{
       id: number;
       nip: string;
       nama: string;
