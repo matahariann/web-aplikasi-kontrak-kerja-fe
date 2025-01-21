@@ -41,7 +41,7 @@ import {
 } from "@/services/contract";
 
 interface GenerateDocumentProps {
-  vendorData: VendorData;
+  vendorData: VendorData[];
   contractsData: ContractData[];
   documentData: DocumentData;
   officialData: OfficialData[];
@@ -62,7 +62,7 @@ interface PrintDialogProps {
 interface PrintContractProps {
   contractsData: ContractData[];
   documentData: DocumentData;
-  vendorData: VendorData;
+  vendorData: VendorData[];
   officialData: OfficialData[];
   isContractsSaved: boolean;
   isContractsEditMode: boolean;
@@ -1631,7 +1631,7 @@ export const generateContractDocument = async ({
               break: 2,
             }),
             new TextRun({
-              text: vendorData.nama_vendor.toUpperCase(),
+              text: vendorData[0].nama_vendor.toUpperCase(),
               font: "Arial Narrow",
               size: 12 * 2,
               bold: true,
@@ -2486,7 +2486,7 @@ export const generateContractDocument = async ({
           alignment: AlignmentType.JUSTIFIED,
           children: [
             new TextRun({
-              text: `${vendorData.nama_vendor}`,
+              text: `${vendorData[0].nama_vendor}`,
               font: "Arial",
               size: 12 * 2,
             }),
@@ -2496,7 +2496,7 @@ export const generateContractDocument = async ({
           alignment: AlignmentType.JUSTIFIED,
           children: [
             new TextRun({
-              text: `${vendorData.alamat_vendor}`,
+              text: `${vendorData[0].alamat_vendor}`,
               font: "Arial",
               size: 12 * 2,
             }),
@@ -3017,7 +3017,7 @@ export const generateContractDocument = async ({
                       spacing: { before: 400, after: 400 },
                       children: [
                         new TextRun({
-                          text: `${vendorData.nama_vendor}`,
+                          text: `${vendorData[0].nama_vendor}`,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -3035,7 +3035,7 @@ export const generateContractDocument = async ({
                       spacing: { before: 400, after: 400 },
                       children: [
                         new TextRun({
-                          text: `${vendorData.nama_pj}`,
+                          text: `${vendorData[0].nama_pj}`,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -3391,7 +3391,7 @@ export const generateContractDocument = async ({
 
           children: [
             new TextRun({
-              text: `${vendorData.nama_vendor}`,
+              text: `${vendorData[0].nama_vendor}`,
               font: "Arial",
               size: 12 * 2,
             }),
@@ -3402,7 +3402,7 @@ export const generateContractDocument = async ({
 
           children: [
             new TextRun({
-              text: `${vendorData.alamat_vendor}`,
+              text: `${vendorData[0].alamat_vendor}`,
               font: "Arial",
               size: 12 * 2,
             }),
@@ -3919,7 +3919,7 @@ export const generateContractDocument = async ({
           },
           children: [
             new TextRun({
-              text: `Rapat dihadiri oleh Pejabat Pengadaan Barang/Jasa Sekretariat Ditjen Aplikasi Informatika dan ${vendorData.nama_vendor}.`,
+              text: `Rapat dihadiri oleh Pejabat Pengadaan Barang/Jasa Sekretariat Ditjen Aplikasi Informatika dan ${vendorData[0].nama_vendor}.`,
               font: "Arial",
               size: 12 * 2,
             }),
@@ -4034,7 +4034,7 @@ export const generateContractDocument = async ({
                     new Paragraph({
                       children: [
                         new TextRun({
-                          text: vendorData.nama_vendor,
+                          text: vendorData[0].nama_vendor,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -4078,7 +4078,7 @@ export const generateContractDocument = async ({
                     new Paragraph({
                       children: [
                         new TextRun({
-                          text: vendorData.alamat_vendor,
+                          text: vendorData[0].alamat_vendor,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -4122,7 +4122,7 @@ export const generateContractDocument = async ({
                     new Paragraph({
                       children: [
                         new TextRun({
-                          text: vendorData.npwp,
+                          text: vendorData[0].npwp,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -4216,7 +4216,7 @@ export const generateContractDocument = async ({
           children: [
             new TextRun({
               text: `Selanjutnya dilakukan evaluasi teknis, hasil evaluasi teknis memenuhi syarat teknis dilanjutkan dengan evaluasi harga Penawaran dari ${
-                vendorData.nama_vendor
+                vendorData[0].nama_vendor
               } sebesar: ${formatCurrency(
                 calculateContractAwal(contractsData).grandTotal
               )}`,
@@ -4372,12 +4372,12 @@ export const generateContractDocument = async ({
                       },
                       children: [
                         new TextRun({
-                          text: `${vendorData.jabatan_pj} ${vendorData.nama_vendor}`,
+                          text: `${vendorData[0].jabatan_pj} ${vendorData[0].nama_vendor}`,
                           size: 12 * 2,
                           font: "Arial",
                         }),
                         new TextRun({
-                          text: `${vendorData.nama_pj}`,
+                          text: `${vendorData[0].nama_pj}`,
                           size: 12 * 2,
                           font: "Arial",
                           break: 6,
@@ -4684,7 +4684,7 @@ export const generateContractDocument = async ({
           alignment: AlignmentType.JUSTIFIED,
           children: [
             new TextRun({
-              text: `${vendorData.nama_vendor}`,
+              text: `${vendorData[0].nama_vendor}`,
               font: "Arial",
               size: 12 * 2,
             }),
@@ -4694,7 +4694,7 @@ export const generateContractDocument = async ({
           alignment: AlignmentType.JUSTIFIED,
           children: [
             new TextRun({
-              text: `${vendorData.alamat_vendor}`,
+              text: `${vendorData[0].alamat_vendor}`,
               font: "Arial",
               size: 12 * 2,
             }),
@@ -4787,7 +4787,7 @@ export const generateContractDocument = async ({
                     new Paragraph({
                       children: [
                         new TextRun({
-                          text: vendorData.nama_vendor,
+                          text: vendorData[0].nama_vendor,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -4831,7 +4831,7 @@ export const generateContractDocument = async ({
                     new Paragraph({
                       children: [
                         new TextRun({
-                          text: vendorData.alamat_vendor,
+                          text: vendorData[0].alamat_vendor,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -4875,7 +4875,7 @@ export const generateContractDocument = async ({
                     new Paragraph({
                       children: [
                         new TextRun({
-                          text: vendorData.npwp,
+                          text: vendorData[0].npwp,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -5417,7 +5417,7 @@ export const generateContractDocument = async ({
           },
           children: [
             new TextRun({
-              text: `Sesuai tugas yang diamanatkan dalam surat tersebut diatas, Pejabat Pengadaan Barang/Jasa Sekretariat Ditjen Aplikasi Informatika telah meminta penawaran kepada penyedia barang/jasa ${vendorData.nama_vendor} untuk mengajukan penawaran ${documentData.paket_pekerjaan}.`,
+              text: `Sesuai tugas yang diamanatkan dalam surat tersebut diatas, Pejabat Pengadaan Barang/Jasa Sekretariat Ditjen Aplikasi Informatika telah meminta penawaran kepada penyedia barang/jasa ${vendorData[0].nama_vendor} untuk mengajukan penawaran ${documentData.paket_pekerjaan}.`,
               font: "Arial",
               size: 12 * 2,
             }),
@@ -5446,7 +5446,7 @@ export const generateContractDocument = async ({
           children: [
             new TextRun({
               text: `Atas dasar permintaan penawaran Pejabat Pengadaan Barang/Jasa Sekretariat Ditjen Aplikasi Informatika, ${
-                vendorData.nama_vendor
+                vendorData[0].nama_vendor
               } mengajukan ${
                 documentData.paket_pekerjaan
               }, melalui surat penawaran tanggal ${formatDate(
@@ -5565,7 +5565,7 @@ export const generateContractDocument = async ({
                     new Paragraph({
                       children: [
                         new TextRun({
-                          text: vendorData.nama_vendor,
+                          text: vendorData[0].nama_vendor,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -5609,7 +5609,7 @@ export const generateContractDocument = async ({
                     new Paragraph({
                       children: [
                         new TextRun({
-                          text: vendorData.alamat_vendor,
+                          text: vendorData[0].alamat_vendor,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -5653,7 +5653,7 @@ export const generateContractDocument = async ({
                     new Paragraph({
                       children: [
                         new TextRun({
-                          text: vendorData.npwp,
+                          text: vendorData[0].npwp,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -5980,7 +5980,7 @@ export const generateContractDocument = async ({
                       alignment: AlignmentType.JUSTIFIED,
                       children: [
                         new TextRun({
-                          text: `${vendorData.nama_pj}`,
+                          text: `${vendorData[0].nama_pj}`,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -5998,7 +5998,7 @@ export const generateContractDocument = async ({
                       alignment: AlignmentType.JUSTIFIED,
                       children: [
                         new TextRun({
-                          text: `${vendorData.jabatan_pj}, berkedudukan di Jakarta dalam hal ini bertindak untuk dan atas nama ${vendorData.nama_vendor}, yang selanjutnya dalam Berita Acara ini disebut PIHAK KEDUA`,
+                          text: `${vendorData[0].jabatan_pj}, berkedudukan di Jakarta dalam hal ini bertindak untuk dan atas nama ${vendorData[0].nama_vendor}, yang selanjutnya dalam Berita Acara ini disebut PIHAK KEDUA`,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -6148,19 +6148,19 @@ export const generateContractDocument = async ({
                           font: "Arial",
                         }),
                         new TextRun({
-                          text: `${vendorData.jabatan_pj}`,
+                          text: `${vendorData[0].jabatan_pj}`,
                           size: 12 * 2,
                           font: "Arial",
                           break: 1,
                         }),
                         new TextRun({
-                          text: `${vendorData.nama_vendor}`,
+                          text: `${vendorData[0].nama_vendor}`,
                           size: 12 * 2,
                           font: "Arial",
                           break: 1,
                         }),
                         new TextRun({
-                          text: `${vendorData.nama_pj}`,
+                          text: `${vendorData[0].nama_pj}`,
                           size: 12 * 2,
                           font: "Arial",
                           break: 6,
@@ -6396,7 +6396,7 @@ export const generateContractDocument = async ({
                       alignment: AlignmentType.JUSTIFIED,
                       children: [
                         new TextRun({
-                          text: `${vendorData.nama_pj}`,
+                          text: `${vendorData[0].nama_pj}`,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -6414,7 +6414,7 @@ export const generateContractDocument = async ({
                       alignment: AlignmentType.JUSTIFIED,
                       children: [
                         new TextRun({
-                          text: `${vendorData.jabatan_pj}, berkedudukan di Jakarta dalam hal ini bertindak untuk dan atas nama ${vendorData.nama_vendor}, yang selanjutnya dalam Berita Acara ini disebut PIHAK KEDUA`,
+                          text: `${vendorData[0].jabatan_pj}, berkedudukan di Jakarta dalam hal ini bertindak untuk dan atas nama ${vendorData[0].nama_vendor}, yang selanjutnya dalam Berita Acara ini disebut PIHAK KEDUA`,
                           size: 12 * 2,
                           font: "Arial",
                         }),
@@ -6677,19 +6677,19 @@ export const generateContractDocument = async ({
                           font: "Arial",
                         }),
                         new TextRun({
-                          text: `${vendorData.jabatan_pj}`,
+                          text: `${vendorData[0].jabatan_pj}`,
                           size: 12 * 2,
                           font: "Arial",
                           break: 1,
                         }),
                         new TextRun({
-                          text: `${vendorData.nama_vendor}`,
+                          text: `${vendorData[0].nama_vendor}`,
                           size: 12 * 2,
                           font: "Arial",
                           break: 1,
                         }),
                         new TextRun({
-                          text: `${vendorData.nama_pj}`,
+                          text: `${vendorData[0].nama_pj}`,
                           size: 12 * 2,
                           font: "Arial",
                           break: 6,
@@ -7084,7 +7084,7 @@ export const generateContractDocument = async ({
                       spacing: { before: 100, after: 100},
                       children: [
                         new TextRun({
-                          text: `${vendorData.nama_vendor}`,
+                          text: `${vendorData[0].nama_vendor}`,
                           size: 11 * 2,
                           font: "Arial",
                         }),
@@ -7152,7 +7152,7 @@ export const generateContractDocument = async ({
                       spacing: { before: 100, after: 100},
                       children: [
                         new TextRun({
-                          text: `${vendorData.alamat_vendor}`,
+                          text: `${vendorData[0].alamat_vendor}`,
                           size: 11 * 2,
                           font: "Arial",
                         }),
@@ -7365,7 +7365,7 @@ export const generateContractDocument = async ({
                           font: "Arial",
                         }),
                         new TextRun({
-                          text: `${vendorData.nama_vendor},`,
+                          text: `${vendorData[0].nama_vendor},`,
                           size: 11 * 2,
                           font: "Arial",
                           bold: true,
@@ -7376,7 +7376,7 @@ export const generateContractDocument = async ({
                       alignment: AlignmentType.JUSTIFIED,
                       children: [
                         new TextRun({
-                          text: `${vendorData.bank_vendor},`,
+                          text: `${vendorData[0].bank_vendor},`,
                           size: 11 * 2,
                           font: "Arial",
                           bold: true,
@@ -7387,7 +7387,7 @@ export const generateContractDocument = async ({
                       alignment: AlignmentType.JUSTIFIED,
                       children: [
                         new TextRun({
-                          text: `No. Rekening ${vendorData.norek_vendor}`,
+                          text: `No. Rekening ${vendorData[0].norek_vendor}`,
                           size: 11 * 2,
                           font: "Arial",
                           bold: true,
@@ -7399,7 +7399,7 @@ export const generateContractDocument = async ({
                       spacing: { after: 100},
                       children: [
                         new TextRun({
-                          text: `a.n. ${vendorData.nama_vendor}`,
+                          text: `a.n. ${vendorData[0].nama_vendor}`,
                           size: 11 * 2,
                           font: "Arial",
                           bold: true,
@@ -8176,7 +8176,7 @@ export const generateContractDocument = async ({
                           font: "Arial MT",
                         }),
                         new TextRun({
-                          text: `${vendorData.jabatan_pj}`,
+                          text: `${vendorData[0].jabatan_pj}`,
                           size: 10 * 2,
                           font: "Arial MT",
                           break: 1,
@@ -8194,7 +8194,7 @@ export const generateContractDocument = async ({
                           break: 1,
                         }),
                         new TextRun({
-                          text: `${vendorData.nama_pj}`,
+                          text: `${vendorData[0].nama_pj}`,
                           size: 12 * 2,
                           font: "Arial MT",
                           break: 1,
@@ -8476,10 +8476,10 @@ export const PrintContract: React.FC<PrintContractProps> = ({
       saveAs(blob, fullFilename);
 
       // // Complete the form session
-      await completeForm(token);
+      // await completeForm(token);
 
       // // Clear the form session
-      await clearFormSession(token);
+      // await clearFormSession(token);
 
       setIsPrintDialogOpen(false);
 

@@ -46,10 +46,10 @@ interface Document {
   tanggal_kontrak: string;
   paket_pekerjaan: string;
   tahun_anggaran: string;
-  vendor?: {
+  vendor?: Array<{
     id: number;
     nama_vendor: string;
-  };
+  }>;
 }
 
 interface SortConfig {
@@ -115,7 +115,7 @@ export default function RiwayatDokumen() {
       const doc = await generateContractDocument({
         contractsData: response.contracts,
         documentData: response.document,
-        vendorData: response.vendor,
+        vendorData: response.document.vendor,
         officialData: response.officials,
       });
 
@@ -167,7 +167,9 @@ export default function RiwayatDokumen() {
         (doc) =>
           doc.nomor_kontrak?.toLowerCase().includes(searchLower) ||
           doc.paket_pekerjaan?.toLowerCase().includes(searchLower) ||
-          doc.vendor?.nama_vendor?.toLowerCase().includes(searchLower)
+          doc.vendor?.some(v => 
+            v.nama_vendor?.toLowerCase().includes(searchLower)
+          )
       );
     }
 
@@ -177,10 +179,11 @@ export default function RiwayatDokumen() {
         let aVal = a[sortConfig.key as keyof Document];
         let bVal = b[sortConfig.key as keyof Document];
 
-        // Handle nested vendor property
+        // Handle sorting untuk multiple vendors
         if (sortConfig.key === "vendor.nama_vendor") {
-          aVal = a.vendor?.nama_vendor;
-          bVal = b.vendor?.nama_vendor;
+          // Gunakan nama vendor pertama untuk sorting
+          aVal = a.vendor?.[0]?.nama_vendor;
+          bVal = b.vendor?.[0]?.nama_vendor;
         }
 
         // Handle dates
@@ -355,7 +358,25 @@ export default function RiwayatDokumen() {
                           {doc.nomor_kontrak}
                         </TableCell>
                         <TableCell>{doc.paket_pekerjaan}</TableCell>
-                        <TableCell>{doc.vendor?.nama_vendor}</TableCell>
+                        <TableCell>
+                          {" "}
+                          {doc.vendor && doc.vendor.length > 0 ? (
+                            <div className="space-y-1">
+                              {doc.vendor.map((v, index) => (
+                                <div key={v.id} className="flex items-center">
+                                  <span>{v.nama_vendor}</span>
+                                  {index < doc.vendor!.length - 1 && (
+                                    <span className="mx-1 text-gray-400">
+                                      |
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </TableCell>
                         <TableCell>
                           {format(
                             new Date(doc.tanggal_kontrak),

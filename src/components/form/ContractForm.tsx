@@ -71,38 +71,38 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
     Omit<ContractData, "jenis_kontrak">[]
   >([INITIAL_CONTRACT]);
   const [documentData, setDocumentData] = useState<DocumentData | null>(null);
-  const [vendorData, setVendorData] = useState<VendorData | null>(null);
+  const [vendorData, setVendorData] = useState<VendorData[]>([]);
   const [officialData, setOfficialData] = useState<OfficialData[]>([]);
   const [showDownloadSuccessAlert, setShowDownloadSuccessAlert] =
     useState(false);
 
-    const TotalValues = ({ contracts }) => {
-      const { estimatedTotal, initialTotal, finalTotal } =
-        calculateTotalValues(contracts);
-      return (
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-          <h4 className="font-medium mb-2">Total Nilai Kontrak</h4>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm text-gray-600">Total Nilai Perkiraan:</p>
-              <p className="font-medium">{formatCurrency(estimatedTotal)}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Total Nilai Awal:</p>
-              <p className="font-medium">{formatCurrency(initialTotal)}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Total Nilai Akhir:</p>
-              <p className="font-medium">{formatCurrency(finalTotal)}</p>
-            </div>
+  const TotalValues = ({ contracts }) => {
+    const { estimatedTotal, initialTotal, finalTotal } =
+      calculateTotalValues(contracts);
+    return (
+      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+        <h4 className="font-medium mb-2">Total Nilai Kontrak</h4>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <p className="text-sm text-gray-600">Total Nilai Perkiraan:</p>
+            <p className="font-medium">{formatCurrency(estimatedTotal)}</p>
           </div>
-          <p className="text-sm text-gray-500 mt-2">
-            Batas maksimal total untuk jenis kontrak {contractType}:{" "}
-            {formatCurrency(MAX_PRICE[contractType])}
-          </p>
+          <div>
+            <p className="text-sm text-gray-600">Total Nilai Awal:</p>
+            <p className="font-medium">{formatCurrency(initialTotal)}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Total Nilai Akhir:</p>
+            <p className="font-medium">{formatCurrency(finalTotal)}</p>
+          </div>
         </div>
-      );
-    };
+        <p className="text-sm text-gray-500 mt-2">
+          Batas maksimal total untuk jenis kontrak {contractType}:{" "}
+          {formatCurrency(MAX_PRICE[contractType])}
+        </p>
+      </div>
+    );
+  };
 
   const calculateTotalValues = (
     contracts: Omit<ContractData, "jenis_kontrak">[]
@@ -110,14 +110,20 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
     return contracts.reduce(
       (totals, contract) => ({
         estimatedTotal:
-          totals.estimatedTotal + 
-          (contract.nilai_perkiraan_sendiri * contract.jumlah_orang * contract.durasi_kontrak),
-        initialTotal: 
-          totals.initialTotal + 
-          (contract.nilai_kontral_awal * contract.jumlah_orang * contract.durasi_kontrak),
-        finalTotal: 
-          totals.finalTotal + 
-          (contract.nilai_kontrak_akhir * contract.jumlah_orang * contract.durasi_kontrak),
+          totals.estimatedTotal +
+          contract.nilai_perkiraan_sendiri *
+            contract.jumlah_orang *
+            contract.durasi_kontrak,
+        initialTotal:
+          totals.initialTotal +
+          contract.nilai_kontral_awal *
+            contract.jumlah_orang *
+            contract.durasi_kontrak,
+        finalTotal:
+          totals.finalTotal +
+          contract.nilai_kontrak_akhir *
+            contract.jumlah_orang *
+            contract.durasi_kontrak,
       }),
       { estimatedTotal: 0, initialTotal: 0, finalTotal: 0 }
     );
@@ -324,20 +330,25 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
           setDocumentData(docResponse.data.session.temp_data.document);
         }
 
-        // Fetch vendor data
-        const vendorResponse = await getVendorData();
-        if (vendorResponse.data.vendor) {
-          setVendorData(vendorResponse.data.vendor);
-        } else if (vendorResponse.data.session?.temp_data?.vendor) {
-          setVendorData(vendorResponse.data.session.temp_data.vendor);
-        }
-
         // Fetch official data
         const officialResponse = await getOfficialData();
         if (officialResponse.data.officials) {
           setOfficialData(officialResponse.data.officials);
         } else if (officialResponse.data.session?.temp_data?.officials) {
           setOfficialData(officialResponse.data.session.temp_data.officials);
+        }
+
+        // Fetch vendor data
+        const vendorResponse = await getVendorData();
+        if (
+          vendorResponse.data.vendors &&
+          vendorResponse.data.vendors.length > 0
+        ) {
+          setVendorData(vendorResponse.data.vendors);
+        } else if (vendorResponse.data.session?.temp_data?.vendors) {
+          setVendorData(vendorResponse.data.session.temp_data.vendors);
+        } else {
+          setVendorData([]); // Set empty array if no vendors
         }
 
         // Fetch contract data
@@ -434,7 +445,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
         </CardHeader>
 
         <CardContent className="space-y-4">
-        <TotalValues contracts={contractsData} />
+          <TotalValues contracts={contractsData} />
           {contractsData.map((contract, index) => (
             <div key={index} className="border p-4 rounded-lg relative">
               {index !== 0 && (

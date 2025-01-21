@@ -35,7 +35,7 @@ export interface Document {
   paket_pekerjaan: string;
   tahun_anggaran: string;
   vendor_id: number;
-  vendor?: {
+  vendor?: Array<{
     id: number;
     nama_vendor: string;
     alamat_vendor: string;
@@ -45,7 +45,7 @@ export interface Document {
     bank_vendor: string;
     norek_vendor: string;
     nama_rek_vendor: string;
-  };
+  }>;
   officials?: Array<{
     id: number;
     nip: string;
@@ -68,7 +68,7 @@ export interface DocumentDetailResponse {
   status: string;
   data: {
     document: Document;
-    vendor: {
+    vendor: Array<{
       id: number;
       nama_vendor: string;
       alamat_vendor: string;
@@ -76,7 +76,7 @@ export interface DocumentDetailResponse {
       bank_vendor: string;
       norek_vendor: string;
       nama_rek_vendor: string;
-    };
+    }>;
     officials: Array<{
       id: number;
       nip: string;
@@ -154,11 +154,15 @@ export const getDataDetail = async (
       `/get-data-detail/${id}`
     );
 
-    // Log response untuk debugging
     console.log("Response from getDataDetail:", response.data);
 
     if (response.data.status === "success") {
-      return response.data.data;
+      // Pastikan vendor selalu berupa array
+      const data = response.data.data;
+      if (!Array.isArray(data.vendor)) {
+        data.vendor = data.vendor ? [data.vendor] : [];
+      }
+      return data;
     }
 
     throw new Error(response.data.message || "Gagal mengambil detail dokumen");
