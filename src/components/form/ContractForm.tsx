@@ -454,6 +454,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                   size="sm"
                   className="absolute top-2 right-2 hover:bg-red-100"
                   onClick={() => removeContract(index)}
+                  disabled={isSaved && !isEditMode}
                 >
                   <Minus className="w-4 h-4" />
                 </Button>

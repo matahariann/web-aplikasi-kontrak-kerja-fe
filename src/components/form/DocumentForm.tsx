@@ -207,351 +207,191 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
           <p className="text-sm text-red-500">*Wajib diisi</p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="nomor_kontrak">
-                Nomor Kontrak <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="nomor_kontrak"
-                value={documentData.nomor_kontrak}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.nomor_kontrak
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.nomor_kontrak && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nomor kontrak tidak boleh kosong
-                </p>
-              )}
-            </div>
+          <div className="border p-4 rounded-lg mb-4">
+            <h3 className="font-medium mb-4">Dokumen</h3>
+            <div className="grid grid-cols-2 gap-4 mb-2">
+              <div>
+                <Label htmlFor="nomor_kontrak">
+                  Nomor Kontrak <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="nomor_kontrak"
+                  value={documentData.nomor_kontrak}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.nomor_kontrak
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.nomor_kontrak && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Nomor kontrak tidak boleh kosong
+                  </p>
+                )}
+              </div>
 
-            <div>
-              <Label htmlFor="tanggal_kontrak">
-                Tanggal Kontrak <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="tanggal_kontrak"
-                type="date"
-                value={documentData.tanggal_kontrak}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.tanggal_kontrak
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.tanggal_kontrak && (
-                <p className="text-red-500 text-sm mt-1">
-                  Tanggal kontrak tidak boleh kosong
-                </p>
-              )}
-            </div>
+              <div>
+                <Label htmlFor="tanggal_kontrak">
+                  Tanggal Kontrak <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="tanggal_kontrak"
+                  type="date"
+                  value={documentData.tanggal_kontrak}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.tanggal_kontrak
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.tanggal_kontrak && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Tanggal kontrak tidak boleh kosong
+                  </p>
+                )}
+              </div>
 
-            <div>
-              <Label htmlFor="paket_pekerjaan">
-                Paket Pekerjaan <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="paket_pekerjaan"
-                value={documentData.paket_pekerjaan}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.paket_pekerjaan
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.paket_pekerjaan && (
-                <p className="text-red-500 text-sm mt-1">
-                  Paket pekerjaan tidak boleh kosong
-                </p>
-              )}
-            </div>
+              <div>
+                <Label htmlFor="paket_pekerjaan">
+                  Paket Pekerjaan <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="paket_pekerjaan"
+                  value={documentData.paket_pekerjaan}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.paket_pekerjaan
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.paket_pekerjaan && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Paket pekerjaan tidak boleh kosong
+                  </p>
+                )}
+              </div>
 
-            <div>
-              <Label htmlFor="tahun_anggaran">
-                Tahun Anggaran <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="tahun_anggaran"
-                value={documentData.tahun_anggaran}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.tahun_anggaran
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.tahun_anggaran && (
-                <p className="text-red-500 text-sm mt-1">
-                  Tahun anggaran tidak boleh kosong
-                </p>
-              )}
-            </div>
+              <div>
+                <Label htmlFor="tahun_anggaran">
+                  Tahun Anggaran <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="tahun_anggaran"
+                  value={documentData.tahun_anggaran}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.tahun_anggaran
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.tahun_anggaran && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Tahun anggaran tidak boleh kosong
+                  </p>
+                )}
+              </div>
 
-            <div>
-              <Label htmlFor="nomor_pp">
-                Nomor Surat Pelaksanaan Pekerjaan{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="nomor_pp"
-                value={documentData.nomor_pp}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.nomor_pp ? "border-red-300" : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.nomor_pp && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nomor Surat Pelaksanaan Pekerjaan tidak boleh kosong
-                </p>
-              )}
-            </div>
+              <div>
+                <Label htmlFor="tanggal_mulai">
+                  Tanggal Mulai Pekerjaan{" "}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="tanggal_mulai"
+                  type="date"
+                  value={documentData.tanggal_mulai}
+                  onChange={handleInputChange}
+                  className={
+                    (isSubmitted && !documentData.tanggal_mulai) || dateError
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.tanggal_mulai && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Tanggal Mulai Pekerjaan tidak boleh kosong
+                  </p>
+                )}
+              </div>
 
-            <div>
-              <Label htmlFor="tanggal_pp">
-                Tanggal Surat Pelaksanaan Pekerjaan{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="tanggal_pp"
-                type="date"
-                value={documentData.tanggal_pp}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.tanggal_pp
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.tanggal_pp && (
-                <p className="text-red-500 text-sm mt-1">
-                  Tanggal Surat Pelaksanaan Pekerjaan tidak boleh kosong
-                </p>
-              )}
-            </div>
+              <div>
+                <Label htmlFor="tanggal_selesai">
+                  Tanggal Selesai Pekerjaan{" "}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="tanggal_selesai"
+                  type="date"
+                  value={documentData.tanggal_selesai}
+                  onChange={handleInputChange}
+                  className={
+                    (isSubmitted && !documentData.tanggal_selesai) || dateError
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.tanggal_selesai && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Tanggal Selesai Pekerjaan tidak boleh kosong
+                  </p>
+                )}
+              </div>
 
-            <div>
-              <Label htmlFor="nomor_hps">
-                Nomor Surat Harga Perkiraan Sendiri{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="nomor_hps"
-                value={documentData.nomor_hps}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.nomor_hps ? "border-red-300" : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.nomor_hps && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nomor Surat Harga Perkiraan Sendiri tidak boleh kosong
-                </p>
-              )}
-            </div>
+              <div>
+                <Label htmlFor="nomor_dipa">
+                  Nomor DIPA <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="nomor_dipa"
+                  value={documentData.nomor_dipa}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.nomor_dipa
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.nomor_dipa && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Nomor DIPA tidak boleh kosong
+                  </p>
+                )}
+              </div>
 
-            <div>
-              <Label htmlFor="tanggal_hps">
-                Tanggal Surat Harga Perkiraan Sendiri{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="tanggal_hps"
-                type="date"
-                value={documentData.tanggal_hps}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.tanggal_hps
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.tanggal_hps && (
-                <p className="text-red-500 text-sm mt-1">
-                  Tanggal Surat Harga Perkiraan Sendiri tidak boleh kosong
-                </p>
-              )}
+              <div>
+                <Label htmlFor="tanggal_dipa">
+                  Tanggal DIPA <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="tanggal_dipa"
+                  type="date"
+                  value={documentData.tanggal_dipa}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.tanggal_dipa
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.tanggal_dipa && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Tanggal DIPA tidak boleh kosong
+                  </p>
+                )}
+              </div>
             </div>
-
-            <div>
-              <Label htmlFor="tanggal_mulai">
-                Tanggal Mulai Pekerjaan <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="tanggal_mulai"
-                type="date"
-                value={documentData.tanggal_mulai}
-                onChange={handleInputChange}
-                className={
-                  (isSubmitted && !documentData.tanggal_mulai) || dateError
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.tanggal_mulai && (
-                <p className="text-red-500 text-sm mt-1">
-                  Tanggal Mulai Pekerjaan tidak boleh kosong
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="tanggal_selesai">
-                Tanggal Selesai Pekerjaan{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="tanggal_selesai"
-                type="date"
-                value={documentData.tanggal_selesai}
-                onChange={handleInputChange}
-                className={
-                  (isSubmitted && !documentData.tanggal_selesai) || dateError
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.tanggal_selesai && (
-                <p className="text-red-500 text-sm mt-1">
-                  Tanggal Selesai Pekerjaan tidak boleh kosong
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="nomor_pph1">
-                Nomor Surat Permintaan Penawaran Harga{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="nomor_pph1"
-                value={documentData.nomor_pph1}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.nomor_pph1
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.nomor_pph1 && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nomor Surat Permintaan Penawaran Harga tidak boleh kosong
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="tanggal_pph1">
-                Tanggal Surat Permintaan Penawaran Harga{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="tanggal_pph1"
-                type="date"
-                value={documentData.tanggal_pph1}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.tanggal_pph1
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.tanggal_pph1 && (
-                <p className="text-red-500 text-sm mt-1">
-                  Tanggal Surat Permintaan Penawaran Harga tidak boleh kosong
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="nomor_ukn">
-                Nomor Surat Undangan Klarifikasi dan Negosiasi{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="nomor_ukn"
-                value={documentData.nomor_ukn}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.nomor_ukn ? "border-red-300" : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.nomor_ukn && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nomor Surat Undangan Klarifikasi dan Negosiasi tidak boleh
-                  kosong
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="tanggal_ukn">
-                Tanggal Surat Undangan Klarifikasi dan Negosiasi{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="tanggal_ukn"
-                type="date"
-                value={documentData.tanggal_ukn}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.tanggal_ukn
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.tanggal_ukn && (
-                <p className="text-red-500 text-sm mt-1">
-                  Tanggal Surat Undangan Klarifikasi dan Negosiasi tidak boleh
-                  kosong
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="tanggal_undangan_ukn">
-                Tanggal Undangan Klarifikasi dan Negosiasi{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="tanggal_undangan_ukn"
-                type="date"
-                value={documentData.tanggal_undangan_ukn}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.tanggal_undangan_ukn
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.tanggal_undangan_ukn && (
-                <p className="text-red-500 text-sm mt-1">
-                  Tanggal Undangan Klarifikasi dan Negosiasi tidak boleh kosong
-                </p>
-              )}
-            </div>
-
             <div>
               <Label htmlFor="kode_kegiatan">
                 Kode Kegiatan <span className="text-red-500">*</span>
@@ -573,293 +413,507 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
                 </p>
               )}
             </div>
+          </div>
 
-            <div>
-              <Label htmlFor="nomor_ba_ekn">
-                Nomor Surat Berita Acara Evaluasi, Klarifikasi, dan Negosiasi{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="nomor_ba_ekn"
-                value={documentData.nomor_ba_ekn}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.nomor_ba_ekn
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.nomor_ba_ekn && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nomor Surat Berita Acara Evaluasi, Klarifikasi, dan Negosiasi
-                  tidak boleh kosong
-                </p>
-              )}
+          <div className="border p-4 rounded-lg mb-4">
+            <h3 className="font-medium mb-4">Surat Pelaksanaan Pekerjaan</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="nomor_pp">
+                  Nomor Surat <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="nomor_pp"
+                  value={documentData.nomor_pp}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.nomor_pp
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.nomor_pp && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Nomor Surat Pelaksanaan Pekerjaan tidak boleh kosong
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="tanggal_pp">
+                  Tanggal Surat <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="tanggal_pp"
+                  type="date"
+                  value={documentData.tanggal_pp}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.tanggal_pp
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.tanggal_pp && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Tanggal Surat Pelaksanaan Pekerjaan tidak boleh kosong
+                  </p>
+                )}
+              </div>
             </div>
+          </div>
 
+          <div className="border p-4 rounded-lg mb-4">
+            <h3 className="font-medium mb-4">Surat Harga Perkiraan Sendiri</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="nomor_hps">
+                  Nomor Surat <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="nomor_hps"
+                  value={documentData.nomor_hps}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.nomor_hps
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.nomor_hps && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Nomor Surat Harga Perkiraan Sendiri tidak boleh kosong
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="tanggal_hps">
+                  Tanggal Surat <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="tanggal_hps"
+                  type="date"
+                  value={documentData.tanggal_hps}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.tanggal_hps
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.tanggal_hps && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Tanggal Surat Harga Perkiraan Sendiri tidak boleh kosong
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="border p-4 rounded-lg mb-4">
+            <h3 className="font-medium mb-4">
+              Surat Permintaan Penawaran Harga
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="nomor_pph1">
+                  Nomor Surat <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="nomor_pph1"
+                  value={documentData.nomor_pph1}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.nomor_pph1
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.nomor_pph1 && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Nomor Surat Permintaan Penawaran Harga tidak boleh kosong
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="tanggal_pph1">
+                  Tanggal Surat <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="tanggal_pph1"
+                  type="date"
+                  value={documentData.tanggal_pph1}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.tanggal_pph1
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.tanggal_pph1 && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Tanggal Surat Permintaan Penawaran Harga tidak boleh kosong
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="border p-4 rounded-lg mb-4">
+            <h3 className="font-medium mb-4">
+              Surat Undangan Klarifikasi dan Negosiasi
+            </h3>
+            <div className="grid grid-cols-2 gap-4 mb-2">
+              <div>
+                <Label htmlFor="nomor_ukn">
+                  Nomor Surat <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="nomor_ukn"
+                  value={documentData.nomor_ukn}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.nomor_ukn
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.nomor_ukn && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Nomor Surat Undangan Klarifikasi dan Negosiasi tidak boleh
+                    kosong
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="tanggal_ukn">
+                  Tanggal Surat <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="tanggal_ukn"
+                  type="date"
+                  value={documentData.tanggal_ukn}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.tanggal_ukn
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.tanggal_ukn && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Tanggal Surat Undangan Klarifikasi dan Negosiasi tidak boleh
+                    kosong
+                  </p>
+                )}
+              </div>
+            </div>
             <div>
-              <Label htmlFor="tanggal_ba_ekn">
-                Tanggal Surat Berita Acara Evaluasi, Klarifikasi, dan Negosiasi{" "}
-                <span className="text-red-500">*</span>
+              <Label htmlFor="tanggal_undangan_ukn">
+                Tanggal Undangan <span className="text-red-500">*</span>
               </Label>
               <Input
-                id="tanggal_ba_ekn"
+                id="tanggal_undangan_ukn"
                 type="date"
-                value={documentData.tanggal_ba_ekn}
+                value={documentData.tanggal_undangan_ukn}
                 onChange={handleInputChange}
                 className={
-                  isSubmitted && !documentData.tanggal_ba_ekn
+                  isSubmitted && !documentData.tanggal_undangan_ukn
                     ? "border-red-300"
                     : ""
                 }
                 disabled={isSaved && !isEditMode}
               />
-              {isSubmitted && !documentData.tanggal_ba_ekn && (
+              {isSubmitted && !documentData.tanggal_undangan_ukn && (
                 <p className="text-red-500 text-sm mt-1">
-                  Tanggal Surat Berita Acara Evaluasi, Klarifikasi, dan
-                  Negosiasi tidak boleh kosong
+                  Tanggal Undangan Klarifikasi dan Negosiasi tidak boleh kosong
                 </p>
               )}
             </div>
+          </div>
 
-            <div>
-              <Label htmlFor="nomor_pppb">
-                Nomor Surat Penetapan Pelaksanaan Penyedia Barang/Jasa{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="nomor_pppb"
-                value={documentData.nomor_pppb}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.nomor_pppb
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.nomor_pppb && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nomor Surat Penetapan Pelaksanaan Penyedia Barang/Jasa tidak
-                  boleh kosong
-                </p>
-              )}
+          <div className="border p-4 rounded-lg mb-4">
+            <h3 className="font-medium mb-4">
+              Surat Berita Acara Evaluasi, Klarifikasi, dan Negosiasi
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="nomor_ba_ekn">
+                  Nomor Surat <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="nomor_ba_ekn"
+                  value={documentData.nomor_ba_ekn}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.nomor_ba_ekn
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.nomor_ba_ekn && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Nomor Surat Berita Acara Evaluasi, Klarifikasi, dan
+                    Negosiasi tidak boleh kosong
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="tanggal_ba_ekn">
+                  Tanggal Surat <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="tanggal_ba_ekn"
+                  type="date"
+                  value={documentData.tanggal_ba_ekn}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.tanggal_ba_ekn
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.tanggal_ba_ekn && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Tanggal Surat Berita Acara Evaluasi, Klarifikasi, dan
+                    Negosiasi tidak boleh kosong
+                  </p>
+                )}
+              </div>
             </div>
+          </div>
 
-            <div>
-              <Label htmlFor="tanggal_pppb">
-                Tanggal Surat Penetapan Pelaksanaan Penyedia Barang/Jasa{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="tanggal_pppb"
-                type="date"
-                value={documentData.tanggal_pppb}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.tanggal_pppb
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.tanggal_pppb && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nomor Surat Penetapan Pelaksanaan Penyedia Barang/Jasa tidak
-                  boleh kosong
-                </p>
-              )}
+          <div className="border p-4 rounded-lg mb-4">
+            <h3 className="font-medium mb-4">
+              Surat Penetapan Pelaksanaan Penyedia Barang/Jasa
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="nomor_pppb">
+                  Nomor Surat{" "}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="nomor_pppb"
+                  value={documentData.nomor_pppb}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.nomor_pppb
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.nomor_pppb && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Nomor Surat Penetapan Pelaksanaan Penyedia Barang/Jasa tidak
+                    boleh kosong
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="tanggal_pppb">
+                  Tanggal Surat{" "}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="tanggal_pppb"
+                  type="date"
+                  value={documentData.tanggal_pppb}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.tanggal_pppb
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.tanggal_pppb && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Nomor Surat Penetapan Pelaksanaan Penyedia Barang/Jasa tidak
+                    boleh kosong
+                  </p>
+                )}
+              </div>
             </div>
+          </div>
 
-            <div>
-              <Label htmlFor="nomor_lppb">
-                Nomor Surat Laporan Pelaksanaan Pengadaan Barang/Jasa{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="nomor_lppb"
-                value={documentData.nomor_lppb}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.nomor_lppb
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.nomor_lppb && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nomor Surat Laporan Pelaksanaan Pengadaan Barang/Jasa tidak
-                  boleh kosong
-                </p>
-              )}
+          <div className="border p-4 rounded-lg mb-4">
+            <h3 className="font-medium mb-4">
+              Surat Laporan Pelaksanaan Pengadaan Barang/Jasa
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="nomor_lppb">
+                  Nomor Surat{" "}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="nomor_lppb"
+                  value={documentData.nomor_lppb}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.nomor_lppb
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.nomor_lppb && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Nomor Surat Laporan Pelaksanaan Pengadaan Barang/Jasa tidak
+                    boleh kosong
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="tanggal_lppb">
+                  Tanggal Surat{" "}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="tanggal_lppb"
+                  type="date"
+                  value={documentData.tanggal_lppb}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.tanggal_lppb
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.tanggal_lppb && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Tanggal Surat Laporan Pelaksanaan Pengadaan Barang/Jasa
+                    tidak boleh kosong
+                  </p>
+                )}
+              </div>
             </div>
+          </div>
 
-            <div>
-              <Label htmlFor="tanggal_lppb">
-                Tanggal Surat Laporan Pelaksanaan Pengadaan Barang/Jasa{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="tanggal_lppb"
-                type="date"
-                value={documentData.tanggal_lppb}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.tanggal_lppb
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.tanggal_lppb && (
-                <p className="text-red-500 text-sm mt-1">
-                  Tanggal Surat Laporan Pelaksanaan Pengadaan Barang/Jasa tidak
-                  boleh kosong
-                </p>
-              )}
+          <div className="border p-4 rounded-lg mb-4">
+            <h3 className="font-medium mb-4">
+              Surat Berita Acara Serah Terima Pekerjaan
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="nomor_ba_stp">
+                  Nomor Surat{" "}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="nomor_ba_stp"
+                  value={documentData.nomor_ba_stp}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.nomor_ba_stp
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.nomor_ba_stp && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Nomor Surat Berita Acara Serah Terima Pekerjaan tidak boleh
+                    kosong
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="tanggal_ba_stp">
+                  Tanggal Surat{" "}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="tanggal_ba_stp"
+                  type="date"
+                  value={documentData.tanggal_ba_stp}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.tanggal_ba_stp
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.tanggal_ba_stp && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Tanggal Surat Berita Acara Serah Terima Pekerjaan tidak
+                    boleh kosong
+                  </p>
+                )}
+              </div>
             </div>
+          </div>
 
-            <div>
-              <Label htmlFor="nomor_ba_stp">
-                Nomor Surat Berita Acara Serah Terima Pekerjaan{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="nomor_ba_stp"
-                value={documentData.nomor_ba_stp}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.nomor_ba_stp
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.nomor_ba_stp && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nomor Surat Berita Acara Serah Terima Pekerjaan tidak boleh
-                  kosong
-                </p>
-              )}
-            </div>
+          <div className="border p-4 rounded-lg mb-4">
+            <h3 className="font-medium mb-4">Surat Berita Acara Pembayaran</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="nomor_ba_pem">
+                  Nomor Surat{" "}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="nomor_ba_pem"
+                  value={documentData.nomor_ba_pem}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.nomor_ba_pem
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.nomor_ba_pem && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Nomor Surat Berita Acara Pembayaran tidak boleh kosong
+                  </p>
+                )}
+              </div>
 
-            <div>
-              <Label htmlFor="tanggal_ba_stp">
-                Tanggal Surat Berita Acara Serah Terima Pekerjaan{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="tanggal_ba_stp"
-                type="date"
-                value={documentData.tanggal_ba_stp}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.tanggal_ba_stp
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.tanggal_ba_stp && (
-                <p className="text-red-500 text-sm mt-1">
-                  Tanggal Surat Berita Acara Serah Terima Pekerjaan tidak boleh
-                  kosong
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="nomor_ba_pem">
-                Nomor Surat Berita Acara Pembayaran{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="nomor_ba_pem"
-                value={documentData.nomor_ba_pem}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.nomor_ba_pem
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.nomor_ba_pem && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nomor Surat Berita Acara Pembayaran tidak boleh kosong
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="tanggal_ba_pem">
-                Tanggal Surat Berita Acara Pembayaran{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="tanggal_ba_pem"
-                type="date"
-                value={documentData.tanggal_ba_pem}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.tanggal_ba_pem
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.tanggal_ba_pem && (
-                <p className="text-red-500 text-sm mt-1">
-                  Tanggal Surat Berita Acara Pembayaran tidak boleh kosong
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="nomor_dipa">
-                Nomor DIPA <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="nomor_dipa"
-                value={documentData.nomor_dipa}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.nomor_dipa
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.nomor_dipa && (
-                <p className="text-red-500 text-sm mt-1">
-                  Nomor DIPA tidak boleh kosong
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="tanggal_dipa">
-                Tanggal DIPA <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="tanggal_dipa"
-                type="date"
-                value={documentData.tanggal_dipa}
-                onChange={handleInputChange}
-                className={
-                  isSubmitted && !documentData.tanggal_dipa
-                    ? "border-red-300"
-                    : ""
-                }
-                disabled={isSaved && !isEditMode}
-              />
-              {isSubmitted && !documentData.tanggal_dipa && (
-                <p className="text-red-500 text-sm mt-1">
-                  Tanggal DIPA tidak boleh kosong
-                </p>
-              )}
+              <div>
+                <Label htmlFor="tanggal_ba_pem">
+                  Tanggal Surat{" "}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="tanggal_ba_pem"
+                  type="date"
+                  value={documentData.tanggal_ba_pem}
+                  onChange={handleInputChange}
+                  className={
+                    isSubmitted && !documentData.tanggal_ba_pem
+                      ? "border-red-300"
+                      : ""
+                  }
+                  disabled={isSaved && !isEditMode}
+                />
+                {isSubmitted && !documentData.tanggal_ba_pem && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Tanggal Surat Berita Acara Pembayaran tidak boleh kosong
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
