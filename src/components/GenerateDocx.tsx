@@ -8476,10 +8476,10 @@ export const PrintContract: React.FC<PrintContractProps> = ({
       saveAs(blob, fullFilename);
 
       // // Complete the form session
-      // await completeForm(token);
+      await completeForm(token);
 
       // // Clear the form session
-      // await clearFormSession(token);
+      await clearFormSession(token);
 
       setIsPrintDialogOpen(false);
 

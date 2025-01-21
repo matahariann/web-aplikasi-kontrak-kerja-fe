@@ -25,12 +25,12 @@ interface OfficialResponse {
 
 export const addOfficial = async (
   token: string,
-  officialData: OfficialData
+  officialsData: OfficialData[]
 ): Promise<OfficialResponse> => {
   try {
     const response = await axios.post<OfficialResponse>(
       `http://localhost:8000/api/add-official`,
-      officialData,
+      { officials: officialsData },
       {
         headers: {
           Authorization: `Bearer ${token}`,

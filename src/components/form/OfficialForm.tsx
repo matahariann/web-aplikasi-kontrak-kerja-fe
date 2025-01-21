@@ -159,12 +159,19 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
       const basicFieldsEmpty = !official.nip || !official.nama;
       const isPPK = official.jabatan.includes("Pejabat Pembuat Komitmen");
       const skEmpty = isPPK && !official.surat_keputusan;
-
       return basicFieldsEmpty || skEmpty;
     });
 
     if (hasEmptyFields) {
       setError("Mohon lengkapi semua input");
+      return;
+    }
+
+    // Cek duplikasi NIP dalam form
+    const nips = officialsData.map((official) => official.nip);
+    const uniqueNips = new Set(nips);
+    if (nips.length !== uniqueNips.size) {
+      setError("NIP tidak boleh sama antar pejabat");
       return;
     }
 
@@ -175,19 +182,18 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
       }
 
       if (isFromDatabase) {
-        // Untuk setiap official dari database, update form_session_id
-        // dan hapus data lama jika ada
+        // Logic untuk data dari database tetap sama
         for (const official of officialsData) {
           if (!official.id) {
             throw new Error("ID official tidak ditemukan untuk update");
           }
           await axiosInstance.put(`/update-official-session/${official.id}`, {
             form_session_id: sessionId,
-            current_session_id: sessionId, // tambahkan current session untuk tracking
+            current_session_id: sessionId,
           });
         }
       } else {
-        // Logic untuk save/update officials seperti sebelumnya
+        // Kirim semua data official sekaligus
         if (isEditMode) {
           // Update existing officials
           for (const official of officialsData) {
@@ -203,16 +209,17 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
             });
           }
         } else {
-          // Save new officials
-          for (const official of officialsData) {
-            await addOfficial(token, {
+          // Save new officials dalam satu request
+          await addOfficial(
+            token,
+            officialsData.map((official) => ({
               ...official,
               periode_jabatan:
                 selectedPeriode === "new"
                   ? officialsData[0].periode_jabatan
                   : selectedPeriode,
-            });
-          }
+            }))
+          );
         }
       }
 
@@ -222,7 +229,7 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
       setShowSuccessAlert(true);
       setAlertType(isEditMode ? "edit" : "save");
 
-      // Refresh data setelah save/update
+      // Refresh data
       const response = await getOfficialData();
       if (response.data.officials) {
         setOfficialsData(response.data.officials);
