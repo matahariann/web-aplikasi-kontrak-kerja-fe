@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios";
+import { toast } from "sonner";
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,9 +47,6 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
   const [selectedPeriode, setSelectedPeriode] = useState<string>("");
   const [isFromDatabase, setIsFromDatabase] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-  const [alertType, setAlertType] = useState<"save" | "edit" | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [officialsData, setOfficialsData] = useState(INITIAL_OFFICIALS);
@@ -62,7 +60,6 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
       setSelectedPeriode(periode);
 
       if (periode === "new") {
-        // Logic untuk data baru tetap sama
         const newOfficialsData = INITIAL_OFFICIALS.map((official) => ({
           ...official,
           periode_jabatan: "",
@@ -83,41 +80,30 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
         return;
       }
 
-      // Ambil data dari database untuk periode yang dipilih
       const response = await getOfficialsByPeriode(token, periode);
-
-      // Simpan data periode sebelumnya sebelum mengupdate
       const previousPeriode = selectedPeriode;
       const previousData = officialsData;
 
       try {
-        // Update form session untuk data yang baru dipilih
         for (const official of response.data) {
           try {
-            console.log("Updating official session:", {
-              officialId: official.id,
-              sessionId: sessionId,
-            });
-
             await axiosInstance.put(`/update-official-session/${official.id}`, {
               form_session_id: sessionId,
             });
           } catch (error) {
             console.error("Failed to update official session:", error);
-            // Revert changes
             setOfficialsData(previousData);
             setSelectedPeriode(previousPeriode);
+            toast.error("Gagal mengupdate sesi pejabat");
             throw error;
           }
         }
 
-        // Jika semua updates berhasil, update state
         setOfficialsData(response.data);
         setIsFromDatabase(true);
         setIsSaved(false);
         setIsEditMode(false);
 
-        // Update session temp data
         if (sessionId) {
           await axiosInstance.put(`/update-session/${sessionId}`, {
             temp_data: {
@@ -127,12 +113,12 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
           });
         }
       } catch (error) {
-        setError("Gagal mengupdate data pejabat");
+        toast.error("Gagal mengupdate data pejabat");
         console.error("Error updating officials:", error);
       }
     } catch (error) {
       console.error("Failed to fetch officials:", error);
-      setError("Gagal mengambil data pejabat untuk periode yang dipilih");
+      toast.error("Gagal mengambil data pejabat untuk periode yang dipilih");
     }
   };
 
@@ -151,10 +137,8 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
 
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    setError(null);
     setIsSubmitted(true);
 
-    // Validasi
     const hasEmptyFields = officialsData.some((official) => {
       const basicFieldsEmpty = !official.nip || !official.nama;
       const isPPK = official.jabatan.includes("Pejabat Pembuat Komitmen");
@@ -163,15 +147,14 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
     });
 
     if (hasEmptyFields) {
-      setError("Mohon lengkapi semua input");
+      toast.error("Mohon lengkapi semua input");
       return;
     }
 
-    // Cek duplikasi NIP dalam form
     const nips = officialsData.map((official) => official.nip);
     const uniqueNips = new Set(nips);
     if (nips.length !== uniqueNips.size) {
-      setError("NIP tidak boleh sama antar pejabat");
+      toast.error("NIP tidak boleh sama antar pejabat");
       return;
     }
 
@@ -182,7 +165,6 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
       }
 
       if (isFromDatabase) {
-        // Logic untuk data dari database tetap sama
         for (const official of officialsData) {
           if (!official.id) {
             throw new Error("ID official tidak ditemukan untuk update");
@@ -192,10 +174,9 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
             current_session_id: sessionId,
           });
         }
+        toast.success("Data pejabat berhasil digunakan");
       } else {
-        // Kirim semua data official sekaligus
         if (isEditMode) {
-          // Update existing officials
           for (const official of officialsData) {
             if (!official.id) {
               throw new Error("ID official tidak ditemukan untuk update");
@@ -208,8 +189,8 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
                   : selectedPeriode,
             });
           }
+          toast.success("Data pejabat berhasil diperbarui");
         } else {
-          // Save new officials dalam satu request
           await addOfficial(
             token,
             officialsData.map((official) => ({
@@ -220,31 +201,22 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
                   : selectedPeriode,
             }))
           );
+          toast.success("Data pejabat berhasil disimpan");
         }
       }
 
-      // Update state setelah berhasil save/update
       setIsSaved(true);
       setIsEditMode(false);
-      setShowSuccessAlert(true);
-      setAlertType(isEditMode ? "edit" : "save");
 
-      // Refresh data
       const response = await getOfficialData();
       if (response.data.officials) {
         setOfficialsData(response.data.officials);
       }
-
-      setTimeout(() => {
-        setShowSuccessAlert(false);
-        setAlertType(null);
-      }, 3000);
     } catch (error) {
-      setShowSuccessAlert(false);
       if (error instanceof Error) {
-        setError(error.message);
+        toast.error(error.message);
       } else {
-        setError("Terjadi kesalahan");
+        toast.error("Terjadi kesalahan");
       }
     }
   };
@@ -260,16 +232,12 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
         const token = localStorage.getItem("token");
         if (!token) return;
 
-        // Fetch periodes dan urutkan
         const periodesResponse = await getPeriodes(token);
         const sortedPeriodes = periodesResponse.data.sort((a, b) => {
-          // Mengasumsikan format periode adalah angka tahun (e.g. "2024", "2023")
-          // Urutkan secara descending (terbaru ke terlama)
           return parseInt(b) - parseInt(a);
         });
         setPeriodes(sortedPeriodes);
 
-        // Rest of the code remains the same...
         const officialsResponse = await getOfficialData();
         const { officials, session } = officialsResponse.data;
 
@@ -285,36 +253,22 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
           setOfficialsData(session.temp_data.official);
           if (session.temp_data.official[0]?.periode_jabatan) {
             const periode = session.temp_data.official[0].periode_jabatan;
-            const isExistingPeriode = sortedPeriodes.includes(periode); // Gunakan sortedPeriodes
+            const isExistingPeriode = sortedPeriodes.includes(periode);
             setSelectedPeriode(isExistingPeriode ? periode : "new");
           }
         }
       } catch (error) {
         console.error("Error fetching initial data:", error);
+        toast.error("Gagal mengambil data awal");
       }
     };
 
     fetchInitialData();
   }, []);
 
+
   return (
     <>
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-4 text-sm">
-          {error}
-        </div>
-      )}
-
-      {showSuccessAlert && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4 text-sm">
-          {alertType === "save"
-            ? "Data pejabat berhasil disimpan!"
-            : alertType === "edit"
-            ? "Data pejabat berhasil diperbarui!"
-            : ""}
-        </div>
-      )}
-
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Data Pejabat</CardTitle>
@@ -508,7 +462,7 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
                 Sebelumnya
               </Button>
               <Button
-                onClick={() => setCurrentStep(3)}
+                onClick={() => setCurrentStep(currentStep + 1)}
                 disabled={!isSaved || isEditMode}
                 style={{ userSelect: "none" }}
               >

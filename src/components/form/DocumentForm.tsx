@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,11 +17,8 @@ import { getOfficialData } from "@/services/official";
 
 const DocumentForm = ({ currentStep, setCurrentStep }) => {
   const [documentId, setDocumentId] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [dateError, setDateError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-  const [alertType, setAlertType] = useState<"save" | "edit" | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [documentData, setDocumentData] = useState<DocumentData>({
@@ -63,13 +61,15 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
         [id]: value,
       };
 
-      // Validate dates when either tanggal_mulai or tanggal_selesai changes
       if (id === "tanggal_mulai" || id === "tanggal_selesai") {
         const startDate = id === "tanggal_mulai" ? value : prev.tanggal_mulai;
         const endDate = id === "tanggal_selesai" ? value : prev.tanggal_selesai;
 
         if (startDate && endDate && startDate > endDate) {
           setDateError(
+            "Tanggal mulai tidak boleh lebih besar dari tanggal selesai"
+          );
+          toast.error(
             "Tanggal mulai tidak boleh lebih besar dari tanggal selesai"
           );
         } else {
@@ -83,7 +83,6 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
 
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    setError(null);
     setIsSubmitted(true);
 
     // Validate dates
@@ -92,7 +91,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
       documentData.tanggal_selesai &&
       documentData.tanggal_mulai > documentData.tanggal_selesai
     ) {
-      setError("Tanggal mulai tidak boleh lebih besar dari tanggal selesai");
+      toast.error("Tanggal mulai tidak boleh lebih besar dari tanggal selesai");
       return;
     }
 
@@ -103,7 +102,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
     );
 
     if (emptyFields.length > 0) {
-      setError(`Mohon lengkapi semua input`);
+      toast.error("Mohon lengkapi semua input");
       return;
     }
 
@@ -128,27 +127,21 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
       let response;
       if (isEditMode && documentId) {
         response = await updateDocument(token, documentId, data);
+        toast.success("Data dokumen berhasil diperbarui!");
       } else {
         response = await addDocument(token, data);
+        toast.success("Data dokumen berhasil disimpan!");
       }
 
       setIsSaved(true);
       setIsEditMode(false);
-      setShowSuccessAlert(true);
-      setAlertType(isEditMode ? "edit" : "save");
 
       if (response.data.document) {
         setDocumentData(response.data.document);
         setDocumentId(response.data.document.id);
       }
-
-      setTimeout(() => {
-        setShowSuccessAlert(false);
-        setAlertType(null);
-      }, 3000);
     } catch (error) {
-      setShowSuccessAlert(false);
-      setError(error instanceof Error ? error.message : "Terjadi kesalahan");
+      toast.error(error instanceof Error ? error.message : "Terjadi kesalahan");
     }
   };
 
@@ -176,7 +169,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
         }
       } catch (error) {
         console.error("Error fetching document data:", error);
-        setError("Gagal mengambil data dokumen");
+        toast.error("Gagal mengambil data dokumen");
       }
     };
 
@@ -185,22 +178,6 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
 
   return (
     <>
-      {(error || dateError) && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-4 text-sm">
-          {error || dateError}
-        </div>
-      )}
-
-      {showSuccessAlert && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4 text-sm">
-          {alertType === "save"
-            ? "Data dokumen berhasil disimpan!"
-            : alertType === "edit"
-            ? "Data dokumen berhasil diperbarui!"
-            : ""}
-        </div>
-      )}
-
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Data Dokumen</CardTitle>
@@ -704,8 +681,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="nomor_pppb">
-                  Nomor Surat{" "}
-                  <span className="text-red-500">*</span>
+                  Nomor Surat <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="nomor_pppb"
@@ -728,8 +704,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
 
               <div>
                 <Label htmlFor="tanggal_pppb">
-                  Tanggal Surat{" "}
-                  <span className="text-red-500">*</span>
+                  Tanggal Surat <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="tanggal_pppb"
@@ -760,8 +735,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="nomor_lppb">
-                  Nomor Surat{" "}
-                  <span className="text-red-500">*</span>
+                  Nomor Surat <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="nomor_lppb"
@@ -784,8 +758,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
 
               <div>
                 <Label htmlFor="tanggal_lppb">
-                  Tanggal Surat{" "}
-                  <span className="text-red-500">*</span>
+                  Tanggal Surat <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="tanggal_lppb"
@@ -816,8 +789,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="nomor_ba_stp">
-                  Nomor Surat{" "}
-                  <span className="text-red-500">*</span>
+                  Nomor Surat <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="nomor_ba_stp"
@@ -840,8 +812,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
 
               <div>
                 <Label htmlFor="tanggal_ba_stp">
-                  Tanggal Surat{" "}
-                  <span className="text-red-500">*</span>
+                  Tanggal Surat <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="tanggal_ba_stp"
@@ -870,8 +841,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="nomor_ba_pem">
-                  Nomor Surat{" "}
-                  <span className="text-red-500">*</span>
+                  Nomor Surat <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="nomor_ba_pem"
@@ -893,8 +863,7 @@ const DocumentForm = ({ currentStep, setCurrentStep }) => {
 
               <div>
                 <Label htmlFor="tanggal_ba_pem">
-                  Tanggal Surat{" "}
-                  <span className="text-red-500">*</span>
+                  Tanggal Surat <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="tanggal_ba_pem"

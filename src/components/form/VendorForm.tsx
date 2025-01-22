@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,12 +26,7 @@ const INITIAL_VENDOR: VendorData = {
 };
 
 const VendorForm = ({ currentStep, setCurrentStep }) => {
-  const [vendorError, setVendorError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [vendorAlertType, setVendorAlertType] = useState<
-    "save" | "edit" | null
-  >(null);
-  const [vendorShowSuccessAlert, setVendorShowSuccessAlert] = useState(false);
   const [isVendorSubmitted, setIsVendorSubmitted] = useState(false);
   const [isVendorSaved, setIsVendorSaved] = useState(false);
   const [formSessionId, setFormSessionId] = useState<string | null>(null);
@@ -47,7 +43,7 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
       const vendorToRemove = vendorsData[index];
 
       if (vendorsData.length <= 1) {
-        setVendorError("Harus ada minimal satu vendor");
+        toast.error("Harus ada minimal satu vendor");
         return;
       }
 
@@ -64,8 +60,9 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
       // Update local state
       const newVendorsData = vendorsData.filter((_, i) => i !== index);
       setVendorsData(newVendorsData);
+      toast.success("Vendor berhasil dihapus");
     } catch (error) {
-      setVendorError(
+      toast.error(
         error instanceof Error
           ? error.message
           : "Terjadi kesalahan saat menghapus vendor"
@@ -88,7 +85,6 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
 
   const handleVendorSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    setVendorError(null);
     setIsVendorSubmitted(true);
 
     try {
@@ -114,7 +110,7 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
       );
 
       if (hasEmptyFields) {
-        setVendorError("Mohon lengkapi semua input");
+        toast.error("Mohon lengkapi semua input");
         return;
       }
 
@@ -134,11 +130,12 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
               ? response.data.vendors
               : [response.data.vendors]
           );
+          toast.success("Data vendor berhasil diperbarui!");
         }
       } else {
         // Add new vendors one by one
         for (const vendor of vendorsData) {
-          const response = await addVendor(token, vendor); // Kirim single vendor
+          const response = await addVendor(token, vendor);
           if (response.data.session?.id && !formSessionId) {
             setFormSessionId(response.data.session.id);
           }
@@ -152,25 +149,16 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
               ? response.data.vendors
               : [response.data.vendors]
           );
+          toast.success("Data vendor berhasil disimpan!");
         }
       }
 
       setIsVendorSaved(true);
       setIsEditMode(false);
-      setVendorShowSuccessAlert(true);
-      setVendorAlertType(isEditMode ? "edit" : "save");
       setIsVendorSubmitted(false);
-
-      setTimeout(() => {
-        setVendorShowSuccessAlert(false);
-        setVendorAlertType(null);
-      }, 3000);
     } catch (error) {
       console.error("Error submitting vendor:", error);
-      setVendorShowSuccessAlert(false);
-      setVendorError(
-        error instanceof Error ? error.message : "Terjadi kesalahan"
-      );
+      toast.error(error instanceof Error ? error.message : "Terjadi kesalahan");
     }
   };
 
@@ -181,7 +169,7 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
 
   const handleNext = () => {
     if (isVendorSaved && !isEditMode) {
-      setCurrentStep(2);
+      setCurrentStep(currentStep + 1);
     }
   };
 
@@ -201,6 +189,7 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
         }
       } catch (error) {
         console.error("Error fetching vendor data:", error);
+        toast.error("Gagal mengambil data vendor");
       }
     };
 
@@ -209,22 +198,6 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
 
   return (
     <>
-      {vendorError && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-4 text-sm">
-          {vendorError}
-        </div>
-      )}
-
-      {vendorShowSuccessAlert && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4 text-sm">
-          {vendorAlertType === "save"
-            ? "Data vendor berhasil disimpan!"
-            : vendorAlertType === "edit"
-            ? "Data vendor berhasil diperbarui!"
-            : ""}
-        </div>
-      )}
-
       <Card className="w-full">
         <CardHeader>
           <CardTitle className="flex justify-between items-center">

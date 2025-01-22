@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -58,10 +59,7 @@ export const formatCurrency = (value: number): string => {
 };
 
 const ContractsForm = ({ currentStep, setCurrentStep }) => {
-  const [error, setError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-  const [alertType, setAlertType] = useState<"save" | "edit" | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [contractType, setContractType] = useState<ContractType>(
@@ -73,8 +71,6 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
   const [documentData, setDocumentData] = useState<DocumentData | null>(null);
   const [vendorData, setVendorData] = useState<VendorData[]>([]);
   const [officialData, setOfficialData] = useState<OfficialData[]>([]);
-  const [showDownloadSuccessAlert, setShowDownloadSuccessAlert] =
-    useState(false);
 
   const TotalValues = ({ contracts }) => {
     const { estimatedTotal, initialTotal, finalTotal } =
@@ -157,12 +153,11 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
   const handleContractTypeChange = (value: ContractType) => {
     const validationError = validateContractValues(contractsData);
     if (validationError) {
-      setError(validationError);
+      toast.error(validationError);
       return;
     }
 
     setContractType(value);
-    setError(null);
   };
 
   const addNewContract = () => {
@@ -174,26 +169,23 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
       const contractToRemove = contractsData[index];
 
       if (contractsData.length <= 1) {
-        setError("Harus ada minimal satu kontrak");
+        toast.error("Harus ada minimal satu kontrak");
         return;
       }
 
       if (contractToRemove.id) {
-        // Kontrak sudah ada di database
         const token = localStorage.getItem("token");
         if (!token) {
           throw new Error("Token tidak ditemukan");
         }
 
-        // Delete from database
         await deleteContract(token, String(contractToRemove.id));
       }
 
-      // Update local state
       const newContractsData = contractsData.filter((_, i) => i !== index);
       setContractsData(newContractsData);
     } catch (error) {
-      setError(
+      toast.error(
         error instanceof Error
           ? error.message
           : "Terjadi kesalahan saat menghapus kontrak"
@@ -219,18 +211,16 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
     ) {
       const validationError = validateContractValues(newContractsData);
       if (validationError) {
-        setError(validationError);
+        toast.error(validationError);
         return;
       }
     }
 
     setContractsData(newContractsData);
-    setError(null);
   };
 
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    setError(null);
     setIsSubmitted(true);
 
     try {
@@ -250,32 +240,29 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
       );
 
       if (hasEmptyFields) {
-        setError("Mohon lengkapi semua input dengan nilai yang valid");
+        toast.error("Mohon lengkapi semua input dengan nilai yang valid");
         return;
       }
 
       // Validate total contract values
       const validationError = validateContractValues(contractsData);
       if (validationError) {
-        setError(validationError);
+        toast.error(validationError);
         return;
       }
 
       const contractsWithType = contractsData.map((contract) => ({
         ...contract,
         jenis_kontrak: contractType,
-        // Pastikan id adalah string atau tidak ada
         ...(contract.id ? { id: String(contract.id) } : {}),
       }));
 
       if (isEditMode) {
-        // Get the ID of the first contract for the update endpoint
         const firstContract = contractsData.find((c) => c.id);
         if (!firstContract?.id) {
           throw new Error("Invalid contract ID");
         }
 
-        // Update existing contracts and add new ones
         const response = await updateContract(
           token,
           String(firstContract.id),
@@ -285,25 +272,19 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
         if (response.data.contracts) {
           setContractsData(response.data.contracts);
         }
+
+        toast.success("Data kontrak berhasil diperbarui!");
       } else {
-        // Add new contracts
         for (const contract of contractsWithType) {
           await addContract(token, contract);
         }
+        toast.success("Data kontrak berhasil disimpan!");
       }
 
       setIsSaved(true);
       setIsEditMode(false);
-      setShowSuccessAlert(true);
-      setAlertType(isEditMode ? "edit" : "save");
-
-      setTimeout(() => {
-        setShowSuccessAlert(false);
-        setAlertType(null);
-      }, 3000);
     } catch (error) {
-      setShowSuccessAlert(false);
-      setError(error instanceof Error ? error.message : "Terjadi kesalahan");
+      toast.error(error instanceof Error ? error.message : "Terjadi kesalahan");
     }
   };
 
@@ -313,16 +294,12 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
   };
 
   const handleDownloadSuccess = () => {
-    setShowDownloadSuccessAlert(true);
-    setTimeout(() => {
-      setShowDownloadSuccessAlert(false);
-    }, 3000);
+    toast.success("File berhasil didownload!");
   };
 
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        // Fetch document data
         const docResponse = await getDocumentData();
         if (docResponse.data.document) {
           setDocumentData(docResponse.data.document);
@@ -330,7 +307,6 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
           setDocumentData(docResponse.data.session.temp_data.document);
         }
 
-        // Fetch official data
         const officialResponse = await getOfficialData();
         if (officialResponse.data.officials) {
           setOfficialData(officialResponse.data.officials);
@@ -338,7 +314,6 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
           setOfficialData(officialResponse.data.session.temp_data.officials);
         }
 
-        // Fetch vendor data
         const vendorResponse = await getVendorData();
         if (
           vendorResponse.data.vendors &&
@@ -348,10 +323,9 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
         } else if (vendorResponse.data.session?.temp_data?.vendors) {
           setVendorData(vendorResponse.data.session.temp_data.vendors);
         } else {
-          setVendorData([]); // Set empty array if no vendors
+          setVendorData([]);
         }
 
-        // Fetch contract data
         const contractResponse = await getContractData();
         if (contractResponse.data.contracts?.length > 0) {
           setContractsData(contractResponse.data.contracts);
@@ -371,12 +345,11 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
           }
         }
       } catch (error) {
-        console.error("Error fetching initial data:", error);
-        if (error instanceof Error) {
-          setError(`Gagal mengambil data: ${error.message}`);
-        } else {
-          setError("Gagal mengambil data");
-        }
+        toast.error(
+          error instanceof Error
+            ? `Gagal mengambil data: ${error.message}`
+            : "Gagal mengambil data"
+        );
       }
     };
 
@@ -385,28 +358,6 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
 
   return (
     <>
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-4 text-sm">
-          {error}
-        </div>
-      )}
-
-      {showSuccessAlert && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4 text-sm">
-          {alertType === "save"
-            ? "Data kontrak berhasil disimpan!"
-            : alertType === "edit"
-            ? "Data kontrak berhasil diperbarui!"
-            : ""}
-        </div>
-      )}
-
-      {showDownloadSuccessAlert && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4 text-sm">
-          File berhasil didownload!
-        </div>
-      )}
-
       <Card className="w-full">
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
@@ -680,14 +631,14 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                   officialData={officialData}
                   isContractsSaved={isSaved}
                   isContractsEditMode={isEditMode}
-                  onError={setError}
+                  onError={toast.error}
                   setCurrentStep={setCurrentStep}
                   onDownloadSuccess={handleDownloadSuccess}
                 />
               )}
             </div>
             <div className="flex space-x-4">
-              <Button onClick={() => setCurrentStep(3)}>
+              <Button onClick={() => setCurrentStep(currentStep + 1)}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Sebelumnya
               </Button>
