@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import OfficialsForm from "@/components/form/OfficialForm";
 import VendorForm from "@/components/form/VendorForm";
 import DocumentForm from "@/components/form/DocumentForm";
@@ -13,10 +13,6 @@ import {
   FilePlus2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const STORAGE_KEYS = {
-  CURRENT_STEP: "currentStep",
-};
 
 const steps = [
   {
@@ -46,14 +42,7 @@ const steps = [
 ];
 
 export default function BuatDokumen() {
-  const [currentStep, setCurrentStep] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.CURRENT_STEP);
-    return saved ? parseInt(saved) : 1;
-  });
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.CURRENT_STEP, currentStep.toString());
-  }, [currentStep]);
+  const [currentStep, setCurrentStep] = useState(1);
 
   return (
     <main className="bg-gray-50">
