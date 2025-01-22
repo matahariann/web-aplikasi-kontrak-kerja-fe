@@ -6,20 +6,31 @@ const validateEmail = (email) => {
 };
 
 export const login = async (email, password) => {
+  // Create a result object to handle errors without throwing
+  const result = {
+    success: false,
+    data: null,
+    message: ""
+  };
+
   // Check for empty fields
   if (!email && !password) {
-    throw new Error("Email dan password harus diisi");
+    result.message = "Email dan password harus diisi";
+    return result;
   }
   if (!email) {
-    throw new Error("Email harus diisi");
+    result.message = "Email harus diisi";
+    return result;
   }
   if (!password) {
-    throw new Error("Password harus diisi");
+    result.message = "Password harus diisi";
+    return result;
   }
 
   // Validate email format
   if (!validateEmail(email)) {
-    throw new Error("Format email tidak valid");
+    result.message = "Format email tidak valid";
+    return result;
   }
 
   try {
@@ -29,31 +40,24 @@ export const login = async (email, password) => {
     });
 
     if (response.data.message === "Login Berhasil") {
-      return response.data.data.user;
+      result.success = true;
+      result.data = response.data.data.user;
+      result.message = "Login Berhasil";
+      return result;
     } else {
-      throw new Error("Email atau password salah");
+      result.message = "Email atau password salah";
+      return result;
     }
   } catch (error) {
-    // Jika error berasal dari validasi kita sebelumnya
-    if (error.message === "Email harus diisi" ||
-        error.message === "Password harus diisi" ||
-        error.message === "Email dan password harus diisi" ||
-        error.message === "Format email tidak valid" ||
-        error.message === "Email atau password salah") {
-      throw error;
-    }
-    
-    // Jika error dari response server
+    // Handle server response errors
     if (error.response) {
-      if (error.response.status === 401 || 
-          error.response.data.message === "Kombinasi email dan password tidak valid." ||
-          error.response.data.message === "Akun tidak aktif.") {
-        throw new Error("Email atau password salah");
-      }
+      result.message = "Email atau password salah";
+      return result;
     }
     
-    // Untuk error lainnya (seperti network error)
-    throw new Error("Terjadi kesalahan dalam proses login");
+    // Handle network or other errors
+    result.message = "Terjadi kesalahan dalam proses login";
+    return result;
   }
 };
 
