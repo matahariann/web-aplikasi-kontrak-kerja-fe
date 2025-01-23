@@ -37,32 +37,29 @@ export default function Register() {
     let isValid = true;
     const newErrors = { ...errors };
 
-    // Reset all errors
-    Object.keys(newErrors).forEach(key => {
+    Object.keys(newErrors).forEach((key) => {
       newErrors[key as keyof typeof errors] = "";
     });
 
-    // Validate each field
-    Object.keys(formData).forEach(key => {
+    Object.keys(formData).forEach((key) => {
       if (!formData[key as keyof typeof formData].trim()) {
-        newErrors[key as keyof typeof errors] = `${key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ')} harus diisi`;
+        newErrors[key as keyof typeof errors] = `${
+          key.charAt(0).toUpperCase() + key.slice(1).replace("_", " ")
+        } harus diisi`;
         isValid = false;
       }
     });
 
-    // Additional email validation
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
       toast.error("Format email tidak valid");
       isValid = false;
     }
 
-    // Password validation
     if (formData.password && formData.password.length < 8) {
       newErrors.password = "Password minimal 8 karakter";
       isValid = false;
     }
 
-    // Password confirmation validation
     if (formData.password !== formData.password_confirmation) {
       newErrors.password_confirmation = "Password tidak cocok";
       isValid = false;
@@ -76,12 +73,12 @@ export default function Register() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
     // Clear error when user starts typing
-    setErrors(prev => ({
+    setErrors((prev) => ({
       ...prev,
       [name]: "",
     }));
@@ -89,7 +86,7 @@ export default function Register() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       toast.error("Mohon lengkapi semua input dengan benar");
       return;
@@ -98,14 +95,16 @@ export default function Register() {
     setIsSubmitting(true);
     try {
       const res = await register(formData);
-      if (res) {
-        toast.success("Registrasi berhasil! Silahkan login dengan akun Anda.", {
-          duration: 4000,
+      if (res.success) {
+        toast.success("Registrasi berhasil!", {
+          description: "Kode verifikasi telah dikirim ke email Anda",
+          duration: 3000,
         });
 
+        // Small delay to ensure toast is visible
         setTimeout(() => {
-          router.push("/login");
-        }, 2000);
+          router.push(`/verification?user_id=${res.userId}`);
+        }, 3500);
       }
     } catch (error: any) {
       toast.error(error.message);
@@ -132,13 +131,23 @@ export default function Register() {
   ) => {
     const InputComponent = isTextarea ? "textarea" : "input";
     const isPasswordField = type === "password";
-    
+
     return (
       <div>
         <label className="block text-white text-sm mb-2">{label}</label>
         <div className="relative">
           <InputComponent
-            type={isPasswordField ? (name === "password" ? (showPassword ? "text" : "password") : (showConfirmPassword ? "text" : "password")) : type}
+            type={
+              isPasswordField
+                ? name === "password"
+                  ? showPassword
+                    ? "text"
+                    : "password"
+                  : showConfirmPassword
+                  ? "text"
+                  : "password"
+                : type
+            }
             name={name}
             className={`w-full px-4 py-2 rounded-lg bg-white/10 border ${
               errors[name] ? "border-red-500" : "border-white/20"
@@ -151,7 +160,11 @@ export default function Register() {
           {isPasswordField && (
             <button
               type="button"
-              onClick={() => togglePasswordVisibility(name === "password" ? "password" : "confirm")}
+              onClick={() =>
+                togglePasswordVisibility(
+                  name === "password" ? "password" : "confirm"
+                )
+              }
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/80 hover:text-white"
             >
               {(name === "password" ? showPassword : showConfirmPassword) ? (
@@ -201,16 +214,36 @@ export default function Register() {
             {/* Kolom Kiri */}
             <div className="space-y-4">
               {renderInput("NIP", "nip", "text", "Masukkan NIP")}
-              {renderInput("Nama Lengkap", "nama", "text", "Masukkan nama lengkap")}
+              {renderInput(
+                "Nama Lengkap",
+                "nama",
+                "text",
+                "Masukkan nama lengkap"
+              )}
               {renderInput("Email", "email", "email", "email@example.com")}
-              {renderInput("Nomor Telepon", "no_telp", "tel", "Masukkan nomor telepon")}
+              {renderInput(
+                "Nomor Telepon",
+                "no_telp",
+                "tel",
+                "Masukkan nomor telepon"
+              )}
             </div>
 
             {/* Kolom Kanan */}
             <div className="space-y-4">
               {renderInput("Alamat", "alamat", "text", "Masukkan alamat", true)}
-              {renderInput("Password", "password", "password", "Minimal 8 karakter")}
-              {renderInput("Konfirmasi Password", "password_confirmation", "password", "Masukkan ulang password")}
+              {renderInput(
+                "Password",
+                "password",
+                "password",
+                "Minimal 8 karakter"
+              )}
+              {renderInput(
+                "Konfirmasi Password",
+                "password_confirmation",
+                "password",
+                "Masukkan ulang password"
+              )}
             </div>
           </div>
 
