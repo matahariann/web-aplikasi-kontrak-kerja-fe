@@ -62,9 +62,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-  const [contractType, setContractType] = useState<ContractType>(
-    ContractType.KONSULTAN
-  );
+  const [contractType, setContractType] = useState<ContractType | null>(null);
   const [contractsData, setContractsData] = useState<
     Omit<ContractData, "jenis_kontrak">[]
   >([INITIAL_CONTRACT]);
@@ -199,21 +197,33 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
     value: string | number
   ) => {
     const newContractsData = [...contractsData];
-    newContractsData[index] = {
-      ...newContractsData[index],
-      [field]: value,
-    };
 
-    if (
-      field === "nilai_perkiraan_sendiri" ||
-      field === "nilai_kontral_awal" ||
-      field === "nilai_kontrak_akhir"
-    ) {
-      const validationError = validateContractValues(newContractsData);
-      if (validationError) {
-        toast.error(validationError);
-        return;
-      }
+    // For price fields, ensure value is at least 0
+    const priceFields = [
+      "nilai_perkiraan_sendiri",
+      "nilai_kontral_awal",
+      "nilai_kontrak_akhir",
+    ];
+
+    if (priceFields.includes(field)) {
+      const numValue = typeof value === "string" ? parseFloat(value) : value;
+      newContractsData[index] = {
+        ...newContractsData[index],
+        [field]: Math.max(0, isNaN(numValue) ? 0 : numValue),
+      };
+    }
+    // Existing logic for other fields
+    else if (field === "jumlah_orang" || field === "durasi_kontrak") {
+      const numValue = typeof value === "string" ? parseInt(value) : value;
+      newContractsData[index] = {
+        ...newContractsData[index],
+        [field]: Math.max(0, isNaN(numValue) ? 0 : numValue),
+      };
+    } else {
+      newContractsData[index] = {
+        ...newContractsData[index],
+        [field]: value,
+      };
     }
 
     setContractsData(newContractsData);
@@ -229,6 +239,10 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
         throw new Error("Token tidak ditemukan");
       }
 
+      if (!contractType) {
+        toast.error("Mohon pilih jenis kontrak");
+        return;
+      }
       // Validate required fields and numeric values
       const hasEmptyFields = contractsData.some(
         (contract) =>
@@ -240,7 +254,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
       );
 
       if (hasEmptyFields) {
-        toast.error("Mohon lengkapi semua input dengan nilai yang valid");
+        toast.error("Mohon lengkapi semua input");
         return;
       }
 
@@ -258,14 +272,18 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
       }));
 
       if (isEditMode) {
-        const firstContract = contractsData.find((c) => c.id);
-        if (!firstContract?.id) {
-          throw new Error("Invalid contract ID");
+        // Find a non-null contract ID, preferring existing contracts
+        const contractIdToUse =
+          contractsData.find((c) => c.id)?.id ||
+          (await getContractData()).data.contracts?.[0]?.id;
+
+        if (!contractIdToUse) {
+          throw new Error("Tidak dapat menemukan ID kontrak untuk diperbarui");
         }
 
         const response = await updateContract(
           token,
-          String(firstContract.id),
+          String(contractIdToUse),
           contractsWithType
         );
 
@@ -376,8 +394,12 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                 Jenis Kontrak <span className="text-red-500">*</span>
               </Label>
               <Select
-                value={contractType}
-                onValueChange={handleContractTypeChange}
+                value={contractType || ""}
+                onValueChange={(value: string) => {
+                  handleContractTypeChange(
+                    value ? (value as ContractType) : null
+                  );
+                }}
                 disabled={isSaved && !isEditMode}
               >
                 <SelectTrigger className="w-full max-w-xs">
@@ -466,11 +488,6 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                     }
                     disabled={isSaved && !isEditMode}
                   />
-                  {isSubmitted && contract.jumlah_orang <= 0 && (
-                    <p className="text-red-500 text-sm mt-1">
-                      Jumlah orang harus lebih dari 0
-                    </p>
-                  )}
                 </div>
 
                 <div>
@@ -497,11 +514,6 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
                     }
                     disabled={isSaved && !isEditMode}
                   />
-                  {isSubmitted && contract.durasi_kontrak <= 0 && (
-                    <p className="text-red-500 text-sm mt-1">
-                      Durasi kontrak harus lebih dari 0
-                    </p>
-                  )}
                 </div>
 
                 <div>
@@ -638,7 +650,7 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
               )}
             </div>
             <div className="flex space-x-4">
-              <Button onClick={() => setCurrentStep(currentStep + 1)}>
+              <Button onClick={() => setCurrentStep(currentStep - 1)}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Sebelumnya
               </Button>
