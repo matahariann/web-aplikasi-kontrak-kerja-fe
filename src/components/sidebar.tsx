@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { FileClock, FilePlus2, House } from "lucide-react";
+import { FileClock, FilePlus2, LayoutDashboard } from "lucide-react";
 
 export default function Sidebar() {
   return (
@@ -14,8 +14,8 @@ export default function Sidebar() {
           className="flex items-center px-4 py-2 mx-2 text-gray-700 rounded-lg hover:bg-gray-100"
           draggable={false}
         >
-          <House className="w-5 h-5" />
-          <span className="ml-3">Beranda</span>
+          <LayoutDashboard className="w-5 h-5" />
+          <span className="ml-3">Dashboard</span>
         </Link>
         <Link
           href="/employee-riwayat-dokumen"

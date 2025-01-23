@@ -3,14 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Employee, getEmployee } from "@/services/employee";
-import GoogleDocViewer from "@/components/GoogleDocViewer";
-import { House, User, Clock } from "lucide-react";
+import { House, User, Clock, LayoutDashboard } from "lucide-react";
+import EnhancedDashboard from "@/components/DashboardStatistics";
 
 export default function Home() {
   const router = useRouter();
   const [greeting, setGreeting] = useState("");
   const [employee, setEmployee] = useState<Employee | null>(null);
-  const docId = "1Jtt-g2Mmo-CnRGeMAlLueAxtk7VQxoxQ";
 
   const getData = async (token: string) => {
     try {
@@ -56,12 +55,12 @@ export default function Home() {
 
   return (
     <main className="bg-gray-50">
-      <div className="max-w-[2000px] mx-auto p-6 space-y-6">
+      <div className="max-w-[2000px] mx-auto px-6 py-2 space-y-4">
         {/* Header Section */}
         <header className="flex items-center justify-between bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center gap-3">
-            <House className="h-6 w-6 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-800">Beranda</h1>
+            <LayoutDashboard className="h-6 w-6 text-blue-600" />
+            <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
           </div>
           <div className="flex items-center gap-4">
             <Clock className="h-5 w-5 text-gray-500" />
@@ -80,27 +79,20 @@ export default function Home() {
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-lg">
           <div className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="bg-white p-3 rounded-full">
-                <User className="h-5 w-5 text-blue-600" />
+              <div className="bg-white p-2 rounded-full">
+                <User className="h-4 w-4 text-blue-600" />
               </div>
               <div className="space-y-1">
                 <h2 className="text-md font-semibold text-white">
-                  {greeting}, {employee?.nama}!
+                  {greeting}, Selamat datang di Dokumen Kontrak Kerja Apps Ditjen Aptika!
                 </h2>
-                <p className="text-blue-100">
-                  Selamat datang di Dokumen Kontrak Kerja Apps Ditjen Aptika
-                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Document Viewer Container */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="w-full rounded-lg overflow-hidden border border-gray-200">
-            <GoogleDocViewer docId={docId} />
-          </div>
-        </div>
+        {/* Dashboard Statistics */}
+        <EnhancedDashboard />
       </div>
     </main>
   );
