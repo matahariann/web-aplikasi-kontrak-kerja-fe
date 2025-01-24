@@ -49,6 +49,7 @@ export const register = async (userData: {
       return {
         success: true,
         userId: response.data.data.user_id,
+        email: response.data.data.email, // Add this line
         message: response.data.message,
       };
     }

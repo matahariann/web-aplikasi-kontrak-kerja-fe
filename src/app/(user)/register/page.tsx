@@ -100,10 +100,11 @@ export default function Register() {
           description: "Kode verifikasi telah dikirim ke email Anda",
           duration: 3000,
         });
+        
 
         // Small delay to ensure toast is visible
         setTimeout(() => {
-          router.push(`/verification?user_id=${res.userId}`);
+          router.push(`/verification?user_id=${res.userId}&email=${res.email}`);
         }, 3500);
       }
     } catch (error: any) {

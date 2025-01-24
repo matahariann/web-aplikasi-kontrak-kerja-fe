@@ -1,11 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { verifyEmail } from "@/services/user";
+import { verifyEmail, resendVerificationCode } from "@/services/user";
 import { Toaster, toast } from "sonner";
 import Image from "next/image";
 
 export default function Verification() {
+  const [isResending, setIsResending] = useState(false);
+  const [email, setEmail] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [userId, setUserId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -14,8 +16,10 @@ export default function Verification() {
 
   useEffect(() => {
     const userIdParam = searchParams.get("user_id");
+    const emailParam = searchParams.get("email");
     if (userIdParam) {
       setUserId(userIdParam);
+      setEmail(emailParam);
     } else {
       // Redirect if no user ID
       router.push("/register");
@@ -51,6 +55,23 @@ export default function Verification() {
     }
   };
 
+  const handleResendCode = async () => {
+    if (!email) {
+      toast.error("Email tidak tersedia");
+      return;
+    }
+
+    setIsResending(true);
+    try {
+      await resendVerificationCode(email);
+      toast.success("Kode verifikasi baru telah dikirim ke email Anda");
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-600 flex items-center justify-center p-4">
       <Toaster position="top-center" expand={true} richColors />
@@ -72,7 +93,8 @@ export default function Verification() {
         </h2>
 
         <p className="text-white/80 text-center mb-6">
-          Masukkan kode verifikasi 6 digit yang telah dikirim ke email Anda
+          Masukkan kode verifikasi 6 digit yang telah dikirim ke email{" "}
+          <span className="font-semibold">{email}</span>
         </p>
 
         <form onSubmit={handleVerification} className="space-y-4">
@@ -107,12 +129,11 @@ export default function Verification() {
         <div className="mt-4 text-center text-white/80 text-sm">
           Tidak menerima kode?{" "}
           <button
-            onClick={() => {
-              /* Implement resend logic */
-            }}
-            className="text-white hover:underline"
+            onClick={handleResendCode}
+            disabled={isResending}
+            className="text-white hover:underline disabled:opacity-50"
           >
-            Kirim ulang kode
+            {isResending ? "Mengirim..." : "Kirim ulang kode"}
           </button>
         </div>
       </div>
