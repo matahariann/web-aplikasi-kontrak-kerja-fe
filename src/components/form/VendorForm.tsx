@@ -227,7 +227,9 @@ const VendorForm = ({ currentStep, setCurrentStep }) => {
                 </Button>
               )}
 
-              <h3 className="font-medium mb-4">Data Vendor {index + 1}</h3>
+              <h3 className="font-medium mb-4">
+                Data Vendor {index + 1} {index === 0 && " (Terpilih)"}{" "}
+              </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor={`nama_vendor_${index}`}>
