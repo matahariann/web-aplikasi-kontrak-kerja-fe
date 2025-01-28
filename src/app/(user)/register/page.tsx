@@ -221,7 +221,7 @@ export default function Register() {
                 "text",
                 "Masukkan nama lengkap"
               )}
-              {renderInput("Email", "email", "email", "email@example.com")}
+              {renderInput("Email", "email", "email", "email@gmail.com")}
               {renderInput(
                 "Nomor Telepon",
                 "no_telp",

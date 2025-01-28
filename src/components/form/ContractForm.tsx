@@ -91,8 +91,14 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
           </div>
         </div>
         <p className="text-sm text-gray-500 mt-2">
-          Batas maksimal total untuk jenis kontrak {contractType}:{" "}
-          {formatCurrency(MAX_PRICE[contractType])}
+          Batas maksimal total untuk jenis kontrak{" "}
+          {contractType ? (
+            <>
+              {contractType}: {formatCurrency(MAX_PRICE[contractType])}
+            </>
+          ) : (
+            "belum dipilih"
+          )}
         </p>
       </div>
     );
@@ -101,6 +107,10 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
   const calculateTotalValues = (
     contracts: Omit<ContractData, "jenis_kontrak">[]
   ) => {
+    if (!contractType) {
+      return { estimatedTotal: 0, initialTotal: 0, finalTotal: 0 };
+    }
+
     return contracts.reduce(
       (totals, contract) => ({
         estimatedTotal:
