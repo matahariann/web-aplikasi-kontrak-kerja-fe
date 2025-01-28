@@ -17,13 +17,13 @@ export default function Login() {
     setIsSubmitting(true);
 
     const result = await login(email, password);
-    
+
     if (result.success) {
       toast.success("Login berhasil!", {
         duration: 2000,
       });
       localStorage.setItem("token", result.data.token);
-      
+
       // Wait for the toast to be visible before redirecting
       setTimeout(() => {
         router.push("/employee-beranda");
@@ -31,14 +31,14 @@ export default function Login() {
     } else {
       toast.error(result.message);
     }
-    
+
     setIsSubmitting(false);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-600 flex items-center justify-center p-4">
       <Toaster position="top-center" expand={true} richColors />
-      
+
       {/* Decorative Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-20 w-20 h-20 bg-blue-400/20 rounded-full blur-xl" />
@@ -94,9 +94,12 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
             />
             <div className="mt-2 text-right">
-              <a href="#" className="text-sm text-white/80 hover:text-white">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-white/80 hover:text-white"
+              >
                 Forgot Password?
-              </a>
+              </Link>
             </div>
           </div>
 

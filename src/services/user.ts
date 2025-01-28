@@ -121,3 +121,80 @@ export const resendVerificationCode = async (email: string) => {
     throw new Error(errorMessage);
   }
 };
+
+export const forgotPassword = async (email: string) => {
+  if (!email) {
+    throw new Error("Email harus diisi");
+  }
+
+  if (!validateEmail(email)) {
+    throw new Error("Format email tidak valid");
+  }
+
+  try {
+    const response = await axios.post(
+      "http://localhost:8000/api/forgot-password",
+      { email }
+    );
+    return {
+      success: true,
+      userId: response.data.data.user_id,
+      email: response.data.data.email,
+      message: response.data.message,
+    };
+  } catch (error: any) {
+    const errorMessage =
+      error.response?.data?.message || "Email tidak ditemukan";
+    throw new Error(errorMessage);
+  }
+};
+
+export const resetPassword = async (
+  userId: string,
+  password: string,
+  password_confirmation: string
+) => {
+  if (!password) throw new Error("Password harus diisi");
+  if (!password_confirmation)
+    throw new Error("Konfirmasi password harus diisi");
+  if (password !== password_confirmation) {
+    throw new Error("Password dan konfirmasi password tidak cocok");
+  }
+  if (password.length < 8) {
+    throw new Error("Password minimal 8 karakter");
+  }
+
+  try {
+    const response = await axios.post(
+      "http://localhost:8000/api/reset-password",
+      {
+        user_id: userId,
+        password,
+        password_confirmation,
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    const errorMessage =
+      error.response?.data?.message || "Gagal mengubah password";
+    throw new Error(errorMessage);
+  }
+};
+
+export const resendResetPasswordCode = async (email: string) => {
+  if (!email) {
+    throw new Error("Email harus diisi");
+  }
+
+  try {
+    const response = await axios.post(
+      "http://localhost:8000/api/resend-reset-password-code",
+      { email }
+    );
+    return response.data;
+  } catch (error: any) {
+    const errorMessage =
+      error.response?.data?.message || "Gagal mengirim ulang kode verifikasi";
+    throw new Error(errorMessage);
+  }
+};
