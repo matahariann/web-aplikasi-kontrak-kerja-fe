@@ -133,3 +133,35 @@ export const getOfficialsByPeriode = async (token: string, periode: string) => {
     throw error;
   }
 };
+
+export const updateOfficialSession = async (
+  token: string,
+  officialId: string,
+  data: {
+    form_session_id: string;
+    is_new_data?: boolean;
+    officials?: OfficialData[];
+    temp_data?: any;
+  }
+): Promise<any> => {
+  try {
+    const response = await axios.put(
+      `http://localhost:8000/api/update-official-session/${officialId}`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.error || "Gagal memperbarui sesi official"
+      );
+    }
+    throw error;
+  }
+};

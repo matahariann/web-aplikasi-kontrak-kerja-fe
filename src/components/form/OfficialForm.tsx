@@ -15,11 +15,11 @@ import {
 } from "@/components/ui/select";
 import {
   addOfficial,
-  updateOfficial,
   getOfficialData,
   getPeriodes,
   getOfficialsByPeriode,
   OfficialData,
+  updateOfficialSession,
 } from "@/services/official";
 
 const INITIAL_OFFICIALS = [
@@ -165,32 +165,40 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
       }
 
       if (isFromDatabase) {
+        // Handling existing data
         for (const official of officialsData) {
           if (!official.id) {
             throw new Error("ID official tidak ditemukan untuk update");
           }
-          await axiosInstance.put(`/update-official-session/${official.id}`, {
+          await updateOfficialSession(token, official.id, {
             form_session_id: sessionId,
-            current_session_id: sessionId,
+            is_new_data: false,
           });
         }
         toast.success("Data pejabat berhasil digunakan");
       } else {
         if (isEditMode) {
-          for (const official of officialsData) {
-            if (!official.id) {
-              throw new Error("ID official tidak ditemukan untuk update");
-            }
-            await updateOfficial(token, official.id, {
+          // Handling new data when editing
+          const firstOfficial = officialsData[0];
+          if (!firstOfficial.id) {
+            throw new Error("ID official tidak ditemukan untuk update");
+          }
+
+          await updateOfficialSession(token, firstOfficial.id, {
+            form_session_id: sessionId,
+            is_new_data: true,
+            officials: officialsData.map((official) => ({
               ...official,
               periode_jabatan:
                 selectedPeriode === "new"
                   ? officialsData[0].periode_jabatan
                   : selectedPeriode,
-            });
-          }
+            })),
+          });
+
           toast.success("Data pejabat berhasil diperbarui");
         } else {
+          // Adding completely new data
           await addOfficial(
             token,
             officialsData.map((official) => ({
@@ -265,7 +273,6 @@ const OfficialsForm = ({ currentStep, setCurrentStep }) => {
 
     fetchInitialData();
   }, []);
-
 
   return (
     <>
