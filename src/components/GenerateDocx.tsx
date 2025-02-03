@@ -27,8 +27,6 @@ import {
   AlertDialogDescription,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Printer } from "lucide-react";
 import { getImage } from "@/services/employee";
 import { VendorData } from "@/services/vendor";
@@ -51,12 +49,6 @@ interface PrintConfirmationDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-}
-
-interface PrintDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: (filename: string) => void;
 }
 
 interface PrintContractProps {
@@ -89,55 +81,6 @@ const PrintConfirmationDialog = ({
         <AlertDialogFooter>
           <AlertDialogCancel onClick={onClose}>Batal</AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm}>Ya, Cetak</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
-};
-
-const PrintDialog = ({ isOpen, onClose, onConfirm }: PrintDialogProps) => {
-  const [filename, setFilename] = useState("");
-  const [error, setError] = useState<string | null>(null);
-
-  const handleConfirm = () => {
-    if (!filename.trim()) {
-      setError("Nama file harus diisi");
-      return;
-    }
-    setError(null);
-    onConfirm(filename);
-    setFilename("");
-    onClose();
-  };
-
-  const handleClose = () => {
-    setFilename("");
-    setError(null);
-    onClose();
-  };
-
-  return (
-    <AlertDialog open={isOpen}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Simpan Dokumen</AlertDialogTitle>
-        </AlertDialogHeader>
-        <div className="py-4">
-          <Label htmlFor="filename">Nama File</Label>
-          <Input
-            id="filename"
-            value={filename}
-            onChange={(e) => {
-              setFilename(e.target.value);
-              setError(null); // Clear error when user types
-            }}
-            placeholder="Masukkan nama file"
-          />
-          {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
-        </div>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={handleClose}>Batal</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm}>Simpan</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -8536,7 +8479,6 @@ export const PrintContract: React.FC<PrintContractProps> = ({
   setCurrentStep,
   onDownloadSuccess,
 }) => {
-  const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
   const [isPrintConfirmationOpen, setIsPrintConfirmationOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -8559,16 +8501,12 @@ export const PrintContract: React.FC<PrintContractProps> = ({
     }
   };
 
-  const handlePrintConfirmed = () => {
+  const handlePrintConfirmed = async () => {
     setIsPrintConfirmationOpen(false);
-    setIsPrintDialogOpen(true);
-  };
-
-  const handlePrint = async (filename: string) => {
     setIsProcessing(true);
     try {
-      if (!filename || !documentData) {
-        onError("Nama file harus diisi dan data harus tersedia");
+      if (!documentData) {
+        onError("Data dokumen tidak tersedia");
         return;
       }
 
@@ -8585,21 +8523,20 @@ export const PrintContract: React.FC<PrintContractProps> = ({
         officialData,
       });
 
-      // Save document
-      const blob = await Packer.toBlob(doc);
-      const sanitizedFilename = filename
+      // Save document using paket_pekerjaan as filename
+      const sanitizedFilename = documentData.paket_pekerjaan
         .replace(/[^a-z0-9]/gi, "_")
         .toLowerCase();
       const fullFilename = `${sanitizedFilename}.docx`;
+      
+      const blob = await Packer.toBlob(doc);
       saveAs(blob, fullFilename);
 
-      // // Complete the form session
+      // Complete the form session
       await completeForm(token);
 
-      // // Clear the form session
+      // Clear the form session
       await clearFormSession(token);
-
-      setIsPrintDialogOpen(false);
 
       onDownloadSuccess();
 
@@ -8639,12 +8576,6 @@ export const PrintContract: React.FC<PrintContractProps> = ({
         isOpen={isPrintConfirmationOpen}
         onClose={() => setIsPrintConfirmationOpen(false)}
         onConfirm={handlePrintConfirmed}
-      />
-
-      <PrintDialog
-        isOpen={isPrintDialogOpen}
-        onClose={() => setIsPrintDialogOpen(false)}
-        onConfirm={handlePrint}
       />
     </>
   );
