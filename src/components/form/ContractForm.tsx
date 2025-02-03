@@ -78,15 +78,15 @@ const ContractsForm = ({ currentStep, setCurrentStep }) => {
         <h4 className="font-medium mb-2">Total Nilai Kontrak</h4>
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <p className="text-sm text-gray-600">Total Nilai Perkiraan:</p>
+            <p className="text-sm text-gray-600">Total Harga Perkiraan Sendiri:</p>
             <p className="font-medium">{formatCurrency(estimatedTotal)}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Total Nilai Awal:</p>
+            <p className="text-sm text-gray-600">Total Harga Sebelum Negosiasi:</p>
             <p className="font-medium">{formatCurrency(initialTotal)}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Total Nilai Akhir:</p>
+            <p className="text-sm text-gray-600">Total Harga Setelah Negosiasi:</p>
             <p className="font-medium">{formatCurrency(finalTotal)}</p>
           </div>
         </div>

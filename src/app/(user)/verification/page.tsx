@@ -73,65 +73,89 @@ export default function Verification() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-600 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 flex items-center justify-center p-4">
       <Toaster position="top-center" expand={true} richColors />
 
-      <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 w-full max-w-md relative">
-        <div className="mb-6 flex justify-center">
-          <Image
-            src="/logo_kominfo.png"
-            alt="Kominfo Logo"
-            width={160}
-            height={160}
-            className="w-24 h-24 object-contain"
-            priority
-          />
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-20 left-20 w-32 h-32 bg-red-800/10 rounded-full blur-2xl animate-pulse" />
+        <div className="absolute bottom-20 right-20 w-32 h-32 bg-yellow-500/10 rounded-full blur-2xl animate-pulse delay-150" />
+        <div className="absolute top-1/3 right-1/4 w-40 h-40 bg-blue-400/10 rounded-full blur-2xl animate-pulse delay-300" />
+      </div>
+
+      <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 w-full max-w-md relative border border-white/20 shadow-2xl">
+        {/* Logo Container with Glow Effect */}
+        <div className="mb-8 flex justify-center relative">
+          <div className="absolute inset-0 bg-blue-400/20 blur-2xl rounded-full" />
+          <div className="w-32 h-32 relative">
+            <Image
+              src="/logo_komdigi.png"
+              alt="Logo Komdigi"
+              width={160}
+              height={160}
+              className="w-full h-full object-contain drop-shadow-lg"
+              priority
+            />
+          </div>
         </div>
 
-        <h2 className="text-2xl font-semibold text-white mb-4 text-center">
+        <h2 className="text-2xl font-bold text-white mb-4 text-center tracking-wide">
           Verifikasi Email
         </h2>
 
-        <p className="text-white/80 text-center mb-6">
+        <p className="text-white/80 text-center mb-8">
           Masukkan kode verifikasi 6 digit yang telah dikirim ke email{" "}
-          <span className="font-semibold">{email}</span>
+          <span className="font-semibold text-white">{email}</span>
         </p>
 
-        <form onSubmit={handleVerification} className="space-y-4">
-          <div>
-            <label className="block text-white text-sm mb-2">
+        <form onSubmit={handleVerification} className="space-y-6">
+          <div className="space-y-2">
+            <label className="block text-white/90 text-sm font-medium pl-1">
               Kode Verifikasi
             </label>
             <input
               type="text"
               value={verificationCode}
               onChange={(e) => {
-                // Only allow numeric input
                 const numericValue = e.target.value.replace(/\D/g, "");
-                // Limit to 6 characters
                 setVerificationCode(numericValue.slice(0, 6));
               }}
               placeholder="Masukkan 6 digit kode"
               maxLength={6}
-              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:border-white/40"
+              className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white text-center text-2xl tracking-wide
+                       placeholder-white/40 focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 
+                       transition-all duration-300"
             />
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 
+                     text-white py-3 rounded-xl transition-all duration-300 transform hover:scale-[1.02]
+                     disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+                     font-semibold text-lg shadow-lg shadow-blue-900/30"
           >
-            {isSubmitting ? "Memverifikasi..." : "Verifikasi"}
+            {isSubmitting ? (
+              <span className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Memverifikasi...
+              </span>
+            ) : (
+              "Verifikasi"
+            )}
           </button>
         </form>
 
-        <div className="mt-4 text-center text-white/80 text-sm">
+        <div className="mt-6 text-center text-white/80 text-sm">
           Tidak menerima kode?{" "}
           <button
             onClick={handleResendCode}
             disabled={isResending}
-            className="text-white hover:underline disabled:opacity-50"
+            className="text-white font-medium hover:underline transition-all duration-300 disabled:opacity-50"
           >
             {isResending ? "Mengirim..." : "Kirim ulang kode"}
           </button>

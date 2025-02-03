@@ -794,7 +794,7 @@ export const generateContractDocument = async ({
 
   const generateTabelKontrakAwal = (contractsData) => {
     const tableRows = [];
-    const { contractTotals } = calculateContractAwal(contractsData);
+    // const { contractTotals } = calculateContractAwal(contractsData);
 
     // Header Row
     tableRows.push(
@@ -1401,8 +1401,8 @@ export const generateContractDocument = async ({
                         new ImageRun({
                           data: imageData.image,
                           transformation: {
-                            width: 80,
-                            height: 80,
+                            width: 100,
+                            height: 100,
                           },
                         }),
                       ],
@@ -1424,10 +1424,10 @@ export const generateContractDocument = async ({
                     new Paragraph({
                       children: [
                         new TextRun({
-                          text: "KEMENTERIAN KOMUNIKASI DAN INFORMATIKA",
-                          size: 14 * 2,
-                          font: "Arial",
-                          color: "000080", // Navy blue
+                          text: "KEMENTERIAN KOMUNIKASI DAN DIGITAL RI",
+                          size: 16 * 2,
+                          font: "Archivo",
+                          color: "808080",
                         }),
                       ],
                     }),
@@ -1436,8 +1436,8 @@ export const generateContractDocument = async ({
                         new TextRun({
                           text: "DIREKTORAT JENDERAL APLIKASI INFORMATIKA",
                           size: 14 * 2,
-                          font: "Arial",
-                          color: "000080", // Navy blue
+                          font: "Archivo",
+                          color: "808080",
                         }),
                       ],
                     }),
@@ -1445,20 +1445,9 @@ export const generateContractDocument = async ({
                       children: [
                         new TextRun({
                           text: "SEKRETARIAT DIREKTORAT JENDERAL",
-                          size: 10 * 2,
-                          font: "Arial",
-                          color: "000080", // Navy blue
-                        }),
-                      ],
-                    }),
-                    new Paragraph({
-                      children: [
-                        new TextRun({
-                          text: "Indonesia Terkoneksi: Makin Digital, Makin Maju",
-                          bold: true,
-                          size: 12 * 2,
-                          font: "Brush Script MT",
-                          color: "155E95",
+                          size: 11 * 2,
+                          font: "Archivo",
+                          color: "808080",
                         }),
                       ],
                     }),
@@ -1466,10 +1455,10 @@ export const generateContractDocument = async ({
                       spacing: { after: 100 },
                       children: [
                         new TextRun({
-                          text: "Jl. Medan Merdeka Barat No. 9 Jakarta 10110 Tel./Fax. 021-3441491 www.kominfo.go.id",
-                          size: 7 * 2,
-                          font: "Arial",
-                          color: "000080",
+                          text: "Jl. Medan Merdeka Barat No. 9 Jakarta 10110 Tel./Fax. 021-3441491 www.komdigi.go.id",
+                          size: 9 * 2,
+                          font: "Archivo",
+                          color: "808080",
                         }),
                       ],
                     }),
@@ -1743,7 +1732,7 @@ export const generateContractDocument = async ({
                 }),
                 new TableCell({
                   width: {
-                    size: 8250,
+                    size: 5750,
                     type: WidthType.DXA,
                   },
                   children: [
@@ -1753,7 +1742,25 @@ export const generateContractDocument = async ({
                         new TextRun({
                           text: `${
                             documentData.nomor_pp
-                          }\tJakarta, ${formatDate(documentData.tanggal_pp)}`,
+                          }`,
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 2500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: `Jakarta, ${formatDate(documentData.tanggal_pp)}`,
                           size: 11 * 2,
                           font: "Arial",
                         }),
@@ -2325,14 +2332,32 @@ export const generateContractDocument = async ({
                     }),
                     new TableCell({
                       width: {
-                        size: 8250,
+                        size: 5750,
                         type: WidthType.DXA,
                       },
                       children: [
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: `${currentDocNumber}        Jakarta, ${formatDate(
+                              text: `${currentDocNumber}`,
+                              size: 11 * 2,
+                              font: "Arial",
+                            }),
+                          ],
+                        }),
+                      ],
+                    }),
+                    new TableCell({
+                      width: {
+                        size: 2500,
+                        type: WidthType.DXA,
+                      },
+                      children: [
+                        new Paragraph({
+                          alignment: AlignmentType.CENTER,
+                          children: [
+                            new TextRun({
+                              text: `Jakarta, ${formatDate(
                                 documentData.tanggal_pph1
                               )}`,
                               size: 11 * 2,
@@ -3179,7 +3204,7 @@ export const generateContractDocument = async ({
                 }),
                 new TableCell({
                   width: {
-                    size: 8250,
+                    size: 5750,
                     type: WidthType.DXA,
                   },
                   borders: {
@@ -3194,7 +3219,25 @@ export const generateContractDocument = async ({
                         new TextRun({
                           text: `${
                             documentData.nomor_ukn
-                          }        Jakarta, ${formatDate(
+                          }`,
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 2500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: `Jakarta, ${formatDate(
                             documentData.tanggal_ukn
                           )}`,
                           size: 11 * 2,
@@ -4535,7 +4578,7 @@ export const generateContractDocument = async ({
                 }),
                 new TableCell({
                   width: {
-                    size: 8250,
+                    size: 5750,
                     type: WidthType.DXA,
                   },
                   children: [
@@ -4544,7 +4587,25 @@ export const generateContractDocument = async ({
                         new TextRun({
                           text: `${
                             documentData.nomor_pppb
-                          }        Jakarta, ${formatDate(
+                          }`,
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 2500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: `Jakarta, ${formatDate(
                             documentData.tanggal_pppb
                           )}`,
                           size: 11 * 2,
@@ -5217,7 +5278,7 @@ export const generateContractDocument = async ({
                 }),
                 new TableCell({
                   width: {
-                    size: 8250,
+                    size: 5750,
                     type: WidthType.DXA,
                   },
                   children: [
@@ -5226,7 +5287,25 @@ export const generateContractDocument = async ({
                         new TextRun({
                           text: `${
                             documentData.nomor_lppb
-                          }        Jakarta, ${formatDate(
+                          }`,
+                          size: 11 * 2,
+                          font: "Arial",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: {
+                    size: 2500,
+                    type: WidthType.DXA,
+                  },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: `Jakarta, ${formatDate(
                             documentData.tanggal_lppb
                           )}`,
                           size: 11 * 2,
