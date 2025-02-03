@@ -12,8 +12,6 @@ export default function Register() {
     nip: "",
     nama: "",
     email: "",
-    no_telp: "",
-    alamat: "",
     password: "",
     password_confirmation: "",
   });
@@ -22,8 +20,6 @@ export default function Register() {
     nip: "",
     nama: "",
     email: "",
-    no_telp: "",
-    alamat: "",
     password: "",
     password_confirmation: "",
   });
@@ -215,6 +211,9 @@ export default function Register() {
         </h2>
 
         <form onSubmit={handleRegister}>
+          <div className="mb-4">
+            {renderInput("Email", "email", "email", "email@gmail.com")}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Left Column */}
             <div className="space-y-6">
@@ -225,18 +224,10 @@ export default function Register() {
                 "text",
                 "Masukkan nama lengkap"
               )}
-              {renderInput("Email", "email", "email", "email@gmail.com")}
-              {renderInput(
-                "Nomor Telepon",
-                "no_telp",
-                "tel",
-                "Masukkan nomor telepon"
-              )}
             </div>
 
             {/* Right Column */}
             <div className="space-y-6">
-              {renderInput("Alamat", "alamat", "text", "Masukkan alamat", true)}
               {renderInput(
                 "Password",
                 "password",

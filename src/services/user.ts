@@ -18,8 +18,6 @@ export const register = async (userData: {
   if (!userData.nip) throw new Error("NIP harus diisi");
   if (!userData.nama) throw new Error("Nama harus diisi");
   if (!userData.email) throw new Error("Email harus diisi");
-  if (!userData.no_telp) throw new Error("Nomor telepon harus diisi");
-  if (!userData.alamat) throw new Error("Alamat harus diisi");
   if (!userData.password) throw new Error("Password harus diisi");
   if (!userData.password_confirmation)
     throw new Error("Konfirmasi password harus diisi");

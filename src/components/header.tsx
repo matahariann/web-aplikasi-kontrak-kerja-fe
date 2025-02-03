@@ -75,8 +75,8 @@ const Header = () => {
           style={{ userSelect: "none" }}
         >
           <img
-            src="/logo_kominfo.png"
-            alt="Logo Kominfo"
+            src="/logo_komdigi.png"
+            alt="Logo Komdigi"
             className="h-10 w-10"
             draggable={false}
           />
