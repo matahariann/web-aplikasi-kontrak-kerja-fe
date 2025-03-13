@@ -67,7 +67,9 @@ export default function Login() {
         </h2>
         <div className="flex-grow border-t border-white/20 my-4"></div>
         <h2 className="text-xl font-semibold text-white/90 mb-8 text-center">
-          Dokumen Kontrak Kerja Apps
+          Aplikasi Pembuatan 
+          <br></br>
+          Dokumen Kontrak Kerja
         </h2>
 
         <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>

@@ -6,7 +6,7 @@ import { EmployeeProvider } from "@/context/EmployeeContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Dokumen Kontrak Kerja Apps",
+  title: "Aplikasi Dokumen Kontrak Kerja",
 };
 
 export default function RootLayout({

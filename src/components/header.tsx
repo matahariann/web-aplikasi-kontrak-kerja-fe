@@ -81,7 +81,7 @@ const Header = () => {
             draggable={false}
           />
           <span className="ml-2 text-xl font-semibold">
-            Dokumen Kontrak Kerja Apps
+            Aplikasi Pembuatan Dokumen Kontrak Kerja
           </span>
         </div>
 
